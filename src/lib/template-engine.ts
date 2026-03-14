@@ -8,8 +8,8 @@ export function renderTemplate(
 }
 
 export function extractVariables(template: string): string[] {
-  const matches = template.matchAll(/\{\{(\w+(?:\.\w+)*)\}\}/g);
-  return [...new Set([...matches].map((m) => m[1]))];
+  const matches = Array.from(template.matchAll(/\{\{(\w+(?:\.\w+)*)\}\}/g));
+  return Array.from(new Set(matches.map((m) => m[1])));
 }
 
 export function buildVariablesFromProperty(
