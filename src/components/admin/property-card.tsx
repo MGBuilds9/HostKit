@@ -14,7 +14,7 @@ interface PropertyCardProps {
   ownerName: string;
 }
 
-export function PropertyCard({ id, name, slug: _slug, addressCity, layout, active, ownerName }: PropertyCardProps) {
+export function PropertyCard({ id, name, addressCity, layout, active, ownerName }: PropertyCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">

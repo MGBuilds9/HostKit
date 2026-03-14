@@ -88,7 +88,6 @@ export function StepAmenities({ data, onNext, onBack }: StepAmenitiesProps) {
     register,
     handleSubmit,
     watch,
-    setValue,
     control,
     formState: { errors },
   } = useForm<AmenitiesFormValues>({
@@ -111,7 +110,6 @@ export function StepAmenities({ data, onNext, onBack }: StepAmenitiesProps) {
   } = useFieldArray({ control, name: "houseRules" });
 
   const idRequired = watch("idRequired");
-  const thirdPartyAllowed = watch("thirdPartyAllowed");
 
   function onSubmit(values: AmenitiesFormValues) {
     // Merge tag arrays into form values

@@ -24,7 +24,6 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
     register,
     handleSubmit,
     control,
-    formState: { errors },
   } = useForm<AccessFormValues>({
     resolver: zodResolver(propertyAccessSchema),
     defaultValues: {

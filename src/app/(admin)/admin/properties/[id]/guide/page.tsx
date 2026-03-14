@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExternalLink, Download, Printer, QrCode, Wifi } from "lucide-react";
+import { ExternalLink, Download, QrCode, Wifi } from "lucide-react";
 import { PrintButton } from "./print-button";
 
 export default async function GuidePreviewPage({ params }: { params: { id: string } }) {
