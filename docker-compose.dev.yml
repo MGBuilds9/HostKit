@@ -1,0 +1,8 @@
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up db
+# Only starts Postgres for local dev — app runs via pnpm dev on host
+version: "3.8"
+
+services:
+  db:
+    ports:
+      - "5432:5432"

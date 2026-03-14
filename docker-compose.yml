@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hostkit
+      POSTGRES_USER: hostkit
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - hostkit_pgdata:/var/lib/postgresql/data
+    networks:
+      - hostkit
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hostkit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://hostkit:${DB_PASSWORD}@db:5432/hostkit
+      NEXTAUTH_URL: https://hostkit.mkgbuilds.com
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    ports:
+      - "3100:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hostkit
+
+volumes:
+  hostkit_pgdata:
+
+networks:
+  hostkit:
