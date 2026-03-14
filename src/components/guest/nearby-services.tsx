@@ -27,7 +27,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function NearbyServices({ services }: { services: Service[] }) {
-  const categories = [...new Set(services.map(s => s.category))];
+  const categories = Array.from(new Set(services.map(s => s.category)));
   const [activeCategory, setActiveCategory] = useState(categories[0]);
 
   const filtered = services.filter(s => s.category === activeCategory);
