@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { db } from "@/db";
 import { properties, turnovers, owners } from "@/db/schema";
 import { count } from "drizzle-orm";
