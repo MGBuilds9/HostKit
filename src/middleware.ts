@@ -1,21 +1,32 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth;
-  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
-  const isLoginPage = req.nextUrl.pathname === "/login";
+// NOTE: We cannot import `auth` from `@/lib/auth` here because it
+// pulls in `postgres` (Node.js-only) which is incompatible with
+// the Edge Runtime that middleware runs in.
+//
+// Instead, we check for the session cookie directly. The actual
+// auth validation happens in the server components via requireAuth().
+
+export function middleware(request: NextRequest) {
+  const sessionCookie =
+    request.cookies.get("authjs.session-token") ??
+    request.cookies.get("__Secure-authjs.session-token");
+
+  const isLoggedIn = !!sessionCookie;
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  const isLoginPage = request.nextUrl.pathname === "/login";
 
   if (isAdminRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (isLoginPage && isLoggedIn) {
-    return NextResponse.redirect(new URL("/admin", req.url));
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*", "/login"],
