@@ -13,8 +13,10 @@ export function HouseRulesSection({ rules, securityNote }: { rules: Rule[]; secu
       <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-3">House Rules</h2>
       <div className="space-y-2">
         {rules.map((r, i) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
           const Icon = r.icon
-            ? (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[toPascalCase(r.icon)] ?? LucideIcons.CircleDot
+            ? icons[toPascalCase(r.icon)] ?? LucideIcons.CircleDot
             : LucideIcons.CircleDot;
           return (
             <div key={i} className="flex items-center gap-3 py-2">

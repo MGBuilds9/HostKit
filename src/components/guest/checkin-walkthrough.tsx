@@ -17,10 +17,10 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
   const [current, setCurrent] = useState(0);
 
   // Dynamically resolve icon by name
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
   const IconComponent = steps[current].icon
-    ? (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[
-        toPascalCase(steps[current].icon!)
-      ] ?? LucideIcons.MapPin
+    ? icons[toPascalCase(steps[current].icon!)] ?? LucideIcons.MapPin
     : LucideIcons.MapPin;
 
   return (
