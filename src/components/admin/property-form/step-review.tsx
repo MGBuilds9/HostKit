@@ -12,7 +12,7 @@ interface StepReviewProps {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-700 border-b pb-1">{title}</h3>
+      <h3 className="text-sm font-semibold text-foreground border-b pb-1">{title}</h3>
       {children}
     </div>
   );
@@ -24,10 +24,10 @@ function Field({ label, value }: { label: string; value: unknown }) {
 
   return (
     <div className="flex gap-2 text-sm">
-      <span className="text-slate-500 min-w-[140px] shrink-0">{label}:</span>
-      <span className="text-slate-800 break-all">
+      <span className="text-muted-foreground min-w-[140px] shrink-0">{label}:</span>
+      <span className="text-foreground break-all">
         {Array.isArray(value) ? (
-          <span className="text-slate-600">{value.length} item(s)</span>
+          <span className="text-muted-foreground">{value.length} item(s)</span>
         ) : typeof value === "boolean" ? (
           value ? "Yes" : "No"
         ) : (
@@ -46,10 +46,10 @@ function ArraySummary({ label, items, renderItem }: {
   if (!items || items.length === 0) return null;
   return (
     <div className="space-y-1">
-      <span className="text-sm text-slate-500 font-medium">{label}:</span>
+      <span className="text-sm text-muted-foreground font-medium">{label}:</span>
       <ul className="space-y-1 pl-3">
         {items.map((item, i) => (
-          <li key={i} className="text-sm text-slate-700">
+          <li key={i} className="text-sm text-foreground">
             {renderItem(item, i)}
           </li>
         ))}

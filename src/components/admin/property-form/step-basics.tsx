@@ -79,7 +79,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
         <Input id="name" {...register("name")} placeholder="e.g. Kith 1423" />
         {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
         {slugPreview && (
-          <p className="text-xs text-slate-400">Slug: <span className="font-mono">{slugPreview}</span></p>
+          <p className="text-xs text-muted-foreground">Slug: <span className="font-mono">{slugPreview}</span></p>
         )}
       </div>
 
@@ -118,7 +118,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
 
       {/* Address */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-700">Address</h3>
+        <h3 className="text-sm font-semibold text-foreground">Address</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="col-span-1 md:col-span-2 space-y-1">
             <Label htmlFor="addressStreet">Street *</Label>
@@ -180,7 +180,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
       {/* Beds */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Beds</h3>
+          <h3 className="text-sm font-semibold text-foreground">Beds</h3>
           <Button
             type="button"
             variant="outline"

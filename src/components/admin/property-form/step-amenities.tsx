@@ -50,13 +50,13 @@ function TagInput({
         {tags.map((tag, i) => (
           <span
             key={i}
-            className="flex items-center gap-1 bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-full"
+            className="flex items-center gap-1 bg-muted text-foreground text-xs px-2 py-1 rounded-full"
           >
             {tag}
             <button
               type="button"
               onClick={() => onRemove(i)}
-              className="text-slate-400 hover:text-red-500"
+              className="text-muted-foreground hover:text-red-500"
             >
               <X className="h-3 w-3" />
             </button>
@@ -151,7 +151,7 @@ export function StepAmenities({ data, onNext, onBack }: StepAmenitiesProps) {
       {/* House Rules */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">House Rules</h3>
+          <h3 className="text-sm font-semibold text-foreground">House Rules</h3>
           <Button
             type="button"
             variant="outline"
@@ -184,13 +184,13 @@ export function StepAmenities({ data, onNext, onBack }: StepAmenitiesProps) {
 
       {/* Policies */}
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Policies</h3>
+        <h3 className="text-sm font-semibold text-foreground">Policies</h3>
 
         <div className="flex items-center gap-3">
           <input
             id="idRequired"
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300"
+            className="h-4 w-4 rounded border-input"
             {...register("idRequired")}
           />
           <Label htmlFor="idRequired">ID Verification Required</Label>
@@ -213,7 +213,7 @@ export function StepAmenities({ data, onNext, onBack }: StepAmenitiesProps) {
           <input
             id="thirdPartyAllowed"
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300"
+            className="h-4 w-4 rounded border-input"
             {...register("thirdPartyAllowed")}
           />
           <Label htmlFor="thirdPartyAllowed">Third-Party Bookings Allowed</Label>

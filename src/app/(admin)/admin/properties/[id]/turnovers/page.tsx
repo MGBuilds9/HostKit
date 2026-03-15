@@ -112,7 +112,7 @@ export default async function TurnoversPage({ params }: Props) {
                     )}
                   </div>
                   {t.notes && (
-                    <p className="text-sm text-muted-foreground border-l-2 border-slate-200 pl-3">
+                    <p className="text-sm text-muted-foreground border-l-2 border-border pl-3">
                       {t.notes}
                     </p>
                   )}
@@ -136,8 +136,8 @@ export default async function TurnoversPage({ params }: Props) {
                                   <span
                                     className={`h-3 w-3 rounded-sm border flex-shrink-0 ${
                                       item.completed
-                                        ? "bg-slate-900 border-slate-900"
-                                        : "border-slate-300"
+                                        ? "bg-primary border-primary"
+                                        : "border-input"
                                     }`}
                                   />
                                   <span

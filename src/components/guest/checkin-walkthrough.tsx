@@ -26,11 +26,11 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
     : LucideIcons.MapPin;
 
   return (
-    <section className="px-5">
+    <section>
       <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-3">
         Check-In Walkthrough
       </h2>
-      <div className="bg-[#F9FAFB] rounded-2xl p-5 relative overflow-hidden">
+      <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: "hsl(var(--guest-section-bg))" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
@@ -41,15 +41,15 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
             className="space-y-3"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF6B6B]/10">
-                <IconComponent className="h-5 w-5 text-[#FF6B6B]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full" style={{ background: "hsl(var(--guest-accent-soft))" }}>
+                <IconComponent className="h-5 w-5" style={{ color: "hsl(var(--guest-accent))" }} />
               </div>
-              <span className="text-xs font-medium text-slate-400 uppercase">
+              <span className="text-xs font-medium uppercase" style={{ color: "hsl(var(--guest-text-muted))" }}>
                 Step {current + 1} of {steps.length}
               </span>
             </div>
             <h3 className="font-semibold text-lg">{steps[current].title}</h3>
-            <p className="text-slate-600 text-sm leading-relaxed">{steps[current].description}</p>
+            <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--guest-text-muted))" }}>{steps[current].description}</p>
             {steps[current].mediaUrl && steps[current].mediaType === "image" && (
               <img
                 src={steps[current].mediaUrl}
@@ -72,7 +72,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           <button
             onClick={() => setCurrent(Math.max(0, current - 1))}
             disabled={current === 0}
-            className="p-2 rounded-full hover:bg-slate-200 disabled:opacity-30"
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -81,9 +81,8 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
             {steps.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === current ? "w-6 bg-[#FF6B6B]" : "w-1.5 bg-slate-300"
-                }`}
+                className={`h-1.5 rounded-full transition-all ${i === current ? "w-6" : "w-1.5"}`}
+                style={{ background: i === current ? "hsl(var(--guest-accent))" : "hsl(var(--guest-card-border))" }}
               />
             ))}
           </div>
@@ -91,7 +90,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           <button
             onClick={() => setCurrent(Math.min(steps.length - 1, current + 1))}
             disabled={current === steps.length - 1}
-            className="p-2 rounded-full hover:bg-slate-200 disabled:opacity-30"
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
           >
             <ChevronRight className="h-5 w-5" />
           </button>

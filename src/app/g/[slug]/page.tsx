@@ -70,51 +70,62 @@ export default async function GuestGuidePage({ params }: Props) {
         description={property.description}
         city={property.addressCity}
       />
-      <div className="py-6 space-y-5 pb-24">
-        {property.checkinSteps && property.checkinSteps.length > 0 && (
-          <CheckinWalkthrough steps={property.checkinSteps as Step[]} />
-        )}
+      <div className="px-5 sm:px-0">
+        <div className="py-8 space-y-8 pb-24 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
+          {/* Left column */}
+          <div className="space-y-8">
+            {property.checkinSteps && property.checkinSteps.length > 0 && (
+              <CheckinWalkthrough steps={property.checkinSteps as Step[]} />
+            )}
 
-        {property.wifiName && property.wifiPassword && (
-          <WifiCard name={property.wifiName} password={property.wifiPassword} />
-        )}
+            {property.wifiName && property.wifiPassword && (
+              <WifiCard name={property.wifiName} password={property.wifiPassword} />
+            )}
 
-        <ParkingCard
-          spot={property.parkingSpot}
-          instructions={property.parkingInstructions}
-          latitude={property.latitude}
-          longitude={property.longitude}
-        />
+            <ParkingCard
+              spot={property.parkingSpot}
+              instructions={property.parkingInstructions}
+              latitude={property.latitude}
+              longitude={property.longitude}
+            />
+          </div>
 
-        {property.houseRules && property.houseRules.length > 0 && (
-          <HouseRulesSection
-            rules={property.houseRules}
-            securityNote={property.securityNote ?? null}
+          {/* Right column */}
+          <div className="space-y-8">
+            {property.houseRules && property.houseRules.length > 0 && (
+              <HouseRulesSection
+                rules={property.houseRules}
+                securityNote={property.securityNote ?? null}
+              />
+            )}
+
+            <AmenitiesSection
+              kitchen={property.kitchenAmenities as string[] | null}
+              bathroom={property.bathroomAmenities as string[] | null}
+              general={property.generalAmenities as string[] | null}
+            />
+
+            {property.nearbyServices && property.nearbyServices.length > 0 && (
+              <NearbyServices services={property.nearbyServices as Service[]} />
+            )}
+
+            {property.checkoutSteps && property.checkoutSteps.length > 0 && (
+              <CheckoutSection
+                steps={property.checkoutSteps}
+                time={property.checkoutTime}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Full-width sections */}
+        <div className="space-y-8 pb-24">
+          <EmergencyContacts
+            emergency={property.emergencyContact ?? null}
+            hostPhone={property.hostPhone ?? null}
+            ownerPhone={property.ownerPhone ?? null}
           />
-        )}
-
-        <AmenitiesSection
-          kitchen={property.kitchenAmenities as string[] | null}
-          bathroom={property.bathroomAmenities as string[] | null}
-          general={property.generalAmenities as string[] | null}
-        />
-
-        {property.nearbyServices && property.nearbyServices.length > 0 && (
-          <NearbyServices services={property.nearbyServices as Service[]} />
-        )}
-
-        {property.checkoutSteps && property.checkoutSteps.length > 0 && (
-          <CheckoutSection
-            steps={property.checkoutSteps}
-            time={property.checkoutTime}
-          />
-        )}
-
-        <EmergencyContacts
-          emergency={property.emergencyContact ?? null}
-          hostPhone={property.hostPhone ?? null}
-          ownerPhone={property.ownerPhone ?? null}
-        />
+        </div>
       </div>
 
       <StickyBottomBar

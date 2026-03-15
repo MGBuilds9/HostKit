@@ -1,12 +1,7 @@
-import { Inter, DM_Sans } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
-
 export function GuideLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${inter.variable} ${dmSans.variable} font-sans min-h-screen bg-white`}>
-      <div className="mx-auto max-w-lg">{children}</div>
+    <div className="font-[family-name:var(--font-inter)] min-h-screen" style={{ background: "hsl(var(--guest-bg))" }}>
+      <div className="mx-auto max-w-lg sm:max-w-2xl lg:max-w-4xl">{children}</div>
     </div>
   );
 }

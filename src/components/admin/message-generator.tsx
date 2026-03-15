@@ -56,13 +56,14 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <div>
           <Label>Guest Name</Label>
           <Input
             placeholder="e.g. Sarah"
             value={guestName}
             onChange={(e) => setGuestName(e.target.value)}
+            className="h-12 md:h-10"
           />
         </div>
         <div>
@@ -71,6 +72,7 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
             type="date"
             value={checkinDate}
             onChange={(e) => setCheckinDate(e.target.value)}
+            className="h-12 md:h-10"
           />
         </div>
         <div>
@@ -79,6 +81,7 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
             type="date"
             value={checkoutDate}
             onChange={(e) => setCheckoutDate(e.target.value)}
+            className="h-12 md:h-10"
           />
         </div>
       </div>
@@ -112,17 +115,18 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
           messages.map((msg) => (
             <Card key={msg.id}>
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <CardTitle className="text-sm font-medium">{msg.name}</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="h-12 w-full md:h-8 md:w-auto"
                     onClick={() => copyMessage(msg.id, msg.body)}
                   >
                     {copiedId === msg.id ? (
-                      <Check className="h-3 w-3 mr-1" />
+                      <Check className="h-4 w-4 md:h-3 md:w-3 mr-1" />
                     ) : (
-                      <Copy className="h-3 w-3 mr-1" />
+                      <Copy className="h-4 w-4 md:h-3 md:w-3 mr-1" />
                     )}
                     {copiedId === msg.id ? "Copied!" : "Copy"}
                   </Button>
@@ -132,7 +136,7 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
                 )}
               </CardHeader>
               <CardContent>
-                <pre className="whitespace-pre-wrap text-sm bg-slate-50 rounded-lg p-4 font-sans">
+                <pre className="whitespace-pre-wrap text-base md:text-sm bg-muted rounded-lg p-4 font-sans">
                   {msg.body}
                 </pre>
               </CardContent>

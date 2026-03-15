@@ -63,7 +63,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* WiFi */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-700">WiFi</h3>
+        <h3 className="text-sm font-semibold text-foreground">WiFi</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="wifiName">Network Name</Label>
@@ -78,7 +78,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
 
       {/* Parking */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-700">Parking</h3>
+        <h3 className="text-sm font-semibold text-foreground">Parking</h3>
         <div className="space-y-1">
           <Label htmlFor="parkingSpot">Spot</Label>
           <Input id="parkingSpot" {...register("parkingSpot")} placeholder="P1-42" />
@@ -96,7 +96,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
 
       {/* Buzzer */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-700">Buzzer / Entry</h3>
+        <h3 className="text-sm font-semibold text-foreground">Buzzer / Entry</h3>
         <div className="space-y-1">
           <Label htmlFor="buzzerName">Buzzer Name</Label>
           <Input id="buzzerName" {...register("buzzerName")} placeholder="KITH" />
@@ -114,7 +114,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
 
       {/* Check-in / Check-out Times */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-700">Times</h3>
+        <h3 className="text-sm font-semibold text-foreground">Times</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="space-y-1">
             <Label htmlFor="checkinTime">Check-In Time</Label>
@@ -138,7 +138,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
       {/* Check-in Steps */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Check-In Steps</h3>
+          <h3 className="text-sm font-semibold text-foreground">Check-In Steps</h3>
           <Button
             type="button"
             variant="outline"
@@ -160,7 +160,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
         {checkinFields.map((field, index) => (
           <div key={field.id} className="border rounded-md p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500">Step {index + 1}</span>
+              <span className="text-xs font-medium text-muted-foreground">Step {index + 1}</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -200,7 +200,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
                 />
                 <select
                   {...register(`checkinSteps.${index}.mediaType`)}
-                  className="border rounded-md px-2 py-1.5 text-sm bg-white"
+                  className="border rounded-md px-2 py-1.5 text-sm bg-background"
                 >
                   <option value="">Type</option>
                   <option value="image">Image</option>
@@ -210,7 +210,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
-                className="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+                className="text-xs text-muted-foreground file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-muted file:text-foreground hover:file:bg-accent"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -243,7 +243,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
       {/* Check-out Steps */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Check-Out Steps</h3>
+          <h3 className="text-sm font-semibold text-foreground">Check-Out Steps</h3>
           <Button
             type="button"
             variant="outline"
@@ -262,7 +262,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
         {checkoutFields.map((field, index) => (
           <div key={field.id} className="border rounded-md p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500">Step {index + 1}</span>
+              <span className="text-xs font-medium text-muted-foreground">Step {index + 1}</span>
               <Button
                 type="button"
                 variant="ghost"

@@ -74,7 +74,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
       {/* Nearby Services */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Nearby Services</h3>
+          <h3 className="text-sm font-semibold text-foreground">Nearby Services</h3>
           <Button
             type="button"
             variant="outline"
@@ -98,7 +98,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
         {serviceFields.map((field, index) => (
           <div key={field.id} className="border rounded-md p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500">Service {index + 1}</span>
+              <span className="text-xs font-medium text-muted-foreground">Service {index + 1}</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -179,7 +179,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
 
       {/* Emergency & Contact */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-700">Emergency & Contacts</h3>
+        <h3 className="text-sm font-semibold text-foreground">Emergency & Contacts</h3>
 
         <div className="space-y-1">
           <Label htmlFor="emergencyContact">Emergency Contact</Label>

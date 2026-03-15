@@ -45,17 +45,30 @@ export function PropertyForm({ owners, initialData, propertyId }: PropertyFormPr
 
   return (
     <div>
-      {/* Step indicator bar */}
-      <div className="flex gap-2 mb-6">
+      {/* Mobile step indicator */}
+      <div className="md:hidden mb-6 space-y-2">
+        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-300"
+            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Step {step + 1} of {STEPS.length}: {STEPS[step]}
+        </p>
+      </div>
+
+      {/* Desktop step indicator */}
+      <div className="hidden md:flex gap-2 mb-6">
         {STEPS.map((label, i) => (
           <div
             key={label}
             className={`flex-1 text-center text-xs py-2 rounded ${
               i === step
-                ? "bg-slate-900 text-white"
+                ? "bg-primary text-primary-foreground"
                 : i < step
-                ? "bg-slate-200 text-slate-700"
-                : "bg-slate-100 text-slate-400"
+                ? "bg-muted text-foreground"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {label}

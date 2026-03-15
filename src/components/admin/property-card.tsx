@@ -20,7 +20,7 @@ export function PropertyCard({ id, name, addressCity, layout, active, ownerName 
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
-            <Link href={`/admin/properties/${id}`} className="font-semibold hover:underline">
+            <Link href={`/admin/properties/${id}`} className="font-semibold text-base hover:underline">
               {name}
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -36,19 +36,19 @@ export function PropertyCard({ id, name, addressCity, layout, active, ownerName 
       </CardHeader>
       <CardContent>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" className="flex-1 h-10 md:flex-none md:h-8" asChild>
             <Link href={`/admin/properties/${id}/guide`}>
-              <QrCode className="h-3 w-3 mr-1" /> Guide
+              <QrCode className="h-4 w-4 md:h-3 md:w-3 mr-1" /> Guide
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" className="flex-1 h-10 md:flex-none md:h-8" asChild>
             <Link href={`/admin/properties/${id}/messages`}>
-              <MessageSquare className="h-3 w-3 mr-1" /> Messages
+              <MessageSquare className="h-4 w-4 md:h-3 md:w-3 mr-1" /> Messages
             </Link>
           </Button>
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="outline" size="sm" className="flex-1 h-10 md:flex-none md:h-8" asChild>
             <Link href={`/admin/properties/${id}/checklist`}>
-              <ClipboardCheck className="h-3 w-3 mr-1" /> Turnover
+              <ClipboardCheck className="h-4 w-4 md:h-3 md:w-3 mr-1" /> Turnover
             </Link>
           </Button>
         </div>
