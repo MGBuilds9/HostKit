@@ -141,6 +141,8 @@ export const properties = pgTable("properties", {
       title: string;
       description: string;
       icon?: string;
+      mediaUrl?: string;
+      mediaType?: "image" | "video";
     }>
   >(),
   checkoutSteps: jsonb("checkout_steps").$type<

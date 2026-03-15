@@ -44,6 +44,8 @@ export const propertyAccessSchema = z.object({
     title: z.string(),
     description: z.string(),
     icon: z.string().optional(),
+    mediaUrl: z.string().optional(),
+    mediaType: z.enum(["image", "video"]).optional(),
   })).optional(),
   checkoutSteps: z.array(z.object({
     step: z.number().int(),
