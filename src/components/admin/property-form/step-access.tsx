@@ -24,6 +24,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
     register,
     handleSubmit,
     control,
+    setValue,
   } = useForm<AccessFormValues>({
     resolver: zodResolver(propertyAccessSchema),
     defaultValues: {
@@ -148,6 +149,8 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
                 title: "",
                 description: "",
                 icon: "",
+                mediaUrl: "",
+                mediaType: undefined,
               })
             }
           >
@@ -184,6 +187,52 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
                 {...register(`checkinSteps.${index}.description`)}
                 placeholder="Walk to the main entrance..."
                 rows={2}
+              />
+            </div>
+            {/* Media Upload */}
+            <div className="space-y-2">
+              <Label>Media (optional photo or video)</Label>
+              <div className="flex flex-col md:flex-row gap-2">
+                <Input
+                  {...register(`checkinSteps.${index}.mediaUrl`)}
+                  placeholder="Paste image/video URL or upload below"
+                  className="flex-1"
+                />
+                <select
+                  {...register(`checkinSteps.${index}.mediaType`)}
+                  className="border rounded-md px-2 py-1.5 text-sm bg-white"
+                >
+                  <option value="">Type</option>
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
+                </select>
+              </div>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
+                className="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const res = await fetch("/api/upload", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ filename: file.name, contentType: file.type }),
+                    });
+                    if (!res.ok) return;
+                    const { uploadUrl, publicUrl } = await res.json();
+                    await fetch(uploadUrl, {
+                      method: "PUT",
+                      body: file,
+                      headers: { "Content-Type": file.type },
+                    });
+                    setValue(`checkinSteps.${index}.mediaUrl`, publicUrl);
+                    setValue(`checkinSteps.${index}.mediaType`, file.type.startsWith("video/") ? "video" : "image");
+                  } catch (err) {
+                    console.error("Upload failed:", err);
+                  }
+                }}
               />
             </div>
             <input type="hidden" {...register(`checkinSteps.${index}.step`, { valueAsNumber: true })} value={index + 1} />

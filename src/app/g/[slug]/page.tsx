@@ -21,6 +21,8 @@ type Step = {
   title: string;
   description: string;
   icon?: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
 };
 
 type Service = {

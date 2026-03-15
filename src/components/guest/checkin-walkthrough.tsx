@@ -11,6 +11,8 @@ interface Step {
   title: string;
   description: string;
   icon?: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
 }
 
 export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
@@ -48,6 +50,21 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
             </div>
             <h3 className="font-semibold text-lg">{steps[current].title}</h3>
             <p className="text-slate-600 text-sm leading-relaxed">{steps[current].description}</p>
+            {steps[current].mediaUrl && steps[current].mediaType === "image" && (
+              <img
+                src={steps[current].mediaUrl}
+                alt={steps[current].title}
+                className="rounded-xl w-full max-h-48 object-cover"
+              />
+            )}
+            {steps[current].mediaUrl && steps[current].mediaType === "video" && (
+              <video
+                src={steps[current].mediaUrl}
+                controls
+                playsInline
+                className="rounded-xl w-full max-h-48"
+              />
+            )}
           </motion.div>
         </AnimatePresence>
 
