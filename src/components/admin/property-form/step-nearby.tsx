@@ -110,7 +110,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Name</Label>
                 <Input {...register(`nearbyServices.${index}.name`)} placeholder="Loblaws" />
@@ -140,7 +140,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Address</Label>
                 <Input {...register(`nearbyServices.${index}.address`)} placeholder="500 King St W" />
@@ -151,7 +151,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label>Phone</Label>
                 <Input {...register(`nearbyServices.${index}.phone`)} placeholder="+1 416 555 0100" />
@@ -190,7 +190,7 @@ export function StepNearby({ data, onNext, onBack }: StepNearbyProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="hostPhone">Host Phone</Label>
             <Input

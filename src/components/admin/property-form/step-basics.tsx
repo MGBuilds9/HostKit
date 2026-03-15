@@ -119,8 +119,8 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
       {/* Address */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-slate-700">Address</h3>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2 space-y-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="col-span-1 md:col-span-2 space-y-1">
             <Label htmlFor="addressStreet">Street *</Label>
             <Input id="addressStreet" {...register("addressStreet")} placeholder="123 Main St" />
             {errors.addressStreet && <p className="text-xs text-red-500">{errors.addressStreet.message}</p>}
@@ -130,7 +130,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
             <Input id="addressUnit" {...register("addressUnit")} placeholder="Suite 4B" />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="addressCity">City *</Label>
             <Input id="addressCity" {...register("addressCity")} placeholder="Toronto" />
@@ -142,7 +142,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
             {errors.addressProvince && <p className="text-xs text-red-500">{errors.addressProvince.message}</p>}
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="addressPostal">Postal Code *</Label>
             <Input id="addressPostal" {...register("addressPostal")} placeholder="M5V 3A8" />
@@ -153,7 +153,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
             <Input id="addressCountry" {...register("addressCountry")} placeholder="Canada" />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="latitude">Latitude</Label>
             <Input id="latitude" {...register("latitude")} placeholder="43.6532" />
@@ -166,7 +166,7 @@ export function StepBasics({ data, owners, onNext }: StepBasicsProps) {
       </div>
 
       {/* Floor & Layout */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label htmlFor="floor">Floor</Label>
           <Input id="floor" {...register("floor")} placeholder="12" />

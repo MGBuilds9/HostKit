@@ -63,7 +63,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
       {/* WiFi */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-slate-700">WiFi</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="wifiName">Network Name</Label>
             <Input id="wifiName" {...register("wifiName")} placeholder="HomeNetwork_5G" />
@@ -114,7 +114,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
       {/* Check-in / Check-out Times */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-slate-700">Times</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="space-y-1">
             <Label htmlFor="checkinTime">Check-In Time</Label>
             <Input id="checkinTime" type="time" {...register("checkinTime")} />
@@ -168,7 +168,7 @@ export function StepAccess({ data, onNext, onBack }: StepAccessProps) {
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label>Title</Label>
                 <Input {...register(`checkinSteps.${index}.title`)} placeholder="Arrive at building" />
