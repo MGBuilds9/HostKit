@@ -30,7 +30,7 @@ export default async function CleanerDetailPage({
     where: eq(cleaners.id, params.id),
   });
 
-  if (!cleaner) notFound();
+  if (!cleaner) return notFound();
 
   const tasks = await db.query.cleaningTasks.findMany({
     where: eq(cleaningTasks.assignedCleanerId, cleaner.id),
