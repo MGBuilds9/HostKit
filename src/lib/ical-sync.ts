@@ -3,6 +3,7 @@ import ical from "node-ical";
 import { db } from "@/db";
 import { properties, stays, syncLog, owners, accounts } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
+import { generateCleaningTasks, cancelCleaningTasksForStay } from "@/lib/turnover-generator";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -321,7 +322,7 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
 
       if (!existing) {
         // Insert new stay
-        await db.insert(stays).values({
+        const [inserted] = await db.insert(stays).values({
           propertyId,
           source: parsed.source,
           status: parsed.status,
@@ -332,9 +333,16 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
           rawDescription: parsed.description,
           externalUid: parsed.externalUid,
           hash,
-        });
+        }).returning();
         result.created++;
         result.synced++;
+
+        // Generate cleaning tasks for booked stays
+        if (parsed.status === "booked") {
+          try { await generateCleaningTasks(inserted.id); } catch (e) {
+            console.error(`[ical-sync] generateCleaningTasks failed for stay ${inserted.id}:`, e);
+          }
+        }
       } else if (existing.hash !== hash) {
         // Hash changed → update
         await db
@@ -353,6 +361,17 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
           .where(eq(stays.id, existing.id));
         result.updated++;
         result.synced++;
+
+        // Re-generate or cancel cleaning tasks based on new status
+        try {
+          if (parsed.status === "cancelled") {
+            await cancelCleaningTasksForStay(existing.id);
+          } else if (parsed.status === "booked") {
+            await generateCleaningTasks(existing.id);
+          }
+        } catch (e) {
+          console.error(`[ical-sync] task generation failed for stay ${existing.id}:`, e);
+        }
       } else {
         // No change
         result.synced++;
@@ -397,6 +416,13 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
             .set({ status: "cancelled", updatedAt: new Date() })
             .where(inArray(stays.id, staleIds));
           result.cancelled += staleIds.length;
+
+          // Cancel cleaning tasks for stale stays
+          for (const staleId of staleIds) {
+            try { await cancelCleaningTasksForStay(staleId); } catch (e) {
+              console.error(`[ical-sync] cancelCleaningTasksForStay failed for ${staleId}:`, e);
+            }
+          }
         }
       }
     } catch (err) {

@@ -19,6 +19,8 @@ import {
   Phone,
   ShieldAlert,
   Thermometer,
+  CalendarDays,
+  Settings,
 } from "lucide-react";
 
 export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
@@ -65,12 +67,22 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
               </Link>
             </Button>
             <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/properties/${property.id}/messages`}>
-                <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Messages
+              <Link href={`/admin/properties/${property.id}/calendar`}>
+                <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> Calendar
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/admin/properties/${property.id}/settings`}>
+                <Settings className="h-3.5 w-3.5 mr-1.5" /> iCal Settings
               </Link>
             </Button>
           </div>
           <div className="flex gap-2">
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/admin/properties/${property.id}/messages`}>
+                <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Messages
+              </Link>
+            </Button>
             <Button asChild size="sm" variant="outline">
               <Link href={`/admin/properties/${property.id}/checklist`}>
                 <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> Checklist

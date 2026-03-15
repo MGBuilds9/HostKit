@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { cleaningTasks } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { cleaningTaskUpdateSchema } from "@/lib/validators";
-import { notifyTaskAssigned, notifyTaskCancelled } from "@/lib/notifications";
+import { notifyTaskAssigned, notifyTaskUpdated, notifyTaskCancelled } from "@/lib/notifications";
 
 // GET /api/cleaning-tasks/[id]
 // Returns a single cleaning task with property, stay, and cleaner info.
@@ -129,6 +129,16 @@ export async function PATCH(
       await notifyTaskCancelled(taskId);
     } catch (err) {
       console.error("[cleaning-tasks PATCH] notifyTaskCancelled failed:", err);
+    }
+  }
+
+  // Notify on other status changes (accepted, in_progress, completed)
+  const statusChanged = status !== undefined && status !== existing.status;
+  if (statusChanged && !cleanerChanged && !wasCancelled) {
+    try {
+      await notifyTaskUpdated(taskId);
+    } catch (err) {
+      console.error("[cleaning-tasks PATCH] notifyTaskUpdated failed:", err);
     }
   }
 
