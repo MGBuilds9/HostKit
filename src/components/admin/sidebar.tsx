@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Building2, ClipboardCheck, MessageSquare, Users, Settings } from "lucide-react";
+import { Home, Building2, ClipboardCheck, MessageSquare, Users, Settings, CalendarDays, SprayCan } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const groups = [
@@ -11,11 +11,13 @@ const groups = [
     links: [
       { href: "/admin", label: "Dashboard", icon: Home },
       { href: "/admin/properties", label: "Properties", icon: Building2 },
+      { href: "/admin/calendar", label: "Calendar", icon: CalendarDays },
     ],
   },
   {
     label: "Tools",
     links: [
+      { href: "/admin/cleaning-tasks", label: "Cleaning Tasks", icon: SprayCan },
       { href: "/admin/turnovers", label: "Turnovers", icon: ClipboardCheck },
       { href: "/admin/messages", label: "Messages", icon: MessageSquare },
     ],
@@ -24,6 +26,7 @@ const groups = [
     label: "Settings",
     links: [
       { href: "/admin/owners", label: "Owners", icon: Users },
+      { href: "/admin/cleaners", label: "Cleaners", icon: Users },
       { href: "/admin/templates", label: "Templates", icon: MessageSquare },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],

@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-type Role = "admin" | "owner" | "manager";
+type Role = "admin" | "owner" | "manager" | "cleaner";
 
 export async function requireAuth(allowedRoles?: Role[]) {
   const session = await auth();
@@ -9,7 +9,8 @@ export async function requireAuth(allowedRoles?: Role[]) {
     redirect("/login");
   }
   if (allowedRoles && !allowedRoles.includes(session.user.role)) {
-    redirect("/admin");
+    // Cleaners go to /cleaner, everyone else to /admin
+    redirect(session.user.role === "cleaner" ? "/cleaner" : "/admin");
   }
   return session;
 }

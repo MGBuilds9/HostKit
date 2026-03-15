@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Building2, ClipboardCheck, MessageSquare, MoreHorizontal, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Building2, CalendarDays, MessageSquare, MoreHorizontal, Users, Settings, LogOut, ClipboardCheck, SprayCan } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
@@ -16,11 +16,14 @@ import {
 const tabs = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/properties", label: "Properties", icon: Building2 },
-  { href: "/admin/turnovers", label: "Turnovers", icon: ClipboardCheck, matchPrefix: true },
-  { href: "/admin/messages", label: "Messages", icon: MessageSquare, matchPrefix: true },
+  { href: "/admin/calendar", label: "Calendar", icon: CalendarDays, matchPrefix: true },
+  { href: "/admin/cleaning-tasks", label: "Tasks", icon: SprayCan, matchPrefix: true },
 ];
 
 const moreLinks = [
+  { href: "/admin/turnovers", label: "Turnovers", icon: ClipboardCheck },
+  { href: "/admin/messages", label: "Messages", icon: MessageSquare },
+  { href: "/admin/cleaners", label: "Cleaners", icon: Users },
   { href: "/admin/owners", label: "Owners", icon: Users },
   { href: "/admin/templates", label: "Templates", icon: MessageSquare },
   { href: "/admin/settings", label: "Settings", icon: Settings },

@@ -103,3 +103,40 @@ export const createOwnerSchema = z.object({
   phone: z.string().optional(),
   userId: z.string().uuid().optional(),
 });
+
+// ── Calendar / Sync ──────────────────────────────────────
+
+export const icalSettingsSchema = z.object({
+  airbnbIcalUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  googleCalendarId: z.string().optional().or(z.literal("")),
+  icalSyncEnabled: z.boolean().default(false),
+  syncIntervalMinutes: z.number().int().min(5).max(1440).default(15),
+});
+
+export const turnoverRulesSchema = z.object({
+  cleanOn: z.enum(["checkout", "checkin", "both"]).default("checkout"),
+  cleanStartOffsetHours: z.number().int().min(0).max(24).default(0),
+  cleanDurationHours: z.number().int().min(1).max(12).default(3),
+  defaultCleanerId: z.string().uuid().optional().or(z.literal("")),
+  sameDayTurnAllowed: z.boolean().default(false),
+  timezone: z.string().default("America/Toronto"),
+});
+
+export const cleaningTaskUpdateSchema = z.object({
+  status: z.enum(["pending", "offered", "accepted", "in_progress", "completed", "cancelled"]).optional(),
+  assignedCleanerId: z.string().uuid().optional().or(z.literal("")).nullable(),
+  notes: z.string().optional(),
+});
+
+export const calendarQuerySchema = z.object({
+  from: z.string().datetime().or(z.string().date()),
+  to: z.string().datetime().or(z.string().date()),
+  propertyId: z.string().uuid().optional(),
+});
+
+export const createCleanerSchema = z.object({
+  fullName: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
+  userId: z.string().uuid().optional(),
+});

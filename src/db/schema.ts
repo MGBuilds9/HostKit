@@ -13,7 +13,12 @@ import { relations } from "drizzle-orm";
 import type { AdapterAccount } from "next-auth/adapters";
 
 // ── Enums ──────────────────────────────────────────────
-export const userRoleEnum = pgEnum("user_role", ["admin", "owner", "manager"]);
+export const userRoleEnum = pgEnum("user_role", ["admin", "owner", "manager", "cleaner"]);
+export const stayStatusEnum = pgEnum("stay_status", ["booked", "blocked", "cancelled"]);
+export const cleaningTaskStatusEnum = pgEnum("cleaning_task_status", [
+  "pending", "offered", "accepted", "in_progress", "completed", "cancelled",
+]);
+export const calendarSourceEnum = pgEnum("calendar_source", ["airbnb", "google", "manual"]);
 
 // ── NextAuth Required Tables ───────────────────────────
 // NOTE: `name` is nullable (differs from PRD which says notNull).
@@ -194,6 +199,23 @@ export const properties = pgTable("properties", {
   // Thermostat
   thermostatDefault: text("thermostat_default").default("22°C"),
 
+  // Calendar Sync
+  airbnbIcalUrl: text("airbnb_ical_url"),
+  googleCalendarId: text("google_calendar_id"),
+  icalSyncEnabled: boolean("ical_sync_enabled").default(false),
+  lastSyncAt: timestamp("last_sync_at"),
+  lastSyncStatus: text("last_sync_status"), // "ok" | "error"
+  lastSyncError: text("last_sync_error"),
+  syncIntervalMinutes: integer("sync_interval_minutes").default(15),
+
+  // Turnover Rules
+  cleanOn: text("clean_on").default("checkout"), // "checkout" | "checkin" | "both"
+  cleanStartOffsetHours: integer("clean_start_offset_hours").default(0),
+  cleanDurationHours: integer("clean_duration_hours").default(3),
+  defaultCleanerId: uuid("default_cleaner_id"),
+  sameDayTurnAllowed: boolean("same_day_turn_allowed").default(false),
+  timezone: text("timezone").default("America/Toronto"),
+
   // State
   active: boolean("active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -255,12 +277,105 @@ export const turnovers = pgTable("turnovers", {
 });
 
 // ============================================================
+// CLEANERS
+// ============================================================
+
+export const cleaners = pgTable("cleaners", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// STAYS
+// ============================================================
+
+export const stays = pgTable("stays", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id)
+    .notNull(),
+  source: calendarSourceEnum("source").default("airbnb"),
+  status: stayStatusEnum("status").default("booked"),
+  guestName: text("guest_name"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  rawSummary: text("raw_summary"),
+  rawDescription: text("raw_description"),
+  externalUid: text("external_uid"),
+  hash: text("hash"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// CLEANING TASKS
+// ============================================================
+
+export const cleaningTasks = pgTable("cleaning_tasks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id)
+    .notNull(),
+  stayId: uuid("stay_id").references(() => stays.id),
+  triggerType: text("trigger_type"), // "checkout" | "checkin"
+  scheduledStart: timestamp("scheduled_start").notNull(),
+  scheduledEnd: timestamp("scheduled_end").notNull(),
+  status: cleaningTaskStatusEnum("status").default("pending"),
+  assignedCleanerId: uuid("assigned_cleaner_id").references(() => cleaners.id),
+  priority: integer("priority").default(0),
+  checklistData: jsonb("checklist_data"),
+  notes: text("notes"),
+  completedAt: timestamp("completed_at"),
+  completedBy: text("completed_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  type: text("type").notNull(), // "task_assigned" | "task_updated" | "task_cancelled" | "task_reminder"
+  title: text("title").notNull(),
+  body: text("body"),
+  linkUrl: text("link_url"),
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// SYNC LOG
+// ============================================================
+
+export const syncLog = pgTable("sync_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  propertyId: uuid("property_id")
+    .references(() => properties.id)
+    .notNull(),
+  eventType: text("event_type").notNull(), // "fetch" | "upsert" | "error"
+  eventTime: timestamp("event_time").defaultNow().notNull(),
+  details: jsonb("details"),
+});
+
+// ============================================================
 // RELATIONS
 // ============================================================
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
+  notifications: many(notifications),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -280,6 +395,13 @@ export const propertiesRelations = relations(properties, ({ one, many }) => ({
   owner: one(owners, { fields: [properties.ownerId], references: [owners.id] }),
   messageTemplates: many(messageTemplates),
   turnovers: many(turnovers),
+  stays: many(stays),
+  cleaningTasks: many(cleaningTasks),
+  syncLogs: many(syncLog),
+  defaultCleaner: one(cleaners, {
+    fields: [properties.defaultCleanerId],
+    references: [cleaners.id],
+  }),
 }));
 
 export const messageTemplatesRelations = relations(
@@ -295,6 +417,48 @@ export const messageTemplatesRelations = relations(
 export const turnoversRelations = relations(turnovers, ({ one }) => ({
   property: one(properties, {
     fields: [turnovers.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const cleanersRelations = relations(cleaners, ({ one, many }) => ({
+  user: one(users, { fields: [cleaners.userId], references: [users.id] }),
+  cleaningTasks: many(cleaningTasks),
+}));
+
+export const staysRelations = relations(stays, ({ one, many }) => ({
+  property: one(properties, {
+    fields: [stays.propertyId],
+    references: [properties.id],
+  }),
+  cleaningTasks: many(cleaningTasks),
+}));
+
+export const cleaningTasksRelations = relations(cleaningTasks, ({ one }) => ({
+  property: one(properties, {
+    fields: [cleaningTasks.propertyId],
+    references: [properties.id],
+  }),
+  stay: one(stays, {
+    fields: [cleaningTasks.stayId],
+    references: [stays.id],
+  }),
+  assignedCleaner: one(cleaners, {
+    fields: [cleaningTasks.assignedCleanerId],
+    references: [cleaners.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const syncLogRelations = relations(syncLog, ({ one }) => ({
+  property: one(properties, {
+    fields: [syncLog.propertyId],
     references: [properties.id],
   }),
 }));
