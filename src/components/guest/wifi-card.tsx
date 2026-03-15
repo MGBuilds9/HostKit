@@ -29,10 +29,10 @@ export function WifiCard({ name, password }: WifiProps) {
             <span className="text-sm text-slate-500">Network</span>
             <span className="font-medium">{name}</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start flex-wrap gap-2">
             <span className="text-sm text-slate-500">Password</span>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm">{password}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-sm break-all">{password}</span>
               <button
                 onClick={copyPassword}
                 className="flex items-center gap-1 rounded-lg bg-[#FF6B6B]/10 px-3 py-1.5 text-xs font-medium text-[#FF6B6B] hover:bg-[#FF6B6B]/20 transition-colors"
