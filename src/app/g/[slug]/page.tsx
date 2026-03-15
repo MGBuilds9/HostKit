@@ -68,7 +68,7 @@ export default async function GuestGuidePage({ params }: Props) {
         description={property.description}
         city={property.addressCity}
       />
-      <div className="py-6 space-y-5 pb-20">
+      <div className="py-6 space-y-5 pb-24">
         {property.checkinSteps && property.checkinSteps.length > 0 && (
           <CheckinWalkthrough steps={property.checkinSteps as Step[]} />
         )}
