@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { PropertyCard } from "@/components/admin/property-card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 export default async function PropertiesPage() {
   const session = await requireAuth();
@@ -13,7 +13,10 @@ export default async function PropertiesPage() {
   let propertyList;
   if (session.user.role === "owner") {
     const owner = await db.query.owners.findFirst({
-      where: eq(owners.userId, session.user.id),
+      where: or(
+        eq(owners.userId, session.user.id),
+        eq(owners.email, session.user.email!)
+      ),
     });
     propertyList = owner
       ? await db.query.properties.findMany({

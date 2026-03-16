@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { properties, owners } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
 import { PropertyForm } from "@/components/admin/property-form";
@@ -13,10 +13,13 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
   });
   if (!property) notFound();
 
-  // Owners can only edit their own properties
+  // Owners can only edit their own properties (match by userId or email)
   if (session.user.role === "owner") {
     const owner = await db.query.owners.findFirst({
-      where: eq(owners.userId, session.user.id),
+      where: or(
+        eq(owners.userId, session.user.id),
+        eq(owners.email, session.user.email!)
+      ),
     });
     if (!owner || property.ownerId !== owner.id) notFound();
   }

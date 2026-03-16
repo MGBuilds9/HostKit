@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { properties, owners } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { createPropertySchema } from "@/lib/validators";
 
 export async function GET(
@@ -22,7 +22,10 @@ export async function GET(
   // Owner-scoped access: owners can only view their own properties
   if (session.user.role === "owner") {
     const owner = await db.query.owners.findFirst({
-      where: eq(owners.userId, session.user.id),
+      where: or(
+        eq(owners.userId, session.user.id),
+        eq(owners.email, session.user.email!)
+      ),
     });
     if (!owner || property.ownerId !== owner.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -42,7 +45,10 @@ export async function PUT(
   // Owners can only update their own properties
   if (session.user.role === "owner") {
     const owner = await db.query.owners.findFirst({
-      where: eq(owners.userId, session.user.id),
+      where: or(
+        eq(owners.userId, session.user.id),
+        eq(owners.email, session.user.email!)
+      ),
     });
     const property = await db.query.properties.findFirst({
       where: eq(properties.id, params.id),

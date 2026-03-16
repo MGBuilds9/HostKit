@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/db";
 import { properties, owners } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
 import { Button } from "@/components/ui/button";
@@ -33,10 +33,13 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
 
   if (!property) notFound();
 
-  // Owners can only view their own properties
+  // Owners can only view their own properties (match by userId or email)
   if (session.user.role === "owner") {
     const owner = await db.query.owners.findFirst({
-      where: eq(owners.userId, session.user.id),
+      where: or(
+        eq(owners.userId, session.user.id),
+        eq(owners.email, session.user.email!)
+      ),
     });
     if (!owner || property.ownerId !== owner.id) notFound();
   }
@@ -105,33 +108,28 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
         </div>
       </div>
 
-      {/* QR Code preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <QrCode className="h-4 w-4" /> Guest Guide QR Code
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center gap-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/qr/${property.slug}`}
-            alt={`QR code for ${property.name}`}
-            className="h-32 w-32 border rounded"
-          />
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Guide URL</p>
-            <a
-              href={guideUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline break-all"
-            >
-              {guideUrl}
-            </a>
-          </div>
-        </CardContent>
-      </Card>
+      {/* QR Code + Guide Link (compact) */}
+      <div className="flex items-center gap-4 rounded-lg border bg-card p-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/api/qr/${property.slug}`}
+          alt={`QR code for ${property.name}`}
+          className="h-16 w-16 rounded"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium flex items-center gap-1.5">
+            <QrCode className="h-3.5 w-3.5" /> Guest Guide
+          </p>
+          <a
+            href={guideUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary hover:underline break-all"
+          >
+            {guideUrl}
+          </a>
+        </div>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Layout */}
