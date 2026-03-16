@@ -6,12 +6,20 @@ import { requireAuth } from "@/lib/auth-guard";
 import { PropertyForm } from "@/components/admin/property-form";
 
 export default async function EditPropertyPage({ params }: { params: { id: string } }) {
-  await requireAuth(["admin", "manager"]);
+  const session = await requireAuth(["admin", "manager", "owner"]);
 
   const property = await db.query.properties.findFirst({
     where: eq(properties.id, params.id),
   });
   if (!property) notFound();
+
+  // Owners can only edit their own properties
+  if (session.user.role === "owner") {
+    const owner = await db.query.owners.findFirst({
+      where: eq(owners.userId, session.user.id),
+    });
+    if (!owner || property.ownerId !== owner.id) notFound();
+  }
 
   const ownerList = await db.select({ id: owners.id, name: owners.name }).from(owners);
 

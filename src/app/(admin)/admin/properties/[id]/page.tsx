@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/db";
-import { properties } from "@/db/schema";
+import { properties, owners } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
-  await requireAuth();
+  const session = await requireAuth();
 
   const property = await db.query.properties.findFirst({
     where: eq(properties.id, params.id),
@@ -32,6 +32,14 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
   });
 
   if (!property) notFound();
+
+  // Owners can only view their own properties
+  if (session.user.role === "owner") {
+    const owner = await db.query.owners.findFirst({
+      where: eq(owners.userId, session.user.id),
+    });
+    if (!owner || property.ownerId !== owner.id) notFound();
+  }
 
   const guideUrl = `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/g/${property.slug}`;
 

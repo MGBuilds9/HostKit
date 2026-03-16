@@ -38,7 +38,20 @@ export async function PUT(
 ) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role === "owner") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  // Owners can only update their own properties
+  if (session.user.role === "owner") {
+    const owner = await db.query.owners.findFirst({
+      where: eq(owners.userId, session.user.id),
+    });
+    const property = await db.query.properties.findFirst({
+      where: eq(properties.id, params.id),
+      columns: { ownerId: true },
+    });
+    if (!owner || !property || property.ownerId !== owner.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
 
   const body = await request.json();
   const parsed = createPropertySchema.safeParse(body);
