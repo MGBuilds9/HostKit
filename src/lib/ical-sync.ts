@@ -516,12 +516,67 @@ async function resolveGoogleAccessToken(propertyId: string): Promise<string | nu
   if (!owner?.userId) return null;
 
   const [account] = await db
-    .select({ access_token: accounts.access_token })
+    .select({
+      provider: accounts.provider,
+      providerAccountId: accounts.providerAccountId,
+      access_token: accounts.access_token,
+      refresh_token: accounts.refresh_token,
+      expires_at: accounts.expires_at,
+    })
     .from(accounts)
     .where(
       and(eq(accounts.userId, owner.userId), eq(accounts.provider, "google"))
     )
     .limit(1);
 
-  return account?.access_token ?? null;
+  if (!account) return null;
+
+  // Check if token is expired or will expire within 60 seconds
+  const nowSecs = Math.floor(Date.now() / 1000);
+  const isExpired = account.expires_at !== null && account.expires_at <= nowSecs + 60;
+
+  if (isExpired && account.refresh_token) {
+    try {
+      const params = new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        grant_type: "refresh_token",
+        refresh_token: account.refresh_token,
+      });
+
+      const response = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString(),
+        signal: AbortSignal.timeout(10_000),
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as {
+          access_token: string;
+          expires_in: number;
+        };
+        const newExpiresAt = Math.floor(Date.now() / 1000) + data.expires_in;
+
+        await db
+          .update(accounts)
+          .set({
+            access_token: data.access_token,
+            expires_at: newExpiresAt,
+          })
+          .where(
+            and(
+              eq(accounts.provider, account.provider),
+              eq(accounts.providerAccountId, account.providerAccountId)
+            )
+          );
+
+        return data.access_token;
+      }
+    } catch (err) {
+      console.error("[ical-sync] Google token refresh failed:", err);
+    }
+  }
+
+  return account.access_token ?? null;
 }

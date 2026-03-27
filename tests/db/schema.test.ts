@@ -15,11 +15,19 @@ describe("schema exports", () => {
   });
 
   it("exports userRoleEnum with correct values", () => {
-    expect(schema.userRoleEnum.enumValues).toEqual(["admin", "owner", "manager"]);
+    expect(schema.userRoleEnum.enumValues).toEqual(["admin", "owner", "manager", "cleaner"]);
   });
 
   it("properties table has slug column", () => {
     const slugCol = schema.properties.slug;
     expect(slugCol).toBeDefined();
+  });
+
+  it("exports all extended tables", () => {
+    expect(schema.cleaners).toBeDefined();
+    expect(schema.stays).toBeDefined();
+    expect(schema.cleaningTasks).toBeDefined();
+    expect(schema.notifications).toBeDefined();
+    expect(schema.syncLog).toBeDefined();
   });
 });

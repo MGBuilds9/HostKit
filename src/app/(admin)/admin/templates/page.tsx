@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClipboardList, Plus } from "lucide-react";
 import { desc } from "drizzle-orm";
+import { TemplateDeleteButton } from "./template-actions";
 
 export default async function TemplatesPage() {
   await requireAuth(["admin", "manager"]);
@@ -31,8 +32,10 @@ export default async function TemplatesPage() {
               <ClipboardList className="h-3.5 w-3.5 mr-1.5" /> Checklist Templates
             </Link>
           </Button>
-          <Button size="sm" disabled>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Template
+          <Button asChild size="sm">
+            <Link href="/admin/templates/new">
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Template
+            </Link>
           </Button>
         </div>
       </div>
@@ -49,13 +52,14 @@ export default async function TemplatesPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-4">
                   <CardTitle className="text-base">{tpl.name}</CardTitle>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Badge variant={tpl.isGlobal ? "default" : "secondary"}>
                       {tpl.isGlobal ? "Global" : "Property"}
                     </Badge>
                     <Badge variant={tpl.active ? "default" : "secondary"}>
                       {tpl.active ? "Active" : "Inactive"}
                     </Badge>
+                    <TemplateDeleteButton id={tpl.id} apiPath="/api/templates" />
                   </div>
                 </div>
               </CardHeader>

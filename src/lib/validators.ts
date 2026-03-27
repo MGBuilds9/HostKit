@@ -126,6 +126,14 @@ export const cleaningTaskUpdateSchema = z.object({
   status: z.enum(["pending", "offered", "accepted", "in_progress", "completed", "cancelled"]).optional(),
   assignedCleanerId: z.string().uuid().optional().or(z.literal("")).nullable(),
   notes: z.string().optional(),
+  checklistData: z.array(z.object({
+    title: z.string(),
+    items: z.array(z.object({
+      label: z.string(),
+      type: z.string(),
+      completed: z.boolean(),
+    })),
+  })).optional(),
 });
 
 export const calendarQuerySchema = z.object({

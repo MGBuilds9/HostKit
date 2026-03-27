@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Building2, ClipboardCheck, MessageSquare, Users, Settings, CalendarDays, SprayCan } from "lucide-react";
+import { Home, Building2, ClipboardCheck, MessageSquare, Users, Settings, CalendarDays, SprayCan, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const groups = [
@@ -28,6 +28,7 @@ const groups = [
       { href: "/admin/owners", label: "Owners", icon: Users },
       { href: "/admin/cleaners", label: "Cleaners", icon: Users },
       { href: "/admin/templates", label: "Templates", icon: MessageSquare },
+      { href: "/admin/settings/users", label: "Users", icon: UserCog },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
   },

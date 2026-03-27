@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { properties, owners } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { createPropertySchema } from "@/lib/validators";
 
 // GET /api/properties — list all (filtered for owners)
@@ -13,7 +13,7 @@ export async function GET() {
   let result;
   if (session.user.role === "owner") {
     const owner = await db.query.owners.findFirst({
-      where: eq(owners.userId, session.user.id),
+      where: or(eq(owners.userId, session.user.id), eq(owners.email, session.user.email!)),
     });
     result = owner
       ? await db.query.properties.findMany({

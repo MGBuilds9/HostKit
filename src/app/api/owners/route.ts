@@ -19,6 +19,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const parsed = createOwnerSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const [owner] = await db.insert(owners).values(parsed.data).returning();
+  const [owner] = await db.insert(owners).values({
+    name: parsed.data.name,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+    userId: parsed.data.userId,
+  }).returning();
   return NextResponse.json(owner, { status: 201 });
 }

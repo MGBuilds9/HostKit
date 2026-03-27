@@ -5,7 +5,7 @@ import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM_ADDRESS = "HostKit <notifications@updates.mkguirguis.com>";
+const FROM_ADDRESS = process.env.RESEND_FROM_ADDRESS ?? "HostKit <notifications@updates.mkguirguis.com>";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export function formatTaskDate(date: Date): string {
 
 function taskUrl(taskId: string): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://hostkit.mkgbuilds.com";
-  return `${base}/tasks/${taskId}`;
+  return `${base}/cleaner/tasks/${taskId}`;
 }
 
 // ─── Email HTML builder ──────────────────────────────────────────────────────

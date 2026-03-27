@@ -25,27 +25,30 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (guestName) params.set("guestName", guestName);
-    if (checkinDate) params.set("checkinDate", checkinDate);
-    if (checkoutDate) params.set("checkoutDate", checkoutDate);
+    const t = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (guestName) params.set("guestName", guestName);
+      if (checkinDate) params.set("checkinDate", checkinDate);
+      if (checkoutDate) params.set("checkoutDate", checkoutDate);
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    fetch(`/api/properties/${propertyId}/messages?${params}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`Request failed: ${r.status}`);
-        return r.json();
-      })
-      .then((data: RenderedMessage[]) => {
-        setMessages(data);
-        setLoading(false);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setLoading(false);
-      });
+      fetch(`/api/properties/${propertyId}/messages?${params}`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`Request failed: ${r.status}`);
+          return r.json();
+        })
+        .then((data: RenderedMessage[]) => {
+          setMessages(data);
+          setLoading(false);
+        })
+        .catch((err: Error) => {
+          setError(err.message);
+          setLoading(false);
+        });
+    }, 400);
+    return () => clearTimeout(t);
   }, [propertyId, guestName, checkinDate, checkoutDate]);
 
   async function copyMessage(id: string, body: string) {

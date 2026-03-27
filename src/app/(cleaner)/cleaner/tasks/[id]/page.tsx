@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,69 +102,19 @@ export default function CleanerTaskDetailPage() {
   const [transitioning, setTransitioning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmComplete, setConfirmComplete] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const fetchTask = useCallback(async () => {
     try {
-      // Fetch via calendar endpoint scoped to cleaner — we use the cleaning-tasks approach
-      // Since there's no dedicated GET /api/cleaning-tasks/[id] for cleaners, we load
-      // a 30-day window and find the matching task by id
-      const today = new Date();
-      today.setDate(today.getDate() - 7);
-      const in30 = new Date();
-      in30.setDate(in30.getDate() + 30);
-
-      const res = await fetch(
-        `/api/calendar?from=${encodeURIComponent(today.toISOString())}&to=${encodeURIComponent(in30.toISOString())}`
-      );
+      const res = await fetch(`/api/cleaning-tasks/${taskId}`);
       if (!res.ok) throw new Error("Failed to load task");
 
-      const data: Array<{
-        property: TaskDetail["property"];
-        stays: Array<{
-          guestName?: string | null;
-          startDate: string;
-          endDate: string;
-          cleaningTasks: Array<{
-            id: string;
-            status: TaskStatus;
-            scheduledStart: string;
-            scheduledEnd: string;
-            triggerType?: string | null;
-            notes?: string | null;
-            checklistData?: ChecklistSection[] | null;
-            completedAt?: string | null;
-            assignedCleaner?: { fullName: string } | null;
-          }>;
-        }>;
-      }> = await res.json();
+      const data: TaskDetail = await res.json();
 
-      let found: TaskDetail | null = null;
-      for (const entry of data) {
-        for (const stay of entry.stays) {
-          for (const t of stay.cleaningTasks) {
-            if (t.id === taskId) {
-              found = {
-                ...t,
-                property: entry.property,
-                stay: {
-                  guestName: stay.guestName,
-                  startDate: stay.startDate,
-                  endDate: stay.endDate,
-                },
-              };
-              break;
-            }
-          }
-          if (found) break;
-        }
-        if (found) break;
-      }
-
-      if (!found) throw new Error("Task not found");
-
-      setTask(found);
-      setNotes(found.notes ?? "");
-      setChecklist(found.checklistData ?? []);
+      setTask(data);
+      setNotes(data.notes ?? "");
+      setChecklist(data.checklistData ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -216,6 +166,22 @@ export default function CleanerTaskDetailPage() {
     }
   }
 
+  async function saveChecklist(data: typeof checklist) {
+    if (!taskId) return;
+    setSaveStatus("saving");
+    try {
+      await fetch(`/api/cleaning-tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checklistData: data }),
+      });
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch {
+      setSaveStatus("idle");
+    }
+  }
+
   function toggleChecklistItem(sectionIdx: number, itemIdx: number) {
     setChecklist((prev) => {
       const updated = prev.map((section, si) => ({
@@ -226,6 +192,8 @@ export default function CleanerTaskDetailPage() {
             : item
         ),
       }));
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveChecklist(updated), 500);
       return updated;
     });
   }
@@ -375,7 +343,11 @@ export default function CleanerTaskDetailPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Checklist</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">Checklist</CardTitle>
+                {saveStatus === "saving" && <span className="text-xs text-muted-foreground">Saving...</span>}
+                {saveStatus === "saved" && <span className="text-xs text-green-600">Saved</span>}
+              </div>
               <span className="text-xs text-muted-foreground">
                 {checkedItems} / {totalItems}
               </span>

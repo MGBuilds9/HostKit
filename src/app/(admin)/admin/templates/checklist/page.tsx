@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, Plus } from "lucide-react";
 import { desc } from "drizzle-orm";
+import { TemplateDeleteButton } from "../template-actions";
 
 export default async function ChecklistTemplatesPage() {
   await requireAuth(["admin", "manager"]);
@@ -31,8 +32,10 @@ export default async function ChecklistTemplatesPage() {
               <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Message Templates
             </Link>
           </Button>
-          <Button size="sm" disabled>
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Template
+          <Button asChild size="sm">
+            <Link href="/admin/templates/checklist/new">
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Template
+            </Link>
           </Button>
         </div>
       </div>
@@ -47,11 +50,14 @@ export default async function ChecklistTemplatesPage() {
           {templates.map((tpl) => (
             <Card key={tpl.id}>
               <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-base">{tpl.name}</CardTitle>
-                  <Badge variant={tpl.isGlobal ? "default" : "secondary"}>
-                    {tpl.isGlobal ? "Global" : "Property"}
-                  </Badge>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge variant={tpl.isGlobal ? "default" : "secondary"}>
+                      {tpl.isGlobal ? "Global" : "Property"}
+                    </Badge>
+                    <TemplateDeleteButton id={tpl.id} apiPath="/api/templates/checklist" />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground space-y-1">

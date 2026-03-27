@@ -82,12 +82,13 @@ export async function PATCH(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { status, assignedCleanerId, notes } = parsed.data;
+  const { status, assignedCleanerId, notes, checklistData } = parsed.data;
 
   const updates: Record<string, unknown> = { updatedAt: new Date() };
 
   if (status !== undefined) updates.status = status;
   if (notes !== undefined) updates.notes = notes;
+  if (checklistData !== undefined) updates.checklistData = checklistData;
   if (assignedCleanerId !== undefined) {
     // Empty string means "unassign"
     updates.assignedCleanerId = assignedCleanerId === "" ? null : assignedCleanerId;
