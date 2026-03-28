@@ -96,6 +96,13 @@ export const createPropertySchema = propertyBasicsSchema
     slug: data.slug || slugify(data.name),
   }));
 
+// Partial update — all fields optional, used by PATCH /api/properties/[id]
+export const partialPropertySchema = propertyBasicsSchema
+  .merge(propertyAccessSchema)
+  .merge(propertyAmenitiesSchema)
+  .merge(propertyNearbySchema)
+  .partial();
+
 // Owner
 export const createOwnerSchema = z.object({
   name: z.string().min(1, "Name is required"),

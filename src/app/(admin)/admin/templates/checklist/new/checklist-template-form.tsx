@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TemplateSectionEditor } from "./_components/template-section-editor";
 
 type ItemType = "check" | "restock" | "deep_clean" | "monthly";
 
@@ -34,9 +35,7 @@ export function ChecklistTemplateForm() {
   }
 
   function updateSectionTitle(sIdx: number, title: string) {
-    setSections((prev) =>
-      prev.map((s, i) => (i === sIdx ? { ...s, title } : s))
-    );
+    setSections((prev) => prev.map((s, i) => (i === sIdx ? { ...s, title } : s)));
   }
 
   function addItem(sIdx: number) {
@@ -59,12 +58,7 @@ export function ChecklistTemplateForm() {
     setSections((prev) =>
       prev.map((s, i) =>
         i === sIdx
-          ? {
-              ...s,
-              items: s.items.map((item, j) =>
-                j === iIdx ? { ...item, [field]: value } : item
-              ),
-            }
+          ? { ...s, items: s.items.map((item, j) => j === iIdx ? { ...item, [field]: value } : item) }
           : s
       )
     );
@@ -74,20 +68,13 @@ export function ChecklistTemplateForm() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-
     const formData = new FormData(e.currentTarget);
-    const body = {
-      name: formData.get("name") as string,
-      isGlobal: formData.get("isGlobal") === "on",
-      sections,
-    };
-
+    const body = { name: formData.get("name") as string, isGlobal: formData.get("isGlobal") === "on", sections };
     const res = await fetch("/api/templates/checklist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-
     if (res.ok) {
       router.push("/admin/templates/checklist");
       router.refresh();
@@ -111,15 +98,8 @@ export function ChecklistTemplateForm() {
               <Label htmlFor="name">Name *</Label>
               <Input id="name" name="name" required placeholder="Standard Turnover Checklist" />
             </div>
-
             <div className="flex items-center gap-2">
-              <input
-                id="isGlobal"
-                name="isGlobal"
-                type="checkbox"
-                defaultChecked
-                className="h-4 w-4 rounded border-input accent-primary"
-              />
+              <input id="isGlobal" name="isGlobal" type="checkbox" defaultChecked className="h-4 w-4 rounded border-input accent-primary" />
               <Label htmlFor="isGlobal">Global template (available to all properties)</Label>
             </div>
           </CardContent>
@@ -132,78 +112,14 @@ export function ChecklistTemplateForm() {
               Add Section
             </Button>
           </div>
-
-          {sections.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No sections yet. Click &quot;Add Section&quot; to get started.
-            </p>
-          )}
-
-          {sections.map((section, sIdx) => (
-            <Card key={sIdx}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-3">
-                  <Input
-                    value={section.title}
-                    onChange={(e) => updateSectionTitle(sIdx, e.target.value)}
-                    placeholder="Section title (e.g. Bedroom)"
-                    required
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeSection(sIdx)}
-                    className="text-destructive hover:text-destructive shrink-0"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {section.items.map((item, iIdx) => (
-                  <div key={iIdx} className="flex items-center gap-2">
-                    <Input
-                      value={item.label}
-                      onChange={(e) => updateItem(sIdx, iIdx, "label", e.target.value)}
-                      placeholder="Item label"
-                      required
-                      className="flex-1"
-                    />
-                    <select
-                      value={item.type}
-                      onChange={(e) => updateItem(sIdx, iIdx, "type", e.target.value)}
-                      className="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    >
-                      <option value="check">Check</option>
-                      <option value="restock">Restock</option>
-                      <option value="deep_clean">Deep Clean</option>
-                      <option value="monthly">Monthly</option>
-                    </select>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeItem(sIdx, iIdx)}
-                      className="text-destructive hover:text-destructive shrink-0"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addItem(sIdx)}
-                >
-                  Add Item
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          <TemplateSectionEditor
+            sections={sections}
+            onUpdateTitle={updateSectionTitle}
+            onRemoveSection={removeSection}
+            onAddItem={addItem}
+            onRemoveItem={removeItem}
+            onUpdateItem={updateItem}
+          />
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
@@ -212,12 +128,7 @@ export function ChecklistTemplateForm() {
           <Button type="submit" disabled={saving}>
             {saving ? "Saving…" : "Create Checklist Template"}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={saving}
-          >
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={saving}>
             Cancel
           </Button>
         </div>

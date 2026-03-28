@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { properties, owners } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
-import { createPropertySchema } from "@/lib/validators";
+import { createPropertySchema, partialPropertySchema } from "@/lib/validators";
 
 export async function GET(
   _request: NextRequest,
@@ -61,6 +61,41 @@ export async function PUT(
 
   const body = await request.json();
   const parsed = createPropertySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const [updated] = await db.update(properties)
+    .set({ ...parsed.data, updatedAt: new Date() })
+    .where(eq(properties.id, params.id))
+    .returning();
+
+  if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(updated);
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (session.user.role === "owner") {
+    const owner = await db.query.owners.findFirst({
+      where: or(eq(owners.userId, session.user.id), eq(owners.email, session.user.email!)),
+    });
+    const property = await db.query.properties.findFirst({
+      where: eq(properties.id, params.id),
+      columns: { ownerId: true },
+    });
+    if (!owner || !property || property.ownerId !== owner.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  const body = await request.json();
+  const parsed = partialPropertySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }

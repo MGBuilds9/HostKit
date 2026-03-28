@@ -4,9 +4,8 @@ import { turnovers } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth-guard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { TurnoverList } from "./_components/turnover-list";
 
 interface Props {
   params: { id: string };
@@ -35,139 +34,7 @@ export default async function TurnoversPage({ params }: Props) {
           </Link>
         </Button>
       </div>
-
-      {turnoverList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-          <ClipboardCheck className="h-10 w-10 text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">No turnovers recorded yet.</p>
-          <Button asChild className="mt-4" variant="outline">
-            <Link href={`/admin/properties/${params.id}/checklist`}>
-              Start First Turnover
-            </Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {turnoverList.map((t) => {
-            const completedAt = new Date(t.completedAt);
-            const formattedDate = completedAt.toLocaleDateString("en-CA", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            });
-            const formattedTime = completedAt.toLocaleTimeString("en-CA", {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-
-            const checklistData = t.checklistData as Array<{
-              title: string;
-              items: Array<{ label: string; type: string; completed: boolean }>;
-            }> | null;
-
-            const totalItems = checklistData?.reduce(
-              (sum, section) => sum + section.items.length,
-              0
-            ) ?? 0;
-            const completedItems = checklistData?.reduce(
-              (sum, section) =>
-                sum + section.items.filter((item) => item.completed).length,
-              0
-            ) ?? 0;
-
-            return (
-              <Card key={t.id}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-sm font-medium">
-                      {formattedDate} at {formattedTime}
-                    </CardTitle>
-                    {totalItems > 0 && (
-                      <Badge
-                        variant={completedItems === totalItems ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {completedItems}/{totalItems} items
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    {t.completedBy && (
-                      <span>
-                        <span className="font-medium text-foreground">By:</span>{" "}
-                        {t.completedBy}
-                      </span>
-                    )}
-                    {t.nextGuestCheckin && (
-                      <span>
-                        <span className="font-medium text-foreground">Next check-in:</span>{" "}
-                        {new Date(t.nextGuestCheckin).toLocaleDateString("en-CA", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    )}
-                  </div>
-                  {t.notes && (
-                    <p className="text-sm text-muted-foreground border-l-2 border-border pl-3">
-                      {t.notes}
-                    </p>
-                  )}
-                  {checklistData && checklistData.length > 0 && (
-                    <details className="text-sm">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground select-none">
-                        View checklist details
-                      </summary>
-                      <div className="mt-2 space-y-2">
-                        {checklistData.map((section) => (
-                          <div key={section.title}>
-                            <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                              {section.title}
-                            </p>
-                            <ul className="space-y-0.5">
-                              {section.items.map((item) => (
-                                <li
-                                  key={item.label}
-                                  className="flex items-center gap-2"
-                                >
-                                  <span
-                                    className={`h-3 w-3 rounded-sm border flex-shrink-0 ${
-                                      item.completed
-                                        ? "bg-primary border-primary"
-                                        : "border-input"
-                                    }`}
-                                  />
-                                  <span
-                                    className={
-                                      item.completed
-                                        ? "text-foreground"
-                                        : "text-muted-foreground line-through"
-                                    }
-                                  >
-                                    {item.label}
-                                  </span>
-                                  {item.type === "restock" && (
-                                    <Badge variant="secondary" className="text-xs py-0">
-                                      restock
-                                    </Badge>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+      <TurnoverList turnoverList={turnoverList} propertyId={params.id} />
     </div>
   );
 }

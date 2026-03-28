@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Copy, Check } from "lucide-react";
+import { MessagePreview } from "./message-preview";
 
 interface RenderedMessage {
   id: string;
@@ -30,23 +29,12 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
       if (guestName) params.set("guestName", guestName);
       if (checkinDate) params.set("checkinDate", checkinDate);
       if (checkoutDate) params.set("checkoutDate", checkoutDate);
-
       setLoading(true);
       setError(null);
-
       fetch(`/api/properties/${propertyId}/messages?${params}`)
-        .then((r) => {
-          if (!r.ok) throw new Error(`Request failed: ${r.status}`);
-          return r.json();
-        })
-        .then((data: RenderedMessage[]) => {
-          setMessages(data);
-          setLoading(false);
-        })
-        .catch((err: Error) => {
-          setError(err.message);
-          setLoading(false);
-        });
+        .then((r) => { if (!r.ok) throw new Error(`Request failed: ${r.status}`); return r.json(); })
+        .then((data: RenderedMessage[]) => { setMessages(data); setLoading(false); })
+        .catch((err: Error) => { setError(err.message); setLoading(false); });
     }, 400);
     return () => clearTimeout(t);
   }, [propertyId, guestName, checkinDate, checkoutDate]);
@@ -62,30 +50,15 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
       <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <div>
           <Label>Guest Name</Label>
-          <Input
-            placeholder="e.g. Sarah"
-            value={guestName}
-            onChange={(e) => setGuestName(e.target.value)}
-            className="h-12 md:h-10"
-          />
+          <Input placeholder="e.g. Sarah" value={guestName} onChange={(e) => setGuestName(e.target.value)} className="h-12 md:h-10" />
         </div>
         <div>
           <Label>Check-in Date</Label>
-          <Input
-            type="date"
-            value={checkinDate}
-            onChange={(e) => setCheckinDate(e.target.value)}
-            className="h-12 md:h-10"
-          />
+          <Input type="date" value={checkinDate} onChange={(e) => setCheckinDate(e.target.value)} className="h-12 md:h-10" />
         </div>
         <div>
           <Label>Checkout Date</Label>
-          <Input
-            type="date"
-            value={checkoutDate}
-            onChange={(e) => setCheckoutDate(e.target.value)}
-            className="h-12 md:h-10"
-          />
+          <Input type="date" value={checkoutDate} onChange={(e) => setCheckoutDate(e.target.value)} className="h-12 md:h-10" />
         </div>
       </div>
 
@@ -111,39 +84,10 @@ export function MessageGenerator({ propertyId }: { propertyId: string }) {
             ))}
           </>
         ) : messages.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No message templates found for this property.
-          </p>
+          <p className="text-sm text-muted-foreground">No message templates found for this property.</p>
         ) : (
           messages.map((msg) => (
-            <Card key={msg.id}>
-              <CardHeader className="pb-2">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  <CardTitle className="text-sm font-medium">{msg.name}</CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-12 w-full md:h-8 md:w-auto"
-                    onClick={() => copyMessage(msg.id, msg.body)}
-                  >
-                    {copiedId === msg.id ? (
-                      <Check className="h-4 w-4 md:h-3 md:w-3 mr-1" />
-                    ) : (
-                      <Copy className="h-4 w-4 md:h-3 md:w-3 mr-1" />
-                    )}
-                    {copiedId === msg.id ? "Copied!" : "Copy"}
-                  </Button>
-                </div>
-                {msg.triggerDescription && (
-                  <p className="text-xs text-muted-foreground">{msg.triggerDescription}</p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <pre className="whitespace-pre-wrap text-base md:text-sm bg-muted rounded-lg p-4 font-sans">
-                  {msg.body}
-                </pre>
-              </CardContent>
-            </Card>
+            <MessagePreview key={msg.id} msg={msg} copiedId={copiedId} onCopy={copyMessage} />
           ))
         )}
       </div>

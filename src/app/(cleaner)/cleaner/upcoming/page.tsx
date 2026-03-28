@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { TaskCard, type TaskCardTask } from "@/components/cleaner/task-card";
+import { type TaskCardTask } from "@/components/cleaner/task-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays } from "lucide-react";
+import { UpcomingTaskList } from "./_components/upcoming-task-list";
 
 type TaskStatus =
   | "pending"
@@ -48,16 +48,14 @@ function flattenTasks(data: CalendarEntry[]): TaskCardTask[] {
     }
   }
   return tasks.sort(
-    (a, b) =>
-      new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime()
+    (a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime()
   );
 }
 
 function groupByDate(tasks: TaskCardTask[]): Map<string, TaskCardTask[]> {
   const groups = new Map<string, TaskCardTask[]>();
   for (const task of tasks) {
-    const d = new Date(task.scheduledStart);
-    const key = d.toLocaleDateString("en-US", {
+    const key = new Date(task.scheduledStart).toLocaleDateString("en-US", {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -76,21 +74,15 @@ export default function UpcomingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTasks = useCallback(async () => {
-    // Start from tomorrow to exclude today (today shown on dashboard)
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
-
     const in14Days = new Date(tomorrow);
     in14Days.setDate(in14Days.getDate() + 13);
     in14Days.setHours(23, 59, 59, 999);
-
-    const from = tomorrow.toISOString();
-    const to = in14Days.toISOString();
-
     try {
       const res = await fetch(
-        `/api/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+        `/api/calendar?from=${encodeURIComponent(tomorrow.toISOString())}&to=${encodeURIComponent(in14Days.toISOString())}`
       );
       if (!res.ok) throw new Error("Failed to load tasks");
       const data: CalendarEntry[] = await res.json();
@@ -103,9 +95,7 @@ export default function UpcomingPage() {
   }, []);
 
   useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      fetchTasks();
-    }
+    if (sessionStatus === "authenticated") fetchTasks();
   }, [sessionStatus, fetchTasks]);
 
   async function handleStatusChange(taskId: string, newStatus: TaskStatus) {
@@ -115,9 +105,7 @@ export default function UpcomingPage() {
       body: JSON.stringify({ status: newStatus }),
     });
     if (!res.ok) throw new Error("Failed to update task");
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
   }
 
   if (sessionStatus === "loading" || loading) {
@@ -125,59 +113,27 @@ export default function UpcomingPage() {
       <div>
         <h1 className="text-xl font-semibold mb-4">Upcoming</h1>
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
-          ))}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
         </div>
       </div>
     );
   }
 
   if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-destructive font-medium">{error}</p>
-      </div>
-    );
+    return <div className="text-center py-12"><p className="text-destructive font-medium">{error}</p></div>;
   }
-
-  const grouped = groupByDate(tasks);
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">
         Upcoming
-        <span className="ml-2 text-sm font-normal text-muted-foreground">
-          (next 14 days)
-        </span>
+        <span className="ml-2 text-sm font-normal text-muted-foreground">(next 14 days)</span>
       </h1>
-
-      {tasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <CalendarDays className="h-12 w-12 text-muted-foreground/40 mb-3" />
-          <p className="font-medium text-muted-foreground">No upcoming tasks</p>
-          <p className="text-sm text-muted-foreground">
-            You&apos;re all clear for the next 14 days
-          </p>
-        </div>
-      ) : (
-        Array.from(grouped.entries()).map(([dateLabel, dateTasks]) => (
-          <section key={dateLabel}>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-              {dateLabel}
-            </h2>
-            <div className="space-y-3">
-              {dateTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-            </div>
-          </section>
-        ))
-      )}
+      <UpcomingTaskList
+        tasks={tasks}
+        grouped={groupByDate(tasks)}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 }

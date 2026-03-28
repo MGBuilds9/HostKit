@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Building2, ClipboardCheck, MessageSquare, Users, Settings, CalendarDays, SprayCan, UserCog } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Home, Building2, ClipboardCheck, MessageSquare, Users,
+  Settings, CalendarDays, SprayCan, UserCog, ChevronDown,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const groups = [
+const mainGroups = [
   {
     label: "Main",
     links: [
@@ -22,23 +26,34 @@ const groups = [
       { href: "/admin/messages", label: "Messages", icon: MessageSquare },
     ],
   },
-  {
-    label: "Settings",
-    links: [
-      { href: "/admin/owners", label: "Owners", icon: Users },
-      { href: "/admin/cleaners", label: "Cleaners", icon: Users },
-      { href: "/admin/templates", label: "Templates", icon: MessageSquare },
-      { href: "/admin/settings/users", label: "Users", icon: UserCog },
-      { href: "/admin/settings", label: "Settings", icon: Settings },
-    ],
-  },
 ];
+
+const settingsLinks = [
+  { href: "/admin/settings", label: "Account", icon: Settings },
+  { href: "/admin/owners", label: "Owners", icon: Users },
+  { href: "/admin/cleaners", label: "Cleaners", icon: Users },
+  { href: "/admin/templates", label: "Templates", icon: MessageSquare },
+  { href: "/admin/settings/users", label: "Users", icon: UserCog },
+];
+
+const settingsPaths = settingsLinks.map((l) => l.href);
 
 export function Sidebar() {
   const pathname = usePathname();
 
+  const isOnSettingsPage = settingsPaths.some((p) =>
+    p === "/admin/settings" ? pathname === p || pathname.startsWith("/admin/settings/") : pathname.startsWith(p)
+  );
+
+  const [settingsOpen, setSettingsOpen] = useState(isOnSettingsPage);
+
+  useEffect(() => {
+    if (isOnSettingsPage) setSettingsOpen(true);
+  }, [isOnSettingsPage]);
+
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
+    if (href === "/admin/settings") return pathname === "/admin/settings" || pathname.startsWith("/admin/settings/");
     return pathname.startsWith(href);
   }
 
@@ -48,7 +63,7 @@ export function Sidebar() {
         HostKit
       </div>
       <nav className="flex-1 space-y-6 p-4">
-        {groups.map((group) => (
+        {mainGroups.map((group) => (
           <div key={group.label}>
             <p className="px-3 mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               {group.label}
@@ -72,6 +87,42 @@ export function Sidebar() {
             </div>
           </div>
         ))}
+
+        <div>
+          <button
+            onClick={() => setSettingsOpen((o) => !o)}
+            className="flex w-full items-center justify-between px-3 mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Settings
+            <ChevronDown
+              className={cn("h-3 w-3 transition-transform duration-200", settingsOpen && "rotate-180")}
+            />
+          </button>
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-200",
+              settingsOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+            )}
+          >
+            <div className="space-y-0.5">
+              {settingsLinks.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-r-lg px-3 py-2 text-sm transition-colors",
+                    isActive(href)
+                      ? "border-l-2 border-primary bg-accent/50 text-foreground font-medium"
+                      : "border-l-2 border-transparent text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
       </nav>
     </aside>
   );
