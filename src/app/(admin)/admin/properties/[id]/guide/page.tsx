@@ -42,50 +42,6 @@ export default async function GuidePreviewPage({ params }: { params: { id: strin
         </div>
       </div>
 
-      {/* QR Codes */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {/* Guide QR */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <QrCode className="h-4 w-4" /> Guest Guide QR
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/qr/${property.slug}`}
-              alt={`QR code linking to ${property.name} guest guide`}
-              className="h-48 w-48 border rounded"
-            />
-            <p className="text-xs text-muted-foreground text-center break-all">{guideUrl}</p>
-          </CardContent>
-        </Card>
-
-        {/* WiFi QR */}
-        {property.wifiName && property.wifiPassword && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Wifi className="h-4 w-4" /> WiFi QR Code
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/qr/${property.slug}?type=wifi`}
-                alt={`QR code for WiFi network ${property.wifiName}`}
-                className="h-48 w-48 border rounded"
-              />
-              <div className="text-center">
-                <p className="text-xs font-medium">{property.wifiName}</p>
-                <p className="text-xs text-muted-foreground font-mono">{property.wifiPassword}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
       {/* Guide iframe preview */}
       <Card>
         <CardHeader>
@@ -96,10 +52,50 @@ export default async function GuidePreviewPage({ params }: { params: { id: strin
             src={guideUrl}
             title={`${property.name} guest guide preview`}
             className="w-full border-0"
-            style={{ height: "600px" }}
+            style={{ height: "700px" }}
           />
         </CardContent>
       </Card>
+
+      {/* QR Codes — compact below preview */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardContent className="flex items-center gap-4 p-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/qr/${property.slug}`}
+              alt={`QR code linking to ${property.name} guest guide`}
+              className="h-24 w-24 border rounded shrink-0"
+            />
+            <div>
+              <p className="text-sm font-medium flex items-center gap-1.5">
+                <QrCode className="h-3.5 w-3.5" /> Guest Guide QR
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 break-all">/g/{property.slug}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {property.wifiName && property.wifiPassword && (
+          <Card>
+            <CardContent className="flex items-center gap-4 p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/qr/${property.slug}?type=wifi`}
+                alt={`QR code for WiFi network ${property.wifiName}`}
+                className="h-24 w-24 border rounded shrink-0"
+              />
+              <div>
+                <p className="text-sm font-medium flex items-center gap-1.5">
+                  <Wifi className="h-3.5 w-3.5" /> WiFi QR
+                </p>
+                <p className="text-xs font-medium mt-1">{property.wifiName}</p>
+                <p className="text-xs text-muted-foreground font-mono">{property.wifiPassword}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
