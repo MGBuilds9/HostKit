@@ -65,3 +65,7 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 - **Changes:** 4 commits (45 files). Blueprint audit → production readiness → gap fixes → Coolify deployment. Fixed: standalone output, CI (pnpm+master), docker-compose env vars, cron service for iCal sync, health check endpoint. Added: 5 error boundaries, user management page + role API, owner-user linking, PWA manifest, template CRUD API (4 routes) + creation pages, cleaner layout auth guard. Fixed: email deep links, checklist persistence, message debounce, Google token refresh, owner API email fallback, direct task fetch for cleaners. Deployed to Coolify on .31 with Traefik, PostgreSQL, MinIO. Live at hostkit.mkgbuilds.com.
 - **Tests:** 164/164 passing. 0 TS errors. 0 lint errors.
 - **Next:** Mariam + David UAT testing. Add properties via admin. Connect Airbnb iCal feeds. Test cleaner flow end-to-end.
+
+### 2026-04-01 — Repo Hygiene Validation
+- **Status:** No open PRs and no pending code changes. Validated current `master` with `pnpm lint`, `npx tsc --noEmit`, `pnpm test:run`, and `pnpm build`.
+- **Residual risk:** `pnpm lint` still reports one existing `@next/next/no-img-element` warning in `src/components/guest/checkin-walkthrough.tsx`.
