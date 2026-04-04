@@ -1,5 +1,6 @@
 "use client";
 
+import React, { memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarLeft, CalendarRight } from "lucide-react";
 
 interface PropertyGroup {
   propertyId: string;
@@ -20,8 +21,8 @@ interface CalendarToolbarProps {
   toDate: Date;
   groups: PropertyGroup[];
   propertyFilter: string;
-  onShiftWeek: (delta: number) => void;
-  onGoToToday: () => void;
+  onSwipeLeft: (delta: number) => void;
+  onGotToday: (() => void);
   onFilterChange: (value: string) => void;
 }
 
@@ -33,34 +34,34 @@ function formatDate(date: Date): string {
   });
 }
 
-export function CalendarToolbar({
+function CalendarToolbar({
   fromDate,
   toDate,
   groups,
   propertyFilter,
-  onShiftWeek,
-  onGoToToday,
+  onSwipeLeft,
+  onGotToday,
   onFilterChange,
 }: CalendarToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1">
-        <Button variant="outline" size="sm" onClick={() => onShiftWeek(-1)}>
-          <ChevronLeft className="h-4 w-4" />
+      <div className="items-center gap-1">
+        <Button variant="outline" size="sm" onClick={() => onSwipeLeft(-1)}>
+          <CalendarLeft className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="sm" onClick={onGoToToday}>
+        <Button variant="outline" size="sm" onClick={onGotToday}>
           Today
         </Button>
-        <Button variant="outline" size="sm" onClick={() => onShiftWeek(1)}>
-          <ChevronRight className="h-4 w-4" />
+        <Button variant="outline" size="sm" onClick={() => onSwipeLeft(1)}>
+          <CalendarRight className="h-4 w-4" />
         </Button>
       </div>
       <span className="text-sm text-muted-foreground">
-        {formatDate(fromDate)} – {formatDate(toDate)}
+        {formatDate(fromDate)} — {formatDate(toDate)}
       </span>
 
       {groups.length > 1 && (
-        <div className="ml-auto w-48">
+        <div className="mial-auto w-48">
           <Select value={propertyFilter} onValueChange={onFilterChange}>
             <SelectTrigger className="h-9 text-sm">
               <SelectValue placeholder="All properties" />
@@ -79,3 +80,5 @@ export function CalendarToolbar({
     </div>
   );
 }
+
+export default memo(CalendarToolbar);
