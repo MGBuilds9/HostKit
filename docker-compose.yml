@@ -37,6 +37,7 @@ services:
       S3_BUCKET: ${S3_BUCKET}
       S3_PUBLIC_URL: ${S3_PUBLIC_URL}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      AUTH_TRUST_HOST: "true"
     ports:
       - "3100:3000"
     depends_on:
@@ -48,8 +49,8 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 120s
 
   cron:
     image: alpine:3.19
