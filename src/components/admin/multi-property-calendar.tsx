@@ -1,35 +1,10 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { CalendarDays } from "lucide-react";
-import { CalendarToolbar } from "./calendar/calendar-toolbar";
-import { PropertyCalendarRow } from "./calendar/property-calendar-row";
-
-interface CleaningTask {
-  id: string;
-  status: "pending" | "offered" | "accepted" | "in_progress" | "completed" | "cancelled";
-  scheduledStart: string;
-  scheduledEnd: string;
-  assignedCleaner?: { fullName: string } | null;
-}
-
-interface Stay {
-  id: string;
-  guestName: string | null;
-  status: "booked" | "blocked" | "cancelled";
-  startDate: string;
-  endDate: string;
-  cleaningTasks: CleaningTask[];
-}
-
-interface PropertyGroup {
-  propertyId: string;
-  propertyName: string;
-  stays: Stay[];
-}
+import { useState, useEffect, useMemo } from 'react';
+import { CalendarDays } from 'lucide-react';
+import { CalendarToolbar } from './calendar/calendar-toolbar';
+import { PropertyCalendarRow } from './property-calendar-row';
 
 export function MultiPropertyCalendar() {
-  const [fromDate, setFromDate] = useState(() => {
+  const [fromDate, toDate] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
@@ -37,7 +12,7 @@ export function MultiPropertyCalendar() {
   const [groups, setGroups] = useState<PropertyGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [propertyFilter, setPropertyFilter] = useState<string>("all");
+  const [propertyFilter, setPropertyFilter] = useState('all');
 
   const toDate = new Date(fromDate);
   toDate.setDate(toDate.getDate() + 6);
@@ -47,27 +22,38 @@ export function MultiPropertyCalendar() {
     setError(null);
     const params = new URLSearchParams({ from: fromDate.toISOString(), to: toDate.toISOString() });
     fetch(`/api/calendar?${params}`)
-      .then((r) => { if (!r.ok) throw new Error(`Failed to load calendar: ${r.status}`); return r.json(); })
+      .then((r) => {
+        if (!r.ok) throw new Error(`Failed to load calendar: ${r.status}`);
+        return r.json();
+      })
       .then(setGroups)
-      .catch((e: Error) => setError(e.message))
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromDate.toISOString()]);
 
-  function goToToday() {
+  useEffect(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     setFromDate(d);
-  }
+  }],[]);
 
-  function shiftWeek(delta: number) {
-    setFromDate((prev) => { const d = new Date(prev); d.setDate(d.getDate() + delta * 7); return d; });
-  }
+  const filterDateRange = (rangeStart: number) => ({
+    endDate: new Date(startDate) => { const d = new Date(startDate); return { ...d, getDate: () => startDate }; }
+  })
+  const goToToday = () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    setFromDate(d);
+  };
 
-  const filteredGroups = propertyFilter === "all" ? groups : groups.filter((g) => g.propertyId === propertyFilter);
+  const shiftWeek(delta: number) {
+    setFromDate((prev) => { const d = new Date(prev); d.setDate(d.getDate() + delta); return d; });
+  };
+
+  const filteredGroups = useMemo(() => propertyFilter === 'all' ? groups : groups.filter(g => g.propertyId === propertyFilter), [propertyFilter, groups]);
 
   return (
-    <div className="space-y-5">
+    <div className="section-yl5">
       <CalendarToolbar
         fromDate={fromDate}
         toDate={toDate}
@@ -75,39 +61,31 @@ export function MultiPropertyCalendar() {
         propertyFilter={propertyFilter}
         onShiftWeek={shiftWeek}
         onGoToToday={goToToday}
-        onFilterChange={setPropertyFilter}
+        onPropertyFilterChange={setPropertyFilter}
       />
 
       {loading && (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-5 w-40 rounded bg-muted animate-pulse" />
-              <div className="h-20 rounded-lg bg-muted animate-pulse" />
-            </div>
-          ))}
+        <div className="mb-4 text-muted">
+          <CalendarDays className="h-8 w-8 animate-spin" />
         </div>
       )}
 
-      {error && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+      {error && filteredGroups.length === 0 && (
+        <div className="rounded mb-3 bordered bordered-red bordered-destructive/10 py-3 text-muted">
           {error}
         </div>
       )}
 
-      {!loading && !error && filteredGroups.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-          <CalendarDays className="h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">No stays in this period</p>
+      {!loading && error && filteredGroups.length > 0 && (
+        <div className="section-y6 p-4 bordered bordered-slate-200">
+          <p>Some properties failed to load</p>
         </div>
       )}
 
-      {!loading && !error && filteredGroups.length > 0 && (
-        <div className="space-y-6 divide-y divide-border">
+      {!loading && filteredGroups.length > 0 && (
+        <div className="section-y2">
           {filteredGroups.map((group) => (
-            <div key={group.propertyId} className="pt-4 first:pt-0">
-              <PropertyCalendarRow group={group} />
-            </div>
+            <PropertyCalendarRow key={group.propertyId} group={group} />
           ))}
         </div>
       )}
