@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap');
 
 @layer base {
   :root {
@@ -15,10 +14,10 @@
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215.4 16.3% 42%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84.9% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
@@ -30,65 +29,48 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Guest guide variables */
-    --guest-accent: 0 68% 70%;
-    --guest-accent-soft: 0 68% 95%;
-    --guest-hero-from: 220 30% 14%;
-    --guest-hero-to: 220 20% 28%;
-    --guest-bg: 0 0% 100%;
-    --guest-card: 0 0% 100%;
-    --guest-card-border: 220 13% 91%;
-    --guest-text: 222.2 84% 4.9%;
-    --guest-text-muted: 215.4 16.3% 46.9%;
-    --guest-section-bg: 220 14% 96%;
+    /* Guest guide variables - dark theme */
+    --guest-accent: 0 72% 42%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 220 30% 8%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 220 30% 8%;
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 217.2 32.6% 25%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 25%;
     --ring: 212.7 26.8% 83.9%;
+    --radius: 0.5rem;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Guest guide variables — dark */
-    --guest-accent: 0 68% 65%;
-    --guest-accent-soft: 0 40% 18%;
-    --guest-hero-from: 220 30% 6%;
-    --guest-hero-to: 220 25% 12%;
-    --guest-bg: 220 30% 6%;
-    --guest-card: 220 30% 10%;
-    --guest-card-border: 220 20% 18%;
-    --guest-text: 210 40% 98%;
-    --guest-text-muted: 215 20.2% 65.1%;
-    --guest-section-bg: 220 25% 12%;
+    /* Guest guide variables - dark theme */
+    --guest-accent: 220 30% 62%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  .prose {
+    /* allow base */
   }
   body {
-    @apply bg-background text-foreground;
+    /* allow base */
   }
 }
 
@@ -98,10 +80,10 @@
   }
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hover::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-hide {
+.scrollbar-hover {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
