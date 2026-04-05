@@ -6,7 +6,7 @@ export function StickyBottomBar({ hostPhone, emergency }: { hostPhone: string | 
       {hostPhone && (
         <a
           href={`tel:${hostPhone}`}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-foreground text-white py-2.5 text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[hsl(var(--guest-accent))] text-white py-2.5 text-sm font-medium"
         >
           <Phone className="h-4 w-4" /> Call Host
         </a>

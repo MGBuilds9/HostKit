@@ -72,6 +72,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           <button
             onClick={() => setCurrent(Math.max(0, current - 1))}
             disabled={current === 0}
+            aria-label="Previous step"
             className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -90,6 +91,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           <button
             onClick={() => setCurrent(Math.min(steps.length - 1, current + 1))}
             disabled={current === steps.length - 1}
+            aria-label={`Next step (${current + 2} of ${steps.length})`}
             className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
           >
             <ChevronRight className="h-5 w-5" />

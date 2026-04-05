@@ -26,8 +26,8 @@ export function AmenitiesSection({ kitchen, bathroom, general }: AmenitiesProps)
           <AccordionItem key={id} value={id} className="rounded-xl border border-[hsl(var(--guest-card-border))] shadow-sm dark:shadow-none px-4" style={{ background: "hsl(var(--guest-card))" }}>
             <AccordionTrigger className="text-sm font-medium hover:no-underline py-3">
               <span className="flex items-center gap-2">
-                <Icon className="h-4 w-4" style={{ color: "hsl(var(--guest-accent))" }} />
-                {label}
+                <Icon className="h-4 w-4 text-[hsl(var(--guest-accent))]" />
+                <span className="text-[hsl(var(--guest-accent))] font-semibold">{label}</span>
               </span>
             </AccordionTrigger>
             <AccordionContent>
