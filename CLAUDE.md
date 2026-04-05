@@ -55,20 +55,15 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 
 ## Session Log
 
-### 2026-03-28 — Full UI/UX Overhaul + Component Splitting
-- **Changes:** 66 files changed (3,836 ins, 3,934 del). Replaced property edit wizard with free-nav shadcn Tabs (all tabs clickable, per-tab save via new PATCH endpoint). Made property cards fully clickable. Centered main content (max-w-7xl). Added collapsible Settings toggle in sidebar. Split 16 oversized components into sub-components (max file: 149 lines, was 497). Added partialPropertySchema + PATCH handler. Deleted 5 old wizard step files. Created 36 new sub-component files.
-- **Decisions:** Visual-only settings grouping (no URL changes). Deferred Remotion (overkill for 2-user ops tool). Deferred Airbnb iCal diagnosis to separate session.
-- **Tests:** 164/164 passing. 0 TS errors. 0 lint errors.
-- **Next:** Airbnb iCal sync diagnosis (separate session). Mariam + David UAT. Browser-verify tabs + card clickability.
+- 2026-03-28: Full UI/UX overhaul — free-nav tabs, clickable cards, component splitting. 164 tests.
+- 2026-03-28: Production readiness + Coolify deploy to .31. 164 tests.
+- 2026-04-01: Repo hygiene validation — clean state confirmed.
 
-### 2026-03-28 — Full Production Readiness + Coolify Deploy
-- **Changes:** 4 commits (45 files). Blueprint audit → production readiness → gap fixes → Coolify deployment. Fixed: standalone output, CI (pnpm+master), docker-compose env vars, cron service for iCal sync, health check endpoint. Added: 5 error boundaries, user management page + role API, owner-user linking, PWA manifest, template CRUD API (4 routes) + creation pages, cleaner layout auth guard. Fixed: email deep links, checklist persistence, message debounce, Google token refresh, owner API email fallback, direct task fetch for cleaners. Deployed to Coolify on .31 with Traefik, PostgreSQL, MinIO. Live at hostkit.mkgbuilds.com.
-- **Tests:** 164/164 passing. 0 TS errors. 0 lint errors.
-- **Next:** Mariam + David UAT testing. Add properties via admin. Connect Airbnb iCal feeds. Test cleaner flow end-to-end.
-
-### 2026-04-01 — Repo Hygiene Validation
-- **Status:** No open PRs and no pending code changes. Validated current `master` with `pnpm lint`, `npx tsc --noEmit`, `pnpm test:run`, and `pnpm build`.
-- **Residual risk:** `pnpm lint` still reports one existing `@next/next/no-img-element` warning in `src/components/guest/checkin-walkthrough.tsx`.
+### 2026-04-05 — UI Overhaul + Bug Fixes + Coolify Infrastructure
+- **Changes:** 9 commits. 3-phase UI overhaul (dark mode contrast, heading scale, touch-target, Inter font config, button/badge/input refinement, guest guide coral accent, checkin a11y, React.memo on calendar components). Fixed RSC error (PropertyCard missing "use client"), tab clickability (flex+overflow-x-auto), edit page scroll behind BottomTabBar, property header nav layout. Fixed Coolify: git repo .git suffix causing API 404, HOSTNAME binding (-H 0.0.0.0), health check host (0.0.0.0 not localhost). Cleaned 4 stale PR previews + ~2.7GB Docker garbage.
+- **Servers touched:** Proxmox .8 → CT 120 (coolify-prod, 192.168.0.31)
+- **Tests:** 164/164 passing. 0 TS errors. Build clean.
+- **Next:** Add GitHub webhook for auto-deploy (Coolify UI). Complete Mariam + David UAT. Fix iCal sync. Add guest guide analytics.
 
 ## Skill routing
 
