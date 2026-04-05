@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CalendarDays } from "lucide-react";
 import { CalendarToolbar } from "./calendar/calendar-toolbar";
 import { PropertyCalendarRow } from "./calendar/property-calendar-row";
@@ -64,7 +64,10 @@ export function MultiPropertyCalendar() {
     setFromDate((prev) => { const d = new Date(prev); d.setDate(d.getDate() + delta * 7); return d; });
   }
 
-  const filteredGroups = propertyFilter === "all" ? groups : groups.filter((g) => g.propertyId === propertyFilter);
+  const filteredGroups = useMemo(
+    () => propertyFilter === "all" ? groups : groups.filter((g) => g.propertyId === propertyFilter),
+    [groups, propertyFilter]
+  );
 
   return (
     <div className="space-y-5">

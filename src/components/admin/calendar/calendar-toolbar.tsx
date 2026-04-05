@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -33,7 +34,7 @@ function formatDate(date: Date): string {
   });
 }
 
-export function CalendarToolbar({
+export const CalendarToolbar = React.memo(function CalendarToolbar({
   fromDate,
   toDate,
   groups,
@@ -78,4 +79,4 @@ export function CalendarToolbar({
       )}
     </div>
   );
-}
+});

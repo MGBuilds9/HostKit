@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Check } from "lucide-react";
@@ -102,7 +102,7 @@ function StayCard({ stay }: { stay: Stay }) {
   );
 }
 
-export function PropertyCalendarRow({ group }: { group: PropertyGroup }) {
+export const PropertyCalendarRow = React.memo(function PropertyCalendarRow({ group }: { group: PropertyGroup }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -132,4 +132,4 @@ export function PropertyCalendarRow({ group }: { group: PropertyGroup }) {
       )}
     </div>
   );
-}
+});
