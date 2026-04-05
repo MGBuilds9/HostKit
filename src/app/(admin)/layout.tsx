@@ -31,11 +31,12 @@ export default function AdminLayout({
   return (
     <SessionProvider>
       <AdminGuard>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground">Skip to content</a>
         <div className="flex h-screen">
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <Topbar />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 bg-muted">
+            <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 bg-muted">
               <div className="max-w-7xl mx-auto w-full">
                 {children}
               </div>

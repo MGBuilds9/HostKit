@@ -83,6 +83,51 @@ export async function PUT(
   return NextResponse.json(updated);
 }
 
+// PATCH /api/cleaners/[id] — partial update including notification preferences
+// Also accessible by the cleaner themselves (for their own record).
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { role } = session.user;
+
+  // Cleaners can only patch their own record (notification prefs)
+  if (role === "cleaner") {
+    const cleaner = await db.query.cleaners.findFirst({
+      where: eq(cleaners.id, params.id),
+    });
+    if (!cleaner || cleaner.userId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  } else if (role !== "admin" && role !== "manager") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const updates: Record<string, unknown> = { updatedAt: new Date() };
+
+  if (body.notificationPreferences !== undefined) {
+    updates.notificationPreferences = body.notificationPreferences;
+  }
+  if (body.fullName !== undefined) updates.fullName = body.fullName;
+  if (body.email !== undefined) updates.email = body.email || null;
+  if (body.phone !== undefined) updates.phone = body.phone || null;
+  if (body.isActive !== undefined) updates.isActive = body.isActive;
+
+  const [updated] = await db
+    .update(cleaners)
+    .set(updates)
+    .where(eq(cleaners.id, params.id))
+    .returning();
+
+  if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json(updated);
+}
+
 // DELETE /api/cleaners/[id] — soft-delete (set isActive = false)
 // Admin/manager only.
 export async function DELETE(

@@ -27,6 +27,9 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Type check
+        run: npx tsc --noEmit
+
       - name: Test
         run: pnpm run test:run
 

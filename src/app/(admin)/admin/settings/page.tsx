@@ -1,7 +1,9 @@
 import { requireAuth } from "@/lib/auth-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Shield, Mail } from "lucide-react";
+import { User, Shield, Mail, Settings } from "lucide-react";
+import Image from "next/image";
+import { AppSettingsForm } from "@/components/admin/app-settings-form";
 
 export default async function SettingsPage() {
   const session = await requireAuth();
@@ -21,11 +23,13 @@ export default async function SettingsPage() {
         <CardContent className="space-y-3">
           <div className="flex items-center gap-3">
             {user.image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={user.image}
-                alt={user.name ?? "Avatar"}
+                alt={user.name ?? "User avatar"}
+                width={48}
+                height={48}
                 className="h-12 w-12 rounded-full border"
+                priority
               />
             )}
             <div>
@@ -47,17 +51,34 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Placeholder for future settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Application Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Additional settings (branding, notifications, integrations) will appear here in a future update.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Application Settings */}
+      {user.role === "admin" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Settings className="h-4 w-4" /> Application Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AppSettingsForm />
+          </CardContent>
+        </Card>
+      )}
+
+      {user.role !== "admin" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Settings className="h-4 w-4" /> Application Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Only admins can modify application settings.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

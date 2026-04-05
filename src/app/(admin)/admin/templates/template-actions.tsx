@@ -31,6 +31,7 @@ export function TemplateDeleteButton({ id, apiPath }: { id: string; apiPath: str
       className="h-7 w-7 text-destructive hover:text-destructive"
       onClick={handleDelete}
       disabled={deleting}
+      aria-label="Delete template"
     >
       <Trash2 className="h-3.5 w-3.5" />
     </Button>

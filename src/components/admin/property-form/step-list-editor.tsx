@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2 } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface StepField {
   id: string;
@@ -56,9 +57,9 @@ export function StepListEditor({ register, fields, remove, setValue, name, withM
           </div>
           {withMedia && (
             <div className="space-y-2">
-              <Label>Media (optional)</Label>
+              <Label>Media URL (optional)</Label>
               <div className="flex flex-col md:flex-row gap-2">
-                <Input {...register(`${name}.${index}.mediaUrl`)} placeholder="Paste URL or upload" className="flex-1" />
+                <Input {...register(`${name}.${index}.mediaUrl`)} placeholder="Paste URL or use upload below" className="flex-1" />
                 <select {...register(`${name}.${index}.mediaType`)}
                   className="border rounded-md px-2 py-1.5 text-sm bg-background">
                   <option value="">Type</option>
@@ -66,22 +67,14 @@ export function StepListEditor({ register, fields, remove, setValue, name, withM
                   <option value="video">Video</option>
                 </select>
               </div>
-              <input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
-                className="text-xs text-muted-foreground file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-muted file:text-foreground hover:file:bg-accent"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  try {
-                    const res = await fetch("/api/upload", { method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ filename: file.name, contentType: file.type }) });
-                    if (!res.ok) return;
-                    const { uploadUrl, publicUrl } = await res.json();
-                    await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-                    setValue(`${name}.${index}.mediaUrl`, publicUrl);
-                    setValue(`${name}.${index}.mediaType`, file.type.startsWith("video/") ? "video" : "image");
-                  } catch (err) { console.error("Upload failed:", err); }
+              <ImageUpload
+                onUpload={(url) => {
+                  if (url) {
+                    setValue(`${name}.${index}.mediaUrl`, url);
+                    setValue(`${name}.${index}.mediaType`, "image");
+                  }
                 }}
+                accept="image/*"
               />
             </div>
           )}

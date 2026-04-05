@@ -1,13 +1,16 @@
 'use client';
 
 import './globals.css';
+import * as Sentry from "@sentry/nextjs";
 
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  Sentry.captureException(error);
   return (
     <html lang="en">
       <body className="min-h-screen flex items-center justify-center bg-background text-foreground antialiased">

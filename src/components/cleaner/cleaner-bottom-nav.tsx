@@ -20,7 +20,7 @@ export function CleanerBottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 h-16 border-t bg-background pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 inset-x-0 z-40 h-16 border-t bg-background pb-[env(safe-area-inset-bottom)]" aria-label="Navigation">
       <div className="flex h-full items-center justify-around">
         {tabs.map(({ href, label, icon: Icon, exact }) => {
           const active = isActive(href, exact);

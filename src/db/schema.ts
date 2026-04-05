@@ -8,6 +8,7 @@ import {
   jsonb,
   pgEnum,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import type { AdapterAccount } from "next-auth/adapters";
@@ -57,6 +58,7 @@ export const accounts = pgTable(
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
+    userIdIdx: index("accounts_user_id_idx").on(account.userId),
   })
 );
 
@@ -92,6 +94,43 @@ export const owners = pgTable("owners", {
   phone: text("phone"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ============================================================
+// OWNER STATEMENTS
+// ============================================================
+
+export const ownerStatements = pgTable("owner_statements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id").references(() => owners.id).notNull(),
+  propertyId: uuid("property_id").references(() => properties.id).notNull(),
+  month: text("month").notNull(), // "2026-04" format
+  revenue: integer("revenue").default(0), // in cents
+  expenses: integer("expenses").default(0), // in cents
+  payout: integer("payout").default(0), // in cents
+  status: text("status").default("draft"), // "draft" | "sent" | "paid"
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  ownerIdIdx: index("owner_statements_owner_id_idx").on(table.ownerId),
+  propertyIdIdx: index("owner_statements_property_id_idx").on(table.propertyId),
+  monthIdx: index("owner_statements_month_idx").on(table.month),
+}));
+
+// ============================================================
+// OWNER DOCUMENTS
+// ============================================================
+
+export const ownerDocuments = pgTable("owner_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id").references(() => owners.id).notNull(),
+  type: text("type").notNull(), // "lease" | "tax" | "insurance" | "other"
+  name: text("name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+}, (table) => ({
+  ownerIdIdx: index("owner_documents_owner_id_idx").on(table.ownerId),
+}));
 
 // ============================================================
 // PROPERTIES
@@ -236,7 +275,9 @@ export const messageTemplates = pgTable("message_templates", {
   isGlobal: boolean("is_global").default(false), // true = default for all properties
   active: boolean("active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  propertyIdIdx: index("message_templates_property_id_idx").on(table.propertyId),
+}));
 
 // ============================================================
 // CHECKLIST TEMPLATES
@@ -257,7 +298,9 @@ export const checklistTemplates = pgTable("checklist_templates", {
   >(),
   isGlobal: boolean("is_global").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  propertyIdIdx: index("checklist_templates_property_id_idx").on(table.propertyId),
+}));
 
 // ============================================================
 // TURNOVERS (completed checklists)
@@ -274,7 +317,10 @@ export const turnovers = pgTable("turnovers", {
   notes: text("notes"),
   nextGuestCheckin: timestamp("next_guest_checkin"),
   photos: jsonb("photos").$type<string[]>(), // URLs to uploaded photos (future)
-});
+}, (table) => ({
+  propertyIdIdx: index("turnovers_property_id_idx").on(table.propertyId),
+  completedAtIdx: index("turnovers_completed_at_idx").on(table.completedAt),
+}));
 
 // ============================================================
 // CLEANERS
@@ -287,6 +333,12 @@ export const cleaners = pgTable("cleaners", {
   email: text("email"),
   phone: text("phone"),
   isActive: boolean("is_active").default(true),
+  notificationPreferences: jsonb("notification_preferences").$type<{
+    emailEnabled: boolean;
+    pushEnabled: boolean;
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+  }>().default({ emailEnabled: true, pushEnabled: true }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -311,7 +363,11 @@ export const stays = pgTable("stays", {
   hash: text("hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  propertyIdIdx: index("stays_property_id_idx").on(table.propertyId),
+  externalUidIdx: index("stays_external_uid_idx").on(table.externalUid),
+  dateRangeIdx: index("stays_date_range_idx").on(table.startDate, table.endDate),
+}));
 
 // ============================================================
 // CLEANING TASKS
@@ -335,7 +391,12 @@ export const cleaningTasks = pgTable("cleaning_tasks", {
   completedBy: text("completed_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  propertyIdIdx: index("cleaning_tasks_property_id_idx").on(table.propertyId),
+  assignedCleanerIdIdx: index("cleaning_tasks_assigned_cleaner_id_idx").on(table.assignedCleanerId),
+  scheduledStartIdx: index("cleaning_tasks_scheduled_start_idx").on(table.scheduledStart),
+  statusIdx: index("cleaning_tasks_status_idx").on(table.status),
+}));
 
 // ============================================================
 // NOTIFICATIONS
@@ -352,6 +413,36 @@ export const notifications = pgTable("notifications", {
   linkUrl: text("link_url"),
   read: boolean("read").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("notifications_user_id_idx").on(table.userId),
+  userIdReadIdx: index("notifications_user_id_read_idx").on(table.userId, table.read),
+}));
+
+// ============================================================
+// PUSH SUBSCRIPTIONS
+// ============================================================
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+  endpointIdx: index("push_subscriptions_endpoint_idx").on(table.endpoint),
+}));
+
+// ============================================================
+// APP SETTINGS
+// ============================================================
+
+export const appSettings = pgTable("app_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // ============================================================
@@ -366,7 +457,10 @@ export const syncLog = pgTable("sync_log", {
   eventType: text("event_type").notNull(), // "fetch" | "upsert" | "error"
   eventTime: timestamp("event_time").defaultNow().notNull(),
   details: jsonb("details"),
-});
+}, (table) => ({
+  propertyIdIdx: index("sync_log_property_id_idx").on(table.propertyId),
+  eventTimeIdx: index("sync_log_event_time_idx").on(table.eventTime),
+}));
 
 // ============================================================
 // RELATIONS
@@ -376,6 +470,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   notifications: many(notifications),
+  pushSubscriptions: many(pushSubscriptions),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -389,6 +484,8 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const ownersRelations = relations(owners, ({ many, one }) => ({
   properties: many(properties),
   user: one(users, { fields: [owners.userId], references: [users.id] }),
+  statements: many(ownerStatements),
+  documents: many(ownerDocuments),
 }));
 
 export const propertiesRelations = relations(properties, ({ one, many }) => ({
@@ -461,4 +558,17 @@ export const syncLogRelations = relations(syncLog, ({ one }) => ({
     fields: [syncLog.propertyId],
     references: [properties.id],
   }),
+}));
+
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(users, { fields: [pushSubscriptions.userId], references: [users.id] }),
+}));
+
+export const ownerStatementsRelations = relations(ownerStatements, ({ one }) => ({
+  owner: one(owners, { fields: [ownerStatements.ownerId], references: [owners.id] }),
+  property: one(properties, { fields: [ownerStatements.propertyId], references: [properties.id] }),
+}));
+
+export const ownerDocumentsRelations = relations(ownerDocuments, ({ one }) => ({
+  owner: one(owners, { fields: [ownerDocuments.ownerId], references: [owners.id] }),
 }));

@@ -59,6 +59,19 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 - 2026-03-28: Production readiness + Coolify deploy to .31. 164 tests.
 - 2026-04-01: Repo hygiene validation — clean state confirmed.
 
+### 2026-04-05 — Full Production Audit + 6-Phase Roadmap Execution
+- **Audit Score:** 62/100 → targeting 90+. All 6 phases executed in one session.
+- **Phase 1 (Hardening):** 16 database indexes, env validation (src/env.ts), DB connection pooling (max:10), rate limiting (upload 10/min, cron 1/min), upload size limit (10MB), first-user admin race condition fix (transaction), CI type-check step.
+- **Phase 2 (UI/UX):** Accessibility pass (13 aria-labels, skip-to-content links), next/image optimization (6 files), empty state component + loading skeletons, form validation on owner+cleaner forms, SEO (sitemap.ts, robots.ts, ISR on guest guide, JSON-LD structured data).
+- **Phase 3 (Owner Portal):** New `(owner)` route group with 5 pages (dashboard, properties, property detail, statements, documents). 4 owner components. ownerStatements + ownerDocuments tables. Full CRUD API for owners with statements and documents.
+- **Phase 4 (Features):** ImageUpload component (drag-drop, presigned URL flow), manual stay creation with overlap detection + auto cleaning task generation, cleaner notification preferences (email/push toggles, quiet hours), admin settings (company name, timezone, cleaning duration).
+- **Phase 5 (PWA):** Service worker (network-first nav, cache-first static), offline fallback page, push notification infrastructure (subscriptions table, subscribe/unsubscribe API, client button). Actual push sending deferred (needs web-push + VAPID keys).
+- **Phase 6 (Testing):** 7 new test files (5 API, 2 integration). Rate limiter, auth guards, input validation, iCal parsing, notifications. Sentry SDK installed with instrumentation hooks. Coverage config (v8, 60% threshold on src/lib/).
+- **Tests:** 230/230 passing (was 164). 0 TS errors. Build clean (43 pages).
+- **New env vars needed:** `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`
+- **Schema changes:** Run `pnpm db:push` before deployment (indexes, ownerStatements, ownerDocuments, appSettings, pushSubscriptions, cleaners.notificationPreferences).
+- **Next:** Generate VAPID keys for push notifications. Configure Sentry DSN. Complete Mariam + David UAT with owner portal access. Deploy to Coolify.
+
 ### 2026-04-05 — UI Overhaul + Bug Fixes + Coolify Infrastructure
 - **Changes:** 9 commits. 3-phase UI overhaul (dark mode contrast, heading scale, touch-target, Inter font config, button/badge/input refinement, guest guide coral accent, checkin a11y, React.memo on calendar components). Fixed RSC error (PropertyCard missing "use client"), tab clickability (flex+overflow-x-auto), edit page scroll behind BottomTabBar, property header nav layout. Fixed Coolify: git repo .git suffix causing API 404, HOSTNAME binding (-H 0.0.0.0), health check host (0.0.0.0 not localhost). Cleaned 4 stale PR previews + ~2.7GB Docker garbage.
 - **Servers touched:** Proxmox .8 → CT 120 (coolify-prod, 192.168.0.31)

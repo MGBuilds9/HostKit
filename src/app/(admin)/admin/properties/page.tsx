@@ -4,7 +4,8 @@ import { properties, owners } from "@/db/schema";
 import { requireAuth } from "@/lib/auth-guard";
 import { PropertyCard } from "@/components/admin/property-card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Plus, Building2 } from "lucide-react";
 import { eq, or } from "drizzle-orm";
 
 export default async function PropertiesPage() {
@@ -42,20 +43,37 @@ export default async function PropertiesPage() {
           </Button>
         )}
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {propertyList.map((p) => (
-          <PropertyCard
-            key={p.id}
-            id={p.id}
-            name={p.name}
-            slug={p.slug}
-            addressCity={p.addressCity}
-            layout={p.layout ?? null}
-            active={p.active ?? true}
-            ownerName={p.owner.name}
-          />
-        ))}
-      </div>
+      {propertyList.length === 0 ? (
+        <EmptyState
+          icon={Building2}
+          title="No properties yet"
+          description="Add your first property to get started."
+          action={
+            session.user.role !== "owner" && (
+              <Button asChild>
+                <Link href="/admin/properties/new">
+                  <Plus className="h-4 w-4 mr-2" /> Add Property
+                </Link>
+              </Button>
+            )
+          }
+        />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {propertyList.map((p) => (
+            <PropertyCard
+              key={p.id}
+              id={p.id}
+              name={p.name}
+              slug={p.slug}
+              addressCity={p.addressCity}
+              layout={p.layout ?? null}
+              active={p.active ?? true}
+              ownerName={p.owner.name}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

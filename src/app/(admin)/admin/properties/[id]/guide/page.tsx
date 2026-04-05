@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Download, QrCode, Wifi } from "lucide-react";
 import { PrintButton } from "./print-button";
+import Image from "next/image";
 
 export default async function GuidePreviewPage({ params }: { params: { id: string } }) {
   await requireAuth();
@@ -61,11 +62,13 @@ export default async function GuidePreviewPage({ params }: { params: { id: strin
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardContent className="flex items-center gap-4 p-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={`/api/qr/${property.slug}`}
               alt={`QR code linking to ${property.name} guest guide`}
+              width={96}
+              height={96}
               className="h-24 w-24 border rounded shrink-0"
+              unoptimized
             />
             <div>
               <p className="text-sm font-medium flex items-center gap-1.5">
@@ -79,11 +82,13 @@ export default async function GuidePreviewPage({ params }: { params: { id: strin
         {property.wifiName && property.wifiPassword && (
           <Card>
             <CardContent className="flex items-center gap-4 p-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={`/api/qr/${property.slug}?type=wifi`}
                 alt={`QR code for WiFi network ${property.wifiName}`}
+                width={96}
+                height={96}
                 className="h-24 w-24 border rounded shrink-0"
+                unoptimized
               />
               <div>
                 <p className="text-sm font-medium flex items-center gap-1.5">

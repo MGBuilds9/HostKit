@@ -41,7 +41,7 @@ export function BottomTabBar() {
 
   return (
     <>
-      <nav className="fixed bottom-0 inset-x-0 z-40 h-16 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav className="fixed bottom-0 inset-x-0 z-40 h-16 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Mobile navigation">
         <div className="flex h-full items-center justify-around">
           {tabs.map(({ href, label, icon: Icon, matchPrefix }) => {
             const active = isActive(href, matchPrefix);
@@ -61,6 +61,7 @@ export function BottomTabBar() {
           })}
           <button
             onClick={() => setMoreOpen(true)}
+            aria-label="More options"
             className={cn(
               "flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] transition-colors",
               moreOpen ? "text-primary" : "text-muted-foreground"

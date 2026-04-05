@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RoleSelector } from "@/components/admin/role-selector";
 import { Users } from "lucide-react";
+import Image from "next/image";
 
 export default async function UsersPage() {
   const session = await requireAuth(["admin"]);
@@ -35,10 +36,11 @@ export default async function UsersPage() {
                   {/* Avatar */}
                   <div className="shrink-0">
                     {user.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={user.image}
-                        alt={user.name ?? "Avatar"}
+                        alt={user.name ?? "User avatar"}
+                        width={40}
+                        height={40}
                         className="h-10 w-10 rounded-full border"
                       />
                     ) : (

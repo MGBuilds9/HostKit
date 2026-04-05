@@ -1,7 +1,8 @@
 import { db } from "@/db";
-import { notifications, cleaningTasks } from "@/db/schema";
+import { notifications, cleaningTasks, cleaners, pushSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
+import { sendPushToSubscriptions } from "@/lib/push";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -138,7 +139,51 @@ async function insertNotification(opts: {
   });
 }
 
+// ─── Push helper ─────────────────────────────────────────────────────────────
+
+async function isPushEnabled(cleanerId: string): Promise<boolean> {
+  const cleaner = await db.query.cleaners.findFirst({
+    where: eq(cleaners.id, cleanerId),
+    columns: { notificationPreferences: true },
+  });
+  return cleaner?.notificationPreferences?.pushEnabled !== false;
+}
+
+async function sendPushIfEnabled(opts: {
+  cleanerId: string;
+  userId: string;
+  title: string;
+  body: string;
+  taskId: string;
+}): Promise<void> {
+  const pushAllowed = await isPushEnabled(opts.cleanerId);
+  if (!pushAllowed) return;
+
+  const subs = await db.query.pushSubscriptions.findMany({
+    where: eq(pushSubscriptions.userId, opts.userId),
+  });
+
+  if (subs.length === 0) return;
+
+  // TODO: Uncomment once web-push is installed and VAPID keys are configured.
+  // sendPushToSubscriptions is currently a no-op logger.
+  await sendPushToSubscriptions(subs, {
+    title: opts.title,
+    body: opts.body,
+    url: taskUrl(opts.taskId),
+  });
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
+
+async function isEmailEnabled(cleanerId: string): Promise<boolean> {
+  const cleaner = await db.query.cleaners.findFirst({
+    where: eq(cleaners.id, cleanerId),
+    columns: { notificationPreferences: true },
+  });
+  // Default to enabled if no preference set
+  return cleaner?.notificationPreferences?.emailEnabled !== false;
+}
 
 export async function notifyTaskAssigned(taskId: string): Promise<void> {
   const task = await loadTaskWithRelations(taskId);
@@ -160,7 +205,13 @@ export async function notifyTaskAssigned(taskId: string): Promise<void> {
     linkUrl: taskUrl(taskId),
   });
 
+  // Push notification
+  await sendPushIfEnabled({ cleanerId: cleaner.id, userId: cleanerUserId, title, body, taskId });
+
   if (!resend) return;
+
+  const emailAllowed = await isEmailEnabled(cleaner.id);
+  if (!emailAllowed) return;
 
   const html = buildEmailHtml({
     propertyName: property.name,
@@ -205,7 +256,13 @@ export async function notifyTaskUpdated(taskId: string): Promise<void> {
     linkUrl: taskUrl(taskId),
   });
 
+  // Push notification
+  await sendPushIfEnabled({ cleanerId: cleaner.id, userId: cleanerUserId, title, body, taskId });
+
   if (!resend) return;
+
+  const emailAllowed = await isEmailEnabled(cleaner.id);
+  if (!emailAllowed) return;
 
   const html = buildEmailHtml({
     propertyName: property.name,
@@ -251,7 +308,13 @@ export async function notifyTaskCancelled(taskId: string): Promise<void> {
     linkUrl: taskUrl(taskId),
   });
 
+  // Push notification
+  await sendPushIfEnabled({ cleanerId: cleaner.id, userId: cleanerUserId, title, body, taskId });
+
   if (!resend) return;
+
+  const emailAllowed = await isEmailEnabled(cleaner.id);
+  if (!emailAllowed) return;
 
   const html = buildEmailHtml({
     propertyName: property.name,

@@ -16,6 +16,8 @@ import { EmergencyContacts } from "@/components/guest/emergency-contacts";
 import { StickyBottomBar } from "@/components/guest/sticky-bottom-bar";
 import type { Metadata } from "next";
 
+export const revalidate = 3600;
+
 type Step = {
   step: number;
   title: string;
@@ -49,12 +51,16 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const property = await getProperty(params.slug);
   if (!property) return { title: "Not Found" };
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://hostkit.mkgbuilds.com";
+  const canonical = `${baseUrl}/g/${property.slug}`;
   return {
     title: `${property.name} — Guest Guide`,
     description: property.description ?? `Guest guide for ${property.name}`,
+    alternates: { canonical },
     openGraph: {
       title: property.name,
       description: property.description ?? `Guest guide for ${property.name}`,
+      url: canonical,
     },
   };
 }
@@ -63,8 +69,35 @@ export default async function GuestGuidePage({ params }: Props) {
   const property = await getProperty(params.slug);
   if (!property || !property.active) notFound();
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://hostkit.mkgbuilds.com";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: property.name,
+    description: property.description ?? undefined,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: property.addressStreet,
+      addressLocality: property.addressCity,
+      addressRegion: property.addressProvince,
+      postalCode: property.addressPostal,
+      addressCountry: property.addressCountry,
+    },
+    ...(property.latitude && property.longitude
+      ? { geo: { "@type": "GeoCoordinates", latitude: property.latitude, longitude: property.longitude } }
+      : {}),
+    url: `${baseUrl}/g/${property.slug}`,
+  };
+
   return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <GuideLayout>
+      {/* JSON-LD: server-only DB data, no user-supplied HTML */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HeroSection
         name={property.name}
         description={property.description}

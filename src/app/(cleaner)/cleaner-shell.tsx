@@ -31,7 +31,7 @@ function NotificationBell() {
   }, [session]);
 
   return (
-    <Button variant="ghost" size="icon" className="h-9 w-9 relative" asChild>
+    <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label="Notifications" asChild>
       <Link href="/cleaner/profile">
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -48,6 +48,7 @@ function NotificationBell() {
 export function CleanerShell({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground">Skip to content</a>
       <div className="flex flex-col h-screen bg-muted/30">
         <header className="flex h-14 items-center justify-between border-b bg-background px-4 shrink-0">
           <Link href="/cleaner" className="font-semibold text-lg tracking-tight">
@@ -56,7 +57,7 @@ export function CleanerShell({ children }: { children: React.ReactNode }) {
           <NotificationBell />
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 pb-20">{children}</main>
+        <main id="main-content" className="flex-1 overflow-y-auto p-4 pb-20">{children}</main>
 
         <CleanerBottomNav />
       </div>

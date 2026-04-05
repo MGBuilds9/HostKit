@@ -48,6 +48,15 @@ const themeScript = `
 })();
 `;
 
+// Service worker registration — hardcoded constant, not user input (no XSS risk)
+const swScript = `
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,6 +66,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: swScript }} />
       </head>
       <body
         className={`${inter.variable} ${dmSans.variable} font-[family-name:var(--font-inter)] antialiased`}

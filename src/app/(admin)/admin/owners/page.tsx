@@ -3,7 +3,8 @@ import { db } from "@/db";
 import { requireAuth } from "@/lib/auth-guard";
 import { OwnerCard } from "@/components/admin/owner-card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Plus, Users } from "lucide-react";
 
 export default async function OwnersPage() {
   await requireAuth(["admin", "manager"]);
@@ -25,7 +26,18 @@ export default async function OwnersPage() {
       </div>
 
       {ownerList.length === 0 ? (
-        <p className="text-muted-foreground">No owners yet. Add your first owner to get started.</p>
+        <EmptyState
+          icon={Users}
+          title="No owners yet"
+          description="Add your first owner to get started."
+          action={
+            <Button asChild>
+              <Link href="/admin/owners/new">
+                <Plus className="h-4 w-4 mr-2" /> Add Owner
+              </Link>
+            </Button>
+          }
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {ownerList.map((owner) => (

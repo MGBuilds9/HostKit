@@ -155,3 +155,33 @@ export const createCleanerSchema = z.object({
   phone: z.string().optional().or(z.literal("")),
   userId: z.string().uuid().optional(),
 });
+
+// ── Owner Statements ──────────────────────────────────────
+
+export const createStatementSchema = z.object({
+  propertyId: z.string().uuid(),
+  month: z.string().regex(/^\d{4}-\d{2}$/, "Month must be YYYY-MM format"),
+  revenue: z.number().int().min(0).default(0),
+  expenses: z.number().int().min(0).default(0),
+  payout: z.number().int().min(0).default(0),
+  status: z.enum(["draft", "sent", "paid"]).default("draft"),
+  notes: z.string().optional(),
+});
+
+// ── Stays ─────────────────────────────────────────────────
+
+export const createStaySchema = z.object({
+  guestName: z.string().optional(),
+  startDate: z.string().datetime().or(z.string().date()),
+  endDate: z.string().datetime().or(z.string().date()),
+  source: z.enum(["airbnb", "google", "manual"]).default("manual"),
+  status: z.enum(["booked", "blocked", "cancelled"]).default("booked"),
+});
+
+// ── Owner Documents ───────────────────────────────────────
+
+export const createDocumentSchema = z.object({
+  type: z.enum(["lease", "tax", "insurance", "other"]),
+  name: z.string().min(1),
+  fileUrl: z.string().url(),
+});

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { toPascalCase } from "@/lib/utils";
+import Image from "next/image";
 
 interface Step {
   step: number;
@@ -51,9 +52,11 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
             <h3 className="font-semibold text-lg">{steps[current].title}</h3>
             <p className="text-sm leading-relaxed" style={{ color: "hsl(var(--guest-text-muted))" }}>{steps[current].description}</p>
             {steps[current].mediaUrl && steps[current].mediaType === "image" && (
-              <img
+              <Image
                 src={steps[current].mediaUrl}
                 alt={steps[current].title}
+                width={600}
+                height={400}
                 className="rounded-xl w-full max-h-48 object-cover"
               />
             )}

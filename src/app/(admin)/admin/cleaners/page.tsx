@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CleanerActions } from "./cleaner-actions";
-import { Mail, Phone, ExternalLink } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Mail, Phone, ExternalLink, SprayCan } from "lucide-react";
 
 export default async function CleanersPage() {
   await requireAuth(["admin", "manager"]);
@@ -40,11 +41,11 @@ export default async function CleanersPage() {
       </div>
 
       {cleanerRows.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            No cleaners yet. Add your first cleaner to get started.
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={SprayCan}
+          title="No cleaners yet"
+          description="Add your first cleaner to get started."
+        />
       ) : (
         <>
           {/* Desktop table */}

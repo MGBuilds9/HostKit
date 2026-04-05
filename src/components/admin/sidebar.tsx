@@ -62,7 +62,7 @@ export function Sidebar() {
       <div className="flex h-14 items-center border-b px-6 font-semibold text-lg">
         HostKit
       </div>
-      <nav className="flex-1 space-y-6 p-4">
+      <nav className="flex-1 space-y-6 p-4" aria-label="Main navigation">
         {mainGroups.map((group) => (
           <div key={group.label}>
             <p className="px-3 mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -91,6 +91,8 @@ export function Sidebar() {
         <div>
           <button
             onClick={() => setSettingsOpen((o) => !o)}
+            aria-label="Toggle settings"
+            aria-expanded={settingsOpen}
             className="flex w-full items-center justify-between px-3 mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
           >
             Settings

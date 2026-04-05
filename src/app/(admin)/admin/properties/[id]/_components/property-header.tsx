@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QrCode } from "lucide-react";
@@ -8,6 +9,7 @@ import {
   ClipboardCheck,
   CalendarDays,
   Settings,
+  PlusCircle,
 } from "lucide-react";
 
 interface PropertyHeaderProps {
@@ -79,15 +81,23 @@ export function PropertyHeader({ property, guideUrl }: PropertyHeaderProps) {
               <Settings className="h-3.5 w-3.5 mr-1.5" /> iCal
             </Link>
           </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/properties/${property.id}/stays/new`}>
+              <PlusCircle className="h-3.5 w-3.5 mr-1.5" /> Add Stay
+            </Link>
+          </Button>
         </div>
       </div>
 
       <div className="flex items-center gap-4 rounded-lg border bg-card p-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={`/api/qr/${property.slug}`}
           alt={`QR code for ${property.name}`}
+          width={64}
+          height={64}
           className="h-16 w-16 rounded"
+          unoptimized
+          priority
         />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium flex items-center gap-1.5">

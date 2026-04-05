@@ -22,7 +22,7 @@ export function Topbar() {
       <div className="flex items-center gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Toggle theme">
               {theme === "dark" ? (
                 <Moon className="h-4 w-4" />
               ) : theme === "light" ? (
@@ -49,7 +49,7 @@ export function Topbar() {
           <AvatarImage src={session?.user?.image ?? undefined} />
           <AvatarFallback>{session?.user?.name?.[0] ?? "?"}</AvatarFallback>
         </Avatar>
-        <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => signOut()}>
+        <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => signOut()} aria-label="Sign out">
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

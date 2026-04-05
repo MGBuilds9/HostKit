@@ -28,12 +28,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async createUser({ user }) {
       if (!user.id) return;
-      const [{ value: userCount }] = await db.select({ value: count() }).from(users);
-      if (userCount === 1) {
-        await db.update(users)
-          .set({ role: "admin" })
-          .where(eq(users.id, user.id));
-      }
+      const userId = user.id;
+      await db.transaction(async (tx) => {
+        const [{ value: userCount }] = await tx.select({ value: count() }).from(users);
+        if (userCount === 1) {
+          await tx.update(users)
+            .set({ role: "admin" })
+            .where(eq(users.id, userId));
+        }
+      });
     },
   },
   pages: {

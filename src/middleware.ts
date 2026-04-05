@@ -16,9 +16,10 @@ export function middleware(request: NextRequest) {
   const isLoggedIn = !!sessionCookie;
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isCleanerRoute = request.nextUrl.pathname.startsWith("/cleaner");
+  const isOwnerRoute = request.nextUrl.pathname.startsWith("/owner");
   const isLoginPage = request.nextUrl.pathname === "/login";
 
-  if ((isAdminRoute || isCleanerRoute) && !isLoggedIn) {
+  if ((isAdminRoute || isCleanerRoute || isOwnerRoute) && !isLoggedIn) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -30,5 +31,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/cleaner/:path*", "/login"],
+  matcher: ["/admin/:path*", "/cleaner/:path*", "/owner/:path*", "/login"],
 };

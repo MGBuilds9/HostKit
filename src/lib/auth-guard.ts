@@ -9,8 +9,14 @@ export async function requireAuth(allowedRoles?: Role[]) {
     redirect("/login");
   }
   if (allowedRoles && !allowedRoles.includes(session.user.role)) {
-    // Cleaners go to /cleaner, everyone else to /admin
-    redirect(session.user.role === "cleaner" ? "/cleaner" : "/admin");
+    // Redirect to the user's home portal
+    const home =
+      session.user.role === "cleaner"
+        ? "/cleaner"
+        : session.user.role === "owner"
+          ? "/owner"
+          : "/admin";
+    redirect(home);
   }
   return session;
 }
