@@ -33,7 +33,7 @@ export function PropertyForm({ owners, initialData = {}, propertyId }: PropertyF
         </p>
       )}
       <Tabs defaultValue="basics">
-        <TabsList className="w-full grid grid-cols-5">
+        <TabsList className="w-full flex overflow-x-auto">
           <TabsTrigger value="basics">Basics</TabsTrigger>
           <TabsTrigger value="access">Access</TabsTrigger>
           <TabsTrigger value="amenities">Amenities</TabsTrigger>

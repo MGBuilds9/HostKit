@@ -27,7 +27,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
   const ownerList = await db.select({ id: owners.id, name: owners.name }).from(owners);
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl pb-20 md:pb-0">
       <h1 className="text-2xl font-semibold mb-6">Edit {property.name}</h1>
       <PropertyForm
         owners={ownerList}

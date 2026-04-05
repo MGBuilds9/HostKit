@@ -29,7 +29,7 @@ interface PropertyHeaderProps {
 export function PropertyHeader({ property, guideUrl }: PropertyHeaderProps) {
   return (
     <>
-      <div className="flex items-start justify-between">
+      <div className="space-y-3">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-2xl font-semibold">{property.name}</h1>
@@ -48,41 +48,37 @@ export function PropertyHeader({ property, guideUrl }: PropertyHeaderProps) {
             <code className="text-xs bg-muted px-1 py-0.5 rounded">{property.slug}</code>
           </p>
         </div>
-        <div className="flex flex-col gap-2 items-end">
-          <div className="flex gap-2">
-            <Button asChild size="sm">
-              <Link href={`/admin/properties/${property.id}/edit`}>
-                <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/properties/${property.id}/calendar`}>
-                <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> Calendar
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/properties/${property.id}/settings`}>
-                <Settings className="h-3.5 w-3.5 mr-1.5" /> iCal Settings
-              </Link>
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/properties/${property.id}/messages`}>
-                <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Messages
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/properties/${property.id}/checklist`}>
-                <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> Checklist
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/properties/${property.id}/guide`}>
-                <QrCode className="h-3.5 w-3.5 mr-1.5" /> View Guide
-              </Link>
-            </Button>
-          </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <Button asChild size="sm">
+            <Link href={`/admin/properties/${property.id}/edit`}>
+              <Edit className="h-3.5 w-3.5 mr-1.5" /> Edit
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/properties/${property.id}/calendar`}>
+              <CalendarDays className="h-3.5 w-3.5 mr-1.5" /> Calendar
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/properties/${property.id}/messages`}>
+              <MessageSquare className="h-3.5 w-3.5 mr-1.5" /> Messages
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/properties/${property.id}/checklist`}>
+              <ClipboardCheck className="h-3.5 w-3.5 mr-1.5" /> Checklist
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/properties/${property.id}/guide`}>
+              <QrCode className="h-3.5 w-3.5 mr-1.5" /> Guide
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/properties/${property.id}/settings`}>
+              <Settings className="h-3.5 w-3.5 mr-1.5" /> iCal
+            </Link>
+          </Button>
         </div>
       </div>
 
