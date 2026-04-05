@@ -46,7 +46,7 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 220 30% 8%;
+    --card: 224 20% 8%;
     --card-foreground: 210 40% 98%;
     --popover: 220 30% 8%;
     --popover-foreground: 210 40% 98%;
@@ -55,12 +55,12 @@
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 70%;
+    --accent: 217.2 32.6% 20%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
+    --border: 217.2 32.6% 22%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
     --chart-1: 220 70% 50%;
@@ -90,12 +90,21 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1 { @apply text-3xl font-bold tracking-tight; }
+  h2 { @apply text-2xl font-semibold tracking-tight; }
+  h3 { @apply text-xl font-semibold; }
+  h4 { @apply text-lg font-medium; }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
