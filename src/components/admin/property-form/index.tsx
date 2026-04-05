@@ -34,11 +34,11 @@ export function PropertyForm({ owners, initialData = {}, propertyId }: PropertyF
       )}
       <Tabs defaultValue="basics">
         <TabsList className="w-full flex overflow-x-auto">
-          <TabsTrigger value="basics">Basics</TabsTrigger>
-          <TabsTrigger value="access">Access</TabsTrigger>
-          <TabsTrigger value="amenities">Amenities</TabsTrigger>
-          <TabsTrigger value="nearby">Nearby</TabsTrigger>
-          <TabsTrigger value="review">Review</TabsTrigger>
+          <TabsTrigger value="basics" className="flex-shrink-0">Basics</TabsTrigger>
+          <TabsTrigger value="access" className="flex-shrink-0">Access & Check-In</TabsTrigger>
+          <TabsTrigger value="amenities" className="flex-shrink-0">Amenities & Rules</TabsTrigger>
+          <TabsTrigger value="nearby" className="flex-shrink-0">Nearby & Emergency</TabsTrigger>
+          <TabsTrigger value="review" className="flex-shrink-0">Review</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basics" className="mt-6">
