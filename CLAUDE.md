@@ -73,9 +73,13 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 - **Deployment:** Pushed to master, Coolify deploy triggered, schema migration applied (4 tables + 22 indexes + column via psql through Proxmox .8 → CT 120). 6 new env vars added via Coolify API. Web-push activated with VAPID keys. Sentry DSN configured. Health check confirmed.
 - **Next:** Complete Mariam + David UAT with owner portal access. Set up GitHub webhook for auto-deploy. Fix iCal sync. Add guest guide analytics.
 
+### 2026-04-05 — Video Upload Support + HostKit Logo
+- **Changes:** Added video upload support for check-in walkthrough (200MB limit for video, 10MB for images). Created `MediaUpload` component (auto-detects image/video, inline preview for both). Updated `StepListEditor` to use `MediaUpload` with auto-detected `mediaType`. Improved guest-side video player (`preload="metadata"`, `key`-based remount, `aspect-video` container). Designed HostKit house-H logo SVG (coral on navy), added to favicon + sidebar.
+- **Tests:** 232/232 passing (+2 new video upload tests). 0 TS errors. Build clean.
+- **Next:** Generate raster PNGs (192/512) from SVG for PWA manifest. Complete Mariam + David UAT. GitHub webhook for auto-deploy. Fix iCal sync.
+
+- Apr 5: Full production audit + 6-phase execution. 230 tests.
 - Apr 5: UI overhaul + bug fixes + Coolify infrastructure. 164 tests.
-- Mar 28: Full UI/UX overhaul + production readiness. 164 tests.
-- Apr 1: Repo hygiene validation — clean state confirmed.
 
 ## Skill routing
 
