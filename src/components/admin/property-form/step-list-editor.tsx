@@ -1,12 +1,12 @@
 "use client";
 
-import { UseFormRegister, Control, UseFieldArrayRemove, UseFormSetValue } from "react-hook-form";
+import { UseFormRegister, Control, UseFieldArrayRemove, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Trash2 } from "lucide-react";
-import { ImageUpload } from "@/components/ui/image-upload";
+import { MediaUpload } from "@/components/ui/media-upload";
 
 interface StepField {
   id: string;
@@ -19,13 +19,15 @@ interface StepListEditorProps {
   control: Control<any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setValue: UseFormSetValue<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  watch: UseFormWatch<any>;
   fields: StepField[];
   remove: UseFieldArrayRemove;
   name: "checkinSteps" | "checkoutSteps";
   withMedia?: boolean;
 }
 
-export function StepListEditor({ register, fields, remove, setValue, name, withMedia }: StepListEditorProps) {
+export function StepListEditor({ register, fields, remove, setValue, watch, name, withMedia }: StepListEditorProps) {
   return (
     <div className="space-y-3">
       {fields.map((field, index) => (
@@ -57,7 +59,7 @@ export function StepListEditor({ register, fields, remove, setValue, name, withM
           </div>
           {withMedia && (
             <div className="space-y-2">
-              <Label>Media URL (optional)</Label>
+              <Label>Media (optional)</Label>
               <div className="flex flex-col md:flex-row gap-2">
                 <Input {...register(`${name}.${index}.mediaUrl`)} placeholder="Paste URL or use upload below" className="flex-1" />
                 <select {...register(`${name}.${index}.mediaType`)}
@@ -67,14 +69,15 @@ export function StepListEditor({ register, fields, remove, setValue, name, withM
                   <option value="video">Video</option>
                 </select>
               </div>
-              <ImageUpload
-                onUpload={(url) => {
+              <MediaUpload
+                onUpload={(url, mediaType) => {
                   if (url) {
                     setValue(`${name}.${index}.mediaUrl`, url);
-                    setValue(`${name}.${index}.mediaType`, "image");
+                    setValue(`${name}.${index}.mediaType`, mediaType);
                   }
                 }}
-                accept="image/*"
+                currentUrl={watch(`${name}.${index}.mediaUrl`)}
+                currentMediaType={watch(`${name}.${index}.mediaType`) as "image" | "video" | undefined}
               />
             </div>
           )}

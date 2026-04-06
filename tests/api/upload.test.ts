@@ -12,6 +12,8 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/s3", () => ({
   getPresignedUploadUrl: vi.fn().mockResolvedValue("https://minio.example.com/upload?sig=abc"),
   getPublicUrl: vi.fn().mockReturnValue("https://minio.example.com/checkin-media/file.jpg"),
+  MAX_UPLOAD_BYTES: 10 * 1024 * 1024,
+  MAX_VIDEO_UPLOAD_BYTES: 200 * 1024 * 1024,
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
@@ -92,6 +94,28 @@ describe("POST /api/upload", () => {
 
     const res = await POST(
       makeRequest({ filename: "big.jpg", contentType: "image/jpeg", size: overLimit })
+    );
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toMatch(/too large/i);
+  });
+
+  it("allows videos up to 200MB", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "u1", role: "admin" } });
+    const videoSize = 150 * 1024 * 1024; // 150MB — under 200MB video limit
+
+    const res = await POST(
+      makeRequest({ filename: "walkthrough.mp4", contentType: "video/mp4", size: videoSize })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects videos over 200MB", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "u1", role: "admin" } });
+    const overLimit = 201 * 1024 * 1024;
+
+    const res = await POST(
+      makeRequest({ filename: "huge.mp4", contentType: "video/mp4", size: overLimit })
     );
     expect(res.status).toBe(400);
     const json = await res.json();

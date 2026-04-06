@@ -61,12 +61,16 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
               />
             )}
             {steps[current].mediaUrl && steps[current].mediaType === "video" && (
-              <video
-                src={steps[current].mediaUrl}
-                controls
-                playsInline
-                className="rounded-xl w-full max-h-48"
-              />
+              <div className="relative rounded-xl overflow-hidden bg-black/5 dark:bg-black/20 w-full aspect-video">
+                <video
+                  key={steps[current].mediaUrl}
+                  src={steps[current].mediaUrl}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              </div>
             )}
           </motion.div>
         </AnimatePresence>

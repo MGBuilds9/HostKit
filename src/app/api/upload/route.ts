@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getPresignedUploadUrl, getPublicUrl } from "@/lib/s3";
+import { getPresignedUploadUrl, getPublicUrl, MAX_UPLOAD_BYTES, MAX_VIDEO_UPLOAD_BYTES } from "@/lib/s3";
 import { randomUUID } from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
 
 const uploadLimiter = rateLimit({ windowMs: 60_000, maxRequests: 10 });
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
   // Rate limit: 10 requests per minute per IP
@@ -37,9 +35,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "filename and contentType required" }, { status: 400 });
   }
 
-  if (typeof size === "number" && size > MAX_FILE_SIZE) {
+  const isVideo = contentType?.startsWith("video/");
+  const maxSize = isVideo ? MAX_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+  const maxLabel = isVideo ? "200MB" : "10MB";
+
+  if (typeof size === "number" && size > maxSize) {
     return NextResponse.json(
-      { error: "File too large. Maximum size is 10MB." },
+      { error: `File too large. Maximum size is ${maxLabel}.` },
       { status: 400 }
     );
   }

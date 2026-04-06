@@ -20,7 +20,7 @@ interface TabAccessProps {
 }
 
 export function TabAccess({ initialData, onSave, saving }: TabAccessProps) {
-  const { register, handleSubmit, control, setValue } = useForm<AccessFormValues>({
+  const { register, handleSubmit, control, setValue, watch } = useForm<AccessFormValues>({
     resolver: zodResolver(propertyAccessSchema),
     defaultValues: {
       wifiName: (initialData.wifiName as string) ?? "",
@@ -78,7 +78,7 @@ export function TabAccess({ initialData, onSave, saving }: TabAccessProps) {
             <Plus className="h-4 w-4 mr-1" /> Add Step
           </Button>
         </div>
-        <StepListEditor register={register} control={control} setValue={setValue} fields={checkinFields} remove={removeCheckin} name="checkinSteps" withMedia />
+        <StepListEditor register={register} control={control} setValue={setValue} watch={watch} fields={checkinFields} remove={removeCheckin} name="checkinSteps" withMedia />
       </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ export function TabAccess({ initialData, onSave, saving }: TabAccessProps) {
             <Plus className="h-4 w-4 mr-1" /> Add Step
           </Button>
         </div>
-        <StepListEditor register={register} control={control} setValue={setValue} fields={checkoutFields} remove={removeCheckout} name="checkoutSteps" />
+        <StepListEditor register={register} control={control} setValue={setValue} watch={watch} fields={checkoutFields} remove={removeCheckout} name="checkoutSteps" />
       </div>
       <div className="space-y-1">
         <Label>Security Note</Label>
