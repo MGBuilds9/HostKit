@@ -47,11 +47,11 @@ Coolify on Proxmox .31 via Docker Compose. Three services: app (Next.js standalo
 
 Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or git push to master (auto-deploy).
 
-## Known Gaps (from e2e audit)
+## Known Gaps
 
-- First-user admin race condition (no transaction on count+update)
-- No rate limiting on APIs (acceptable for 2-user testing)
-- Timezone hardcoded to America/Toronto in turnover generator
+- Timezone hardcoded to America/Toronto in turnover generator (configurable via admin settings now, but generator still reads property.timezone)
+- OAuth tokens stored in plaintext (NextAuth default — acceptable for current threat model)
+- Template forms (message + checklist) use HTML required attrs, not zod+react-hook-form
 
 ## Session Log
 
@@ -70,13 +70,12 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 - **Tests:** 230/230 passing (was 164). 0 TS errors. Build clean (43 pages).
 - **New env vars needed:** `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`
 - **Schema changes:** Run `pnpm db:push` before deployment (indexes, ownerStatements, ownerDocuments, appSettings, pushSubscriptions, cleaners.notificationPreferences).
-- **Next:** Generate VAPID keys for push notifications. Configure Sentry DSN. Complete Mariam + David UAT with owner portal access. Deploy to Coolify.
+- **Deployment:** Pushed to master, Coolify deploy triggered, schema migration applied (4 tables + 22 indexes + column via psql through Proxmox .8 → CT 120). 6 new env vars added via Coolify API. Web-push activated with VAPID keys. Sentry DSN configured. Health check confirmed.
+- **Next:** Complete Mariam + David UAT with owner portal access. Set up GitHub webhook for auto-deploy. Fix iCal sync. Add guest guide analytics.
 
-### 2026-04-05 — UI Overhaul + Bug Fixes + Coolify Infrastructure
-- **Changes:** 9 commits. 3-phase UI overhaul (dark mode contrast, heading scale, touch-target, Inter font config, button/badge/input refinement, guest guide coral accent, checkin a11y, React.memo on calendar components). Fixed RSC error (PropertyCard missing "use client"), tab clickability (flex+overflow-x-auto), edit page scroll behind BottomTabBar, property header nav layout. Fixed Coolify: git repo .git suffix causing API 404, HOSTNAME binding (-H 0.0.0.0), health check host (0.0.0.0 not localhost). Cleaned 4 stale PR previews + ~2.7GB Docker garbage.
-- **Servers touched:** Proxmox .8 → CT 120 (coolify-prod, 192.168.0.31)
-- **Tests:** 164/164 passing. 0 TS errors. Build clean.
-- **Next:** Add GitHub webhook for auto-deploy (Coolify UI). Complete Mariam + David UAT. Fix iCal sync. Add guest guide analytics.
+- Apr 5: UI overhaul + bug fixes + Coolify infrastructure. 164 tests.
+- Mar 28: Full UI/UX overhaul + production readiness. 164 tests.
+- Apr 1: Repo hygiene validation — clean state confirmed.
 
 ## Skill routing
 
