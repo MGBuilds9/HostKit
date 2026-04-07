@@ -78,6 +78,7 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 - **Tests:** 232/232 passing (+2 new video upload tests). 0 TS errors. Build clean.
 - **Next:** Generate raster PNGs (192/512) from SVG for PWA manifest. Complete Mariam + David UAT. GitHub webhook for auto-deploy. Fix iCal sync.
 
+- Apr 6: Repo hygiene — 0 open PRs, 0 unmerged branches. All gates clean. 232/232 tests.
 - Apr 5: Full production audit + 6-phase execution. 230 tests.
 - Apr 5: UI overhaul + bug fixes + Coolify infrastructure. 164 tests.
 
