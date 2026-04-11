@@ -40,6 +40,7 @@ export function TagInput({ label, tags, onAdd, onRemove }: TagInputProps) {
               type="button"
               onClick={() => onRemove(i)}
               className="text-muted-foreground hover:text-red-500"
+              aria-label={`Remove ${tag}`}
             >
               <X className="h-3 w-3" />
             </button>

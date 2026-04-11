@@ -37,6 +37,7 @@ export function StepListEditor({ register, fields, remove, setValue, watch, name
             <Button type="button" variant="ghost" size="sm"
               className="text-red-500 hover:text-red-700 h-6 px-2"
               onClick={() => remove(index)}
+              aria-label="Remove step"
             >
               <Trash2 className="h-3 w-3" />
             </Button>

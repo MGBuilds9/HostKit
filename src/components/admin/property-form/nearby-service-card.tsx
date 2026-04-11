@@ -40,7 +40,7 @@ export function NearbyServiceCard({ index, register, setValue, currentCategory, 
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Service {index + 1}</span>
         <Button type="button" variant="ghost" size="sm"
-          className="text-red-500 hover:text-red-700 h-6 px-2" onClick={onRemove}>
+          className="text-red-500 hover:text-red-700 h-6 px-2" onClick={onRemove} aria-label="Remove service">
           <Trash2 className="h-3 w-3" />
         </Button>
       </div>

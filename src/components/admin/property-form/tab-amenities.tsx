@@ -73,7 +73,7 @@ export function TabAmenities({ initialData, onSave, saving }: TabAmenitiesProps)
           <div key={field.id} className="flex gap-2 items-center">
             <div className="w-16"><Input {...register(`houseRules.${index}.icon`)} placeholder="🚭" /></div>
             <div className="flex-1"><Input {...register(`houseRules.${index}.rule`)} placeholder="No smoking anywhere on premises" /></div>
-            <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-700" onClick={() => removeRule(index)}>
+            <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-700" onClick={() => removeRule(index)} aria-label="Remove rule">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
