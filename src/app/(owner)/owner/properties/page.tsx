@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { db } from "@/db";
 import { owners, properties, stays } from "@/db/schema";
-import { eq, and, gte, or } from "drizzle-orm";
+import { eq, and, gte, or, inArray } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth-guard";
 import { redirect } from "next/navigation";
 import { OwnerPropertyCard } from "@/components/owner/owner-property-card";
@@ -38,21 +38,28 @@ export default async function OwnerPropertiesPage() {
 
   // Count upcoming stays per property
   const now = new Date();
-  const propertiesWithStays = await Promise.all(
-    ownerProperties.map(async (prop) => {
-      const upcomingStays = await db.query.stays.findMany({
-        where: and(
-          eq(stays.propertyId, prop.id),
-          gte(stays.startDate, now),
-          eq(stays.status, "booked")
-        ),
-      });
-      return {
-        ...prop,
-        upcomingStayCount: upcomingStays.length,
-      };
-    })
-  );
+  const propertyIds = ownerProperties.map((p) => p.id);
+  const staysByProperty: Record<string, number> = {};
+
+  if (propertyIds.length > 0) {
+    const allUpcomingStays = await db.query.stays.findMany({
+      where: and(
+        inArray(stays.propertyId, propertyIds),
+        gte(stays.startDate, now),
+        eq(stays.status, "booked")
+      ),
+      columns: { propertyId: true },
+    });
+
+    for (const stay of allUpcomingStays) {
+      staysByProperty[stay.propertyId] = (staysByProperty[stay.propertyId] || 0) + 1;
+    }
+  }
+
+  const propertiesWithStays = ownerProperties.map((prop) => ({
+    ...prop,
+    upcomingStayCount: staysByProperty[prop.id] || 0,
+  }));
 
   return (
     <div className="space-y-6">
