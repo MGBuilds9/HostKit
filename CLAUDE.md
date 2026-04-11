@@ -55,6 +55,12 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 
 ## Session Log
 
+### April 11, 2026 - Repo Hygiene #50
+- **Changes:** Merged 2 PRs. **#7 Palette** — added `aria-label` to 5 icon-only delete/remove buttons in property form (NearbyServiceCard, StepListEditor, TabAmenities house rules, TabBasics beds, TagInput dynamic `Remove ${tag}`). Created `.Jules/palette.md` learning entry. **#8 Bolt** — replaced N+1 query in owner properties page (`Promise.all` over `findMany` per property) with a single batched `inArray` query + in-memory hash map grouping. Real perf win on owners with many properties. Created `.jules/bolt.md` learning entry.
+- **Tests:** Lint clean. TypeScript clean.
+- **Branches deleted:** 2.
+- **Open PRs:** 0.
+
 - 2026-03-28: Full UI/UX overhaul — free-nav tabs, clickable cards, component splitting. 164 tests.
 - 2026-03-28: Production readiness + Coolify deploy to .31. 164 tests.
 - 2026-04-01: Repo hygiene validation — clean state confirmed.
