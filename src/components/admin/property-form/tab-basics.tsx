@@ -108,7 +108,7 @@ export function TabBasics({ initialData, owners, onSave, saving }: TabBasicsProp
             <div className="col-span-2 space-y-1"><Label>Type</Label><Input {...register(`beds.${index}.type`)} placeholder="queen" /></div>
             <div className="col-span-1 space-y-1"><Label>Count</Label><Input type="number" min={1} {...register(`beds.${index}.count`, { valueAsNumber: true })} /></div>
             <div className="col-span-3 space-y-1"><Label>Location</Label><Input {...register(`beds.${index}.location`)} placeholder="Primary Bedroom" /></div>
-            <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-700" onClick={() => removeBed(index)}><Trash2 className="h-4 w-4" /></Button>
+            <Button type="button" variant="ghost" size="sm" className="text-red-500 hover:text-red-700" onClick={() => removeBed(index)} aria-label="Remove bed"><Trash2 className="h-4 w-4" /></Button>
           </div>
         ))}
       </div>
