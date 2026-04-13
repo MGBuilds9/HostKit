@@ -55,6 +55,13 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 
 ## Session Log
 
+### April 13, 2026 - Repo Hygiene #51
+- **PRs processed:** 7 open. 4 merged/applied, 3 closed.
+- **Merged:** #12 (prod deps group — already merged), #13/#15/#17 consolidated into direct commit (lockfile conflicts after #12).
+- **Closed:** #14 (eslint-config-next major — policy), #16 (Next.js 14→16 major), #18 (Tailwind 3→4 major).
+- **Applied:** lucide-react 0.577→1.8.0 (no brand icons in use, safe), @types/node ^20→25.6.0, drizzle-kit 0.31.9→0.31.10, vitest 4.1.0→4.1.4.
+- **Tests:** 232/232 passing. 0 open PRs. 0 orphan branches.
+
 ### April 11, 2026 - Repo Hygiene #50
 - **Changes:** Merged 2 PRs. **#7 Palette** — added `aria-label` to 5 icon-only delete/remove buttons in property form (NearbyServiceCard, StepListEditor, TabAmenities house rules, TabBasics beds, TagInput dynamic `Remove ${tag}`). Created `.Jules/palette.md` learning entry. **#8 Bolt** — replaced N+1 query in owner properties page (`Promise.all` over `findMany` per property) with a single batched `inArray` query + in-memory hash map grouping. Real perf win on owners with many properties. Created `.jules/bolt.md` learning entry.
 - **Tests:** Lint clean. TypeScript clean.
