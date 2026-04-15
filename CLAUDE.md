@@ -59,7 +59,7 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 - **Changes:** Fixed TS/lint regression in `tab-access.tsx` — react-hook-form v8 strict generics broke `Control<AccessFormValues>` assignability to `Control<any>` in StepListEditor. Fixed by casting to `anyControl` with eslint-disable. Stale branch `forge/n8n-client-automations-2026-04-14` deleted — contained misplaced docs (Keliny Law / Nakhla Dental n8n blueprints, unrelated to HostKit) and rejected Next.js 14→16 major bump (policy: closed in #51).
 - **Tests:** 232/232 passing. TypeScript clean. Lint clean. Build 43 pages clean.
 - **Branches deleted:** 1 (`forge/n8n-client-automations-2026-04-14`). **Open PRs:** 0.
-- **Pushed:** pending
+- **Pushed:** aa78ad7
 
 ### April 13, 2026 - Repo Hygiene #51
 - **PRs processed:** 7 open. 4 merged/applied, 3 closed.
