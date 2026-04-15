@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { propertyAccessSchema } from "@/lib/validators";
@@ -43,6 +43,10 @@ export function TabAccess({ initialData, onSave, saving }: TabAccessProps) {
   const { fields: checkoutFields, append: appendCheckout, remove: removeCheckout } =
     useFieldArray({ control, name: "checkoutSteps" });
 
+  // StepListEditor accepts Control<any> — cast required due to react-hook-form v8 strict generics
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyControl = control as Control<any>;
+
   return (
     <form onSubmit={handleSubmit((v) => onSave(v as Record<string, unknown>))} className="space-y-6">
       <div className="space-y-3">
@@ -78,7 +82,7 @@ export function TabAccess({ initialData, onSave, saving }: TabAccessProps) {
             <Plus className="h-4 w-4 mr-1" /> Add Step
           </Button>
         </div>
-        <StepListEditor register={register} control={control} setValue={setValue} watch={watch} fields={checkinFields} remove={removeCheckin} name="checkinSteps" withMedia />
+        <StepListEditor register={register} control={anyControl} setValue={setValue} watch={watch} fields={checkinFields} remove={removeCheckin} name="checkinSteps" withMedia />
       </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -88,7 +92,7 @@ export function TabAccess({ initialData, onSave, saving }: TabAccessProps) {
             <Plus className="h-4 w-4 mr-1" /> Add Step
           </Button>
         </div>
-        <StepListEditor register={register} control={control} setValue={setValue} watch={watch} fields={checkoutFields} remove={removeCheckout} name="checkoutSteps" />
+        <StepListEditor register={register} control={anyControl} setValue={setValue} watch={watch} fields={checkoutFields} remove={removeCheckout} name="checkoutSteps" />
       </div>
       <div className="space-y-1">
         <Label>Security Note</Label>
