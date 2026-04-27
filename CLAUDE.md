@@ -55,6 +55,10 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 
 ## Session Log
 
+### 2026-04-27 - Repo Hygiene #55
+- 2026-04-27: Repo hygiene — merged 1 (PR #19 auto-merged upstream), rewrote 0, closed 3 (#20 postcss patch, #21 Next.js 14→16 major declined per policy, #22 next-auth beta.31). Bumped next-auth beta.30→beta.31 via direct commit; 3 remote branches deleted. 232/232 tests, lint clean, typecheck clean.
+- **Commits pushed:** 3fe8781 (AGENTS.md), 2b6b63f (next-auth beta.31 + postcss lockfile)
+
 ### April 15, 2026 - Repo Hygiene #52
 - **Changes:** Fixed TS/lint regression in `tab-access.tsx` — react-hook-form v8 strict generics broke `Control<AccessFormValues>` assignability to `Control<any>` in StepListEditor. Fixed by casting to `anyControl` with eslint-disable. Stale branch `forge/n8n-client-automations-2026-04-14` deleted — contained misplaced docs (Keliny Law / Nakhla Dental n8n blueprints, unrelated to HostKit) and rejected Next.js 14→16 major bump (policy: closed in #51).
 - **Tests:** 232/232 passing. TypeScript clean. Lint clean. Build 43 pages clean.
