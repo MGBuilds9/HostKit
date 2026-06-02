@@ -1,5 +1,13 @@
 # Repository Guidelines
 
+## Global Agent Contract
+
+Follow `/Users/mkgbuilds/AGENTS.md` first, then this repo-specific file. The durable operating guideline lives at `/Volumes/obsidian-vault/12-agents/agent-operating-guidelines.md`.
+
+Do not store session logs, rolling progress notes, or project history in this file. Write session logs to `/Volumes/obsidian-vault/02-sessions/`, agent handoffs to `/Volumes/obsidian-vault/12-agents/<agent>/`, reusable lessons to `/Volumes/obsidian-vault/03-patterns/`, and durable decisions to `/Volumes/obsidian-vault/04-decisions/` after verifying the vault is mounted and writable.
+
+Use the LifeOS/vault MCP for semantic context when available; if it is unavailable, fall back to the mounted vault and state that context is degraded.
+
 ## Project Structure & Module Organization
 - Next.js 14 App Router in `src/app/`. Three portals: `(admin)`, `(owner)`, `(cleaner)`. Public guest guides at `/guide/[slug]`.
 - Drizzle schemas in `src/db/schema.ts`; queries in `src/db/queries/`. Migrations via `drizzle-kit`.

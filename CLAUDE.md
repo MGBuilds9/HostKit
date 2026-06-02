@@ -55,6 +55,12 @@ Coolify API token: stored in Coolify UI (not in repo). Deploy via Coolify API or
 
 ## Session Log
 
+### 2026-05-27 — Dockerfile Node 22 + pnpm 10.16.1 pin (Coolify D1 migration unblock)
+- **Shipped**: commit `e820af5` — `FROM node:20-alpine` → `FROM node:22-alpine` + added `packageManager: pnpm@10.16.1` to `package.json` + added `@sentry/cli` to `pnpm.onlyBuiltDependencies`. Pre-push-gate clean (232/232 tests, lint, types, build). Auto-deployed via webhook to Coolify on `.19` CT 120; container `wlxyn6jdoe3oo1me99dpq1pk-155350376360` healthy.
+- **Why**: Coolify migrated `.8 → .19` overnight and the old cached image was lost (we skipped overlay2 rsync). Fresh build from clean state exposed: (1) `node:20-alpine` + pnpm 11.3 (corepack default) crashed on `node:sqlite` builtin (requires Node ≥22.13); (2) `node:22.13-alpine3.20` hit corepack signing-key bug (Node bug, fixed 22.16+); (3) `node:22-alpine` + pnpm 11.3 hit `ERR_PNPM_IGNORED_BUILDS` even with `onlyBuiltDependencies` set. Pin to pnpm 10.16.1 sidesteps all three.
+- **Now serving**: `https://hostkit.mkgbuilds.com` end-to-end via CF Tunnel → Traefik (HTTPS, real LE cert) → Next.js. Root `/` returns 307 → `/login` = correct NextAuth behavior.
+- **Next**: nothing immediate. Coolify auto-deploys from `main` going forward.
+
 ### 2026-04-27 - Repo Hygiene #55
 - 2026-04-27: Repo hygiene — merged 1 (PR #19 auto-merged upstream), rewrote 0, closed 3 (#20 postcss patch, #21 Next.js 14→16 major declined per policy, #22 next-auth beta.31). Bumped next-auth beta.30→beta.31 via direct commit; 3 remote branches deleted. 232/232 tests, lint clean, typecheck clean.
 - **Commits pushed:** 3fe8781 (AGENTS.md), 2b6b63f (next-auth beta.31 + postcss lockfile)

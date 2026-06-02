@@ -1,0 +1,5 @@
+{
+  "last_green_sha": "b3c1f3c5508214327653bc5ab36db068e4398d07",
+  "last_green_time": "2026-05-27T15:53:28Z",
+  "stages_passed": ["lint","typecheck","test","build"]
+}
