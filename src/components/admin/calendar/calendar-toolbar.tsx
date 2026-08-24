@@ -46,13 +46,25 @@ export const CalendarToolbar = React.memo(function CalendarToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex items-center gap-1">
-        <Button variant="outline" size="sm" onClick={() => onShiftWeek(-1)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onShiftWeek(-1)}
+          aria-label="Previous week"
+          title="Previous week"
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Button variant="outline" size="sm" onClick={onGoToToday}>
           Today
         </Button>
-        <Button variant="outline" size="sm" onClick={() => onShiftWeek(1)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onShiftWeek(1)}
+          aria-label="Next week"
+          title="Next week"
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
