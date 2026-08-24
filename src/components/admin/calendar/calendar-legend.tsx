@@ -10,6 +10,7 @@ import {
   TASK_STATUS_CLASSES,
   TASK_STATUS_LABELS,
 } from "./calendar-utils";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function stayStatusBadge(status: Stay["status"]) {
@@ -29,7 +30,9 @@ export function taskStatusBadge(status: CleaningTask["status"]) {
   );
 }
 
-export function StayCard({ stay }: { stay: Stay }) {
+// Memoize StayCard to prevent unnecessary re-renders when parent states change.
+// Expected performance impact: Prevents unnecessary DOM re-renders of list items in property calendar view.
+export const StayCard = React.memo(function StayCard({ stay }: { stay: Stay }) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -69,4 +72,4 @@ export function StayCard({ stay }: { stay: Stay }) {
       )}
     </Card>
   );
-}
+});
