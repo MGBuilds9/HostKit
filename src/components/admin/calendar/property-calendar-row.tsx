@@ -110,6 +110,8 @@ export const PropertyCalendarRow = React.memo(function PropertyCalendarRow({ gro
       <button
         onClick={() => setCollapsed((c) => !c)}
         className="flex items-center gap-2 w-full text-left"
+        aria-expanded={!collapsed}
+        aria-label={`Toggle ${group.propertyName} stays`}
       >
         <h3 className="text-sm font-semibold text-foreground">{group.propertyName}</h3>
         <Badge variant="secondary" className="text-xs">
