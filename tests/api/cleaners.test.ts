@@ -7,7 +7,7 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/db", () => ({
   db: {
     query: {
-      cleaners: { findMany: vi.fn() },
+      cleaners: { findMany: vi.fn(), findFirst: vi.fn() },
     },
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
@@ -16,10 +16,16 @@ vi.mock("@/db", () => ({
         ]),
       })),
     })),
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve([{ count: 0 }])),
+      })),
+    })),
   },
 }));
 
 import { GET, POST } from "@/app/api/cleaners/route";
+import { GET as GET_ID } from "@/app/api/cleaners/[id]/route";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 
@@ -73,6 +79,56 @@ describe("GET /api/cleaners", () => {
 
     const res = await GET();
     expect(res.status).toBe(200);
+  });
+});
+
+describe("GET /api/cleaners/[id]", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 when not authenticated", async () => {
+    mockAuth.mockResolvedValue(null);
+    const res = await GET_ID(makeRequest(), { params: { id: "cleaner-1" } });
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 403 for unauthorized role like owner", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "u1", role: "owner" } });
+    const res = await GET_ID(makeRequest(), { params: { id: "cleaner-1" } });
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 403 when a cleaner attempts to access another cleaner record", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-cleaner-1", role: "cleaner" } });
+    (db.query.cleaners.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "cleaner-2",
+      userId: "user-cleaner-2",
+      fullName: "Other Cleaner",
+    });
+
+    const res = await GET_ID(makeRequest(), { params: { id: "cleaner-2" } });
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 200 when a cleaner accesses their own cleaner record", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-cleaner-1", role: "cleaner" } });
+    (db.query.cleaners.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "cleaner-1",
+      userId: "user-cleaner-1",
+      fullName: "Self Cleaner",
+    });
+    (db.select as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      from: vi.fn(() => ({
+        where: vi.fn(() => Promise.resolve([{ count: 5 }])),
+      })),
+    });
+
+    const res = await GET_ID(makeRequest(), { params: { id: "cleaner-1" } });
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.fullName).toBe("Self Cleaner");
+    expect(json.taskCount).toBe(5);
   });
 });
 
