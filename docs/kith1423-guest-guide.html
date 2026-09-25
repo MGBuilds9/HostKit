@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Kith 1423 — Digital Guest Guide & Check-In</title>
+  <meta name="description" content="Your complete, seamless arrival and stay companion for Unit 1423 at The Kith Condominiums.">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #d4726a;
+      --accent-soft: #fdf2f1;
+      --accent-hover: #b85d56;
+      --primary: #0f172a;
+      --primary-soft: #f1f5f9;
+      --success: #10b981;
+      --success-soft: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-soft: #fffbeb;
+      --radius: 16px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #e07f77;
+      --accent-soft: #2d1817;
+      --accent-hover: #f19b94;
+      --primary: #f8fafc;
+      --primary-soft: #1e293b;
+      --success: #34d399;
+      --success-soft: #064e3b;
+      --warning: #fbbf24;
+      --warning-soft: #451a03;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 90px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    header {
+      padding: 24px 0 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Hero section */
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-address {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    /* Tabs */
+    .mode-selector {
+      background: var(--primary-soft);
+      border-radius: 12px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn.active {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Steps */
+    .step-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--card-border);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .step-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .step-item:first-child {
+      padding-top: 0;
+    }
+
+    .step-indicator {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      border: 2px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.2s ease;
+    }
+
+    .step-item.completed .step-indicator {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-badge {
+      display: inline-block;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--primary-soft);
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .step-item.completed .step-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .progress-bar-container {
+      margin-bottom: 16px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .progress-bar-track {
+      height: 6px;
+      background: var(--primary-soft);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* WiFi Card */
+    .wifi-details {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .credential-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--primary-soft);
+      padding: 12px 14px;
+      border-radius: 12px;
+    }
+
+    .cred-meta span:first-child {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .cred-meta span:last-child {
+      font-size: 15px;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .copy-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .qr-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+      padding: 14px;
+      background: var(--card-bg);
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+    }
+
+    .qr-svg {
+      width: 90px;
+      height: 90px;
+      background: white;
+      padding: 6px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .qr-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .qr-desc strong {
+      color: var(--text-main);
+    }
+
+    /* Etiquette alert */
+    .alert-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 18px;
+      color: #1e3a8a;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    [data-theme="dark"] .alert-box {
+      background: #172554;
+      border-color: #1e40af;
+      color: #bfdbfe;
+    }
+
+    .alert-header {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Grid cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .info-card h4 {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .info-card p {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Amenities List */
+    .amenities-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .amenity-chip {
+      font-size: 12px;
+      background: var(--primary-soft);
+      padding: 8px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Local essentials */
+    .essential-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 13px;
+    }
+
+    .essential-item:last-child {
+      border-bottom: none;
+    }
+
+    .essential-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Sticky Bottom Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+    }
+
+    .bottom-inner {
+      max-width: 640px;
+      width: 100%;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-call {
+      flex: 1;
+      background: var(--accent);
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-sos {
+      background: #ef4444;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Reset button */
+    .reset-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">H</div>
+      <div class="brand-text">
+        <h1>HostKit Guest Guide</h1>
+        <p>Unit 1423 • The Kith Condominiums</p>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme">
+      🌙 Dark
+    </button>
+  </header>
+
+  <!-- Hero Card -->
+  <div class="hero-card">
+    <div class="hero-badge">✨ Confirmed Reservation</div>
+    <h2 class="hero-title">Welcome to Kith 1423</h2>
+    <div class="hero-address">
+      📍 2485 Eglinton Avenue West, Unit 1423, Mississauga, ON
+    </div>
+
+    <div class="quick-stats">
+      <div class="stat-item">
+        <div class="stat-label">Check-In</div>
+        <div class="stat-value">3:00 PM</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Check-Out</div>
+        <div class="stat-value">11:00 AM</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Parking Spot</div>
+        <div class="stat-value">P3 - 257</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Building Etiquette Notice -->
+  <div class="alert-box">
+    <div class="alert-header">
+      🏢 Private Residence Self-Check-In
+    </div>
+    This is a private residential community. Concierge and building security do not handle guest check-ins or key exchanges. Keys and fobs are placed directly inside Unit 1423 for you. Please do not approach front desk staff regarding Airbnb services; your host is available 24/7 if you need any assistance!
+  </div>
+
+  <!-- WiFi Card with 1-Click Copy and Instant QR -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📶 High-Speed Wi-Fi</div>
+      <span style="font-size: 12px; color: var(--success); font-weight: 600;">Active 500Mbps</span>
+    </div>
+    <div class="wifi-details">
+      <div class="credential-box">
+        <div class="cred-meta">
+          <span>Network (SSID)</span>
+          <span id="wifiSsid">MG-1423</span>
+        </div>
+        <button class="copy-btn" onclick="copyText('wifiSsid', this)">Copy</button>
+      </div>
+      <div class="credential-box">
+        <div class="cred-meta">
+          <span>Password</span>
+          <span id="wifiPass">Welcome123!/@</span>
+        </div>
+        <button class="copy-btn" onclick="copyText('wifiPass', this)">Copy</button>
+      </div>
+      <div class="qr-box">
+        <div class="qr-svg">
+          <!-- Exact scannable WiFi QR code for MG-1423 -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges" width="100%" height="100%"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#000000" d="M1 1.5h7m1 0h1m1 0h2m2 0h3m2 0h1m2 0h7M1 2.5h1m5 0h1m2 0h2m2 0h2m2 0h1m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h4m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h1m3 0h1m4 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m1 0h3m3 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m1 0h1m2 0h1m3 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m4 0h4m2 0h1M1 9.5h1m1 0h1m3 0h2m1 0h2m2 0h2m1 0h2m1 0h1m3 0h1m2 0h1m1 0h1M1 10.5h1m2 0h2m2 0h3m1 0h1m1 0h2m1 0h3m2 0h1m1 0h3m1 0h2M1 11.5h1m1 0h2m2 0h2m1 0h4m3 0h1m1 0h1m1 0h1m1 0h2m1 0h1M1 12.5h3m5 0h1m1 0h2m1 0h1m1 0h7m1 0h2m2 0h2M2 13.5h1m1 0h2m1 0h3m1 0h2m1 0h1m2 0h2m2 0h5m2 0h1M1 14.5h4m1 0h1m3 0h3m5 0h2m6 0h2m1 0h1M1 15.5h2m1 0h1m1 0h3m2 0h1m2 0h4m1 0h3m2 0h1m1 0h1m2 0h1M3 16.5h2m1 0h1m3 0h2m3 0h1m3 0h1m1 0h1m1 0h2m2 0h2M3 17.5h1m3 0h4m2 0h4m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1M6 18.5h1m2 0h4m1 0h2m1 0h3m1 0h2m6 0h1M1 19.5h2m2 0h1m1 0h3m1 0h2m5 0h2m1 0h1m1 0h1m1 0h2m1 0h2M3 20.5h2m1 0h1m1 0h2m4 0h1m1 0h1m2 0h4m1 0h1m1 0h4M1 21.5h2m2 0h4m1 0h1m2 0h2m2 0h2m2 0h5m2 0h1M9 22.5h1m1 0h3m3 0h2m2 0h1m3 0h1m1 0h2M1 23.5h7m1 0h1m1 0h2m1 0h5m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m2 0h3m2 0h1m4 0h2m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m2 0h1m3 0h2m1 0h2m1 0h8m1 0h1M1 26.5h1m1 0h3m1 0h1m2 0h3m1 0h2m1 0h2m3 0h5M1 27.5h1m1 0h3m1 0h1m1 0h5m3 0h2m1 0h2m1 0h1m1 0h2m1 0h2M1 28.5h1m5 0h1m2 0h1m1 0h1m4 0h2m1 0h1m1 0h1m1 0h1m4 0h1M1 29.5h7m1 0h1m7 0h10m1 0h2"/></svg>
+        </div>
+        <div class="qr-desc">
+          <strong>Instant Smartphone Connect:</strong><br>
+          Open your iPhone or Android camera and point it at this QR code. Tap the notification banner to join automatically.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Check-In Walkthrough -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🗺️ Check-In Walkthrough</div>
+      <button class="reset-btn" onclick="resetSteps()">Reset Progress</button>
+    </div>
+
+    <!-- Arrival Mode Switcher -->
+    <div class="mode-selector">
+      <button class="mode-btn active" id="btnCar" onclick="setMode('car')">
+        🚗 Arriving by Car
+      </button>
+      <button class="mode-btn" id="btnTransit" onclick="setMode('transit')">
+        🚶 Transit / Rideshare
+      </button>
+    </div>
+
+    <!-- Progress Tracker -->
+    <div class="progress-bar-container">
+      <div class="progress-info">
+        <span id="progressText">0 of 6 completed</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- Steps for Car Arrival -->
+    <div id="stepsCar">
+      <div class="step-item" onclick="toggleStep(this, 1)">
+        <div class="step-indicator">1</div>
+        <div class="step-content">
+          <div class="step-badge">Underground Garage • Level P1/P2</div>
+          <div class="step-title">Park Temporarily in Visitor Parking</div>
+          <div class="step-desc">Enter the underground garage from the building driveway and follow signs to visitor parking. Park in any open visitor spot for 15 minutes while grabbing the keys.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 2)">
+        <div class="step-indicator">2</div>
+        <div class="step-content">
+          <div class="step-badge">Front Entrance Intercom</div>
+          <div class="step-title">Buzz Unit via Directory: George A.</div>
+          <div class="step-desc">Walk to the main lobby entrance. At the digital intercom directory, scroll to and select <strong>George A.</strong> The front door unlocks automatically once buzzed.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 3)">
+        <div class="step-indicator">3</div>
+        <div class="step-content">
+          <div class="step-badge">Elevator • 14th Floor</div>
+          <div class="step-title">Go to Unit 1423 (Grab Keys & Fob)</div>
+          <div class="step-desc">Take the elevator to the 14th floor, turn toward Unit 1423. Enter the apartment. Your physical keys and the garage entry fob are resting on the kitchen island counter.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 4)">
+        <div class="step-indicator">4</div>
+        <div class="step-content">
+          <div class="step-badge">Garage • Yellow Security Gate</div>
+          <div class="step-title">Drive Through Resident Gate to Level P3</div>
+          <div class="step-desc">Return downstairs to your car in visitor parking. Drive toward the yellow resident gate. Tap the black fob against the reader to open the gate and proceed down to level P3.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 5)">
+        <div class="step-indicator">5</div>
+        <div class="step-content">
+          <div class="step-badge">Level P3 • Stall 257</div>
+          <div class="step-title">Park in Dedicated Stall: P3 - 257</div>
+          <div class="step-desc">Locate stall <strong>P3 - 257</strong> (clearly marked with bold numbering on the pillar/wall). Park your vehicle here for the duration of your stay.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 6)">
+        <div class="step-indicator">6</div>
+        <div class="step-content">
+          <div class="step-badge">P3 Elevator Lobby</div>
+          <div class="step-title">Unload Luggage & Head Up</div>
+          <div class="step-desc">Bring your luggage to the elevator vestibule on P3. Use the fob to unlock the door, take the elevator up to the 14th floor, and make yourself at home!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps for Transit / Rideshare Arrival -->
+    <div id="stepsTransit" style="display: none;">
+      <div class="step-item" onclick="toggleStep(this, 101)">
+        <div class="step-indicator">1</div>
+        <div class="step-content">
+          <div class="step-badge">Lobby Entrance</div>
+          <div class="step-title">Arrive at 2485 Eglinton Ave W</div>
+          <div class="step-desc">Have your rideshare drop you off at the main front entrance walkway on Eglinton Avenue West.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 102)">
+        <div class="step-indicator">2</div>
+        <div class="step-content">
+          <div class="step-badge">Front Intercom</div>
+          <div class="step-title">Buzz Directory: George A.</div>
+          <div class="step-desc">At the digital intercom, search and select <strong>George A.</strong> The front door unlocks automatically when buzzed. Walk past the concierge desk toward the elevators.</div>
+        </div>
+      </div>
+
+      <div class="step-item" onclick="toggleStep(this, 103)">
+        <div class="step-indicator">3</div>
+        <div class="step-content">
+          <div class="step-badge">14th Floor</div>
+          <div class="step-title">Enter Unit 1423 & Collect Keys</div>
+          <div class="step-desc">Take the elevator to the 14th floor. Enter Unit 1423. Your keys and building fob are on the kitchen island counter. You're all checked in!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-Apartment Essentials -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🏡 In-Apartment Guide</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="info-card">
+        <h4>🌡️ Thermostat</h4>
+        <p>Set to 22°C (72°F)</p>
+        <span style="font-size: 11px; color: var(--text-muted);">Digital wall control in hallway. Toggle Cool/Heat using mode button.</span>
+      </div>
+      <div class="info-card">
+        <h4>🧺 In-Unit Laundry</h4>
+        <p>Washer & Dryer</p>
+        <span style="font-size: 11px; color: var(--text-muted);">Detergent pods and dryer sheets stocked in hallway closet.</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="info-card">
+        <h4>🗑️ Garbage & Chute</h4>
+        <p>Level 14 Chute Room</p>
+        <span style="font-size: 11px; color: var(--text-muted);">Hours: 8:00 AM – 10:00 PM. All garbage must be tied in bags. Chute locked overnight.</span>
+      </div>
+      <div class="info-card">
+        <h4>☕ Kitchen</h4>
+        <p>Fully Stocked</p>
+        <span style="font-size: 11px; color: var(--text-muted);">Coffee maker, kettle, toaster, cookware, spices & candy jars ready for you.</span>
+      </div>
+    </div>
+
+    <div style="font-size: 13px; font-weight: 700; margin: 12px 0 8px;">Important House Rules:</div>
+    <div class="amenities-grid">
+      <div class="amenity-chip">🚭 100% Smoke/Vape-Free</div>
+      <div class="amenity-chip">🔇 Quiet Hours: 10 PM – 8 AM</div>
+      <div class="amenity-chip">🚫 No Parties or Events</div>
+      <div class="amenity-chip">🐾 No Pets Permitted</div>
+    </div>
+  </div>
+
+  <!-- Local Essentials & Transit -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📍 Nearby Essentials</div>
+    </div>
+    <div>
+      <div class="essential-item">
+        <div>
+          <strong>Fortinos Supermarket</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">Groceries, hot prepared foods, bakery • 350m (4 min walk)</div>
+        </div>
+        <a class="essential-link" href="https://maps.google.com/?q=Fortinos+2485+Eglinton+Mississauga" target="_blank" rel="noopener">Directions ↗</a>
+      </div>
+      <div class="essential-item">
+        <div>
+          <strong>Shoppers Drug Mart</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">Pharmacy, snacks, personal care • 400m (5 min walk)</div>
+        </div>
+        <a class="essential-link" href="https://maps.google.com/?q=Shoppers+Drug+Mart+Eglinton+Mississauga" target="_blank" rel="noopener">Directions ↗</a>
+      </div>
+      <div class="essential-item">
+        <div>
+          <strong>Credit Valley Hospital (ER)</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">24/7 Emergency Medical Care • 3.5km (7 min drive)</div>
+        </div>
+        <a class="essential-link" href="https://maps.google.com/?q=Credit+Valley+Hospital" target="_blank" rel="noopener">Directions ↗</a>
+      </div>
+      <div class="essential-item">
+        <div>
+          <strong>MiWay Public Transit</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">Bus stops outside on Eglinton • Routes 19 & 101 Express</div>
+        </div>
+        <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">At Doorstep</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Checklist (11:00 AM) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🛫 Easy Check-Out by 11:00 AM</div>
+    </div>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">We want your departure to be effortless. Please complete these simple steps before you leave:</p>
+    <div class="step-item" onclick="toggleCheckout(this)">
+      <div class="step-indicator">✓</div>
+      <div class="step-content">
+        <div class="step-title">Place used towels in bathtub</div>
+        <div class="step-desc">No need to strip the bed linens.</div>
+      </div>
+    </div>
+    <div class="step-item" onclick="toggleCheckout(this)">
+      <div class="step-indicator">✓</div>
+      <div class="step-content">
+        <div class="step-title">Start the dishwasher</div>
+        <div class="step-desc">Pop a detergent pod into the dishwasher and press Start.</div>
+      </div>
+    </div>
+    <div class="step-item" onclick="toggleCheckout(this)">
+      <div class="step-indicator">✓</div>
+      <div class="step-content">
+        <div class="step-title">Drop garbage in 14th floor chute</div>
+        <div class="step-desc">Tie bags securely and place in the garbage chute down the hall.</div>
+      </div>
+    </div>
+    <div class="step-item" onclick="toggleCheckout(this)">
+      <div class="step-indicator">✓</div>
+      <div class="step-content">
+        <div class="step-title">Leave keys and fob on kitchen counter</div>
+        <div class="step-desc">Ensure the apartment door is securely closed and locked behind you. Safe travels!</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Fixed Quick Action Bottom Bar -->
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <a href="tel:+16474709434" class="btn-call">
+      📞 Call / Text Host
+    </a>
+    <a href="tel:911" class="btn-sos">
+      🚨 SOS 911
+    </a>
+  </div>
+</div>
+
+<script>
+  // Theme handling
+  const themeBtn = document.getElementById('themeBtn');
+  let currentTheme = localStorage.getItem('kith_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(currentTheme);
+
+  themeBtn.addEventListener('click', () => {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(currentTheme);
+    localStorage.setItem('kith_theme', currentTheme);
+  });
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeBtn.innerHTML = '☀️ Light';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      themeBtn.innerHTML = '🌙 Dark';
+    }
+  }
+
+  // Mode handling
+  let currentMode = localStorage.getItem('kith_mode') || 'car';
+  setMode(currentMode);
+
+  function setMode(mode) {
+    currentMode = mode;
+    localStorage.setItem('kith_mode', mode);
+
+    const btnCar = document.getElementById('btnCar');
+    const btnTransit = document.getElementById('btnTransit');
+    const stepsCar = document.getElementById('stepsCar');
+    const stepsTransit = document.getElementById('stepsTransit');
+
+    if (mode === 'car') {
+      btnCar.classList.add('active');
+      btnTransit.classList.remove('active');
+      stepsCar.style.display = 'block';
+      stepsTransit.style.display = 'none';
+    } else {
+      btnCar.classList.remove('active');
+      btnTransit.classList.add('active');
+      stepsCar.style.display = 'none';
+      stepsTransit.style.display = 'block';
+    }
+    updateProgress();
+  }
+
+  // Clipboard copy
+  function copyText(elementId, btn) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.innerText;
+      btn.innerText = 'Copied!';
+      btn.style.background = 'var(--success-soft)';
+      btn.style.color = 'var(--success)';
+      btn.style.borderColor = 'var(--success)';
+      setTimeout(() => {
+        btn.innerText = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    });
+  }
+
+  // Step completion handling
+  let completedSteps = JSON.parse(localStorage.getItem('kith_steps_done') || '[]');
+
+  function initSteps() {
+    document.querySelectorAll('.step-item').forEach((item) => {
+      const idMatch = item.getAttribute('onclick')?.match(/toggleStep\(this,\s*(\d+)\)/);
+      if (idMatch && completedSteps.includes(parseInt(idMatch[1]))) {
+        item.classList.add('completed');
+      }
+    });
+    updateProgress();
+  }
+
+  function toggleStep(element, stepId) {
+    element.classList.toggle('completed');
+    if (element.classList.contains('completed')) {
+      if (!completedSteps.includes(stepId)) completedSteps.push(stepId);
+    } else {
+      completedSteps = completedSteps.filter(id => id !== stepId);
+    }
+    localStorage.setItem('kith_steps_done', JSON.stringify(completedSteps));
+    updateProgress();
+  }
+
+  function toggleCheckout(element) {
+    element.classList.toggle('completed');
+  }
+
+  function resetSteps() {
+    completedSteps = [];
+    localStorage.removeItem('kith_steps_done');
+    document.querySelectorAll('.step-item').forEach(item => item.classList.remove('completed'));
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const activeContainer = currentMode === 'car' ? document.getElementById('stepsCar') : document.getElementById('stepsTransit');
+    const items = activeContainer.querySelectorAll('.step-item');
+    const total = items.length;
+    let done = 0;
+    items.forEach(item => {
+      if (item.classList.contains('completed')) done++;
+    });
+
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    document.getElementById('progressText').innerText = `${done} of ${total} steps completed`;
+    document.getElementById('progressPercent').innerText = `${percent}%`;
+    document.getElementById('progressBar').style.width = `${percent}%`;
+  }
+
+  initSteps();
+</script>
+
+</body>
+</html>
