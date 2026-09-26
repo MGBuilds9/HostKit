@@ -36,6 +36,7 @@ export const propertyAccessSchema = z.object({
   parkingInstructions: z.string().optional(),
   buzzerName: z.string().optional(),
   buzzerInstructions: z.string().optional(),
+  guestAccessCode: z.string().optional(),
   checkinTime: z.string().default("15:00"),
   checkoutTime: z.string().default("11:00"),
   preArrivalLeadMins: z.number().int().default(30),
@@ -46,6 +47,7 @@ export const propertyAccessSchema = z.object({
     icon: z.string().optional(),
     mediaUrl: z.string().optional(),
     mediaType: z.enum(["image", "video"]).optional(),
+    posterUrl: z.string().optional(),
   })).optional(),
   checkoutSteps: z.array(z.object({
     step: z.number().int(),

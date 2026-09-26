@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Hostname that should serve the Kith guest guide at its root.
+// e.g. kith.mkguirguis.com/ internally renders /g/kith-1423.
+const GUIDE_HOSTS: Record<string, string> = {
+  "kith.mkguirguis.com": "/g/kith-1423",
+};
+
 // NOTE: We cannot import `auth` from `@/lib/auth` here because it
 // pulls in `postgres` (Node.js-only) which is incompatible with
 // the Edge Runtime that middleware runs in.
@@ -9,6 +15,19 @@ import type { NextRequest } from "next/server";
 // auth validation happens in the server components via requireAuth().
 
 export function middleware(request: NextRequest) {
+  // Serve the guest guide at the root of a dedicated guide hostname, keeping
+  // the visible URL as the bare host. Behind a reverse proxy, request.nextUrl
+  // reflects the internal URL, so read the forwarded Host header.
+  const hostHeader = (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+  const guidePath = GUIDE_HOSTS[hostHeader];
+  if (guidePath) {
+    const { pathname, search } = request.nextUrl;
+    if (pathname === "/" || pathname === "") {
+      return NextResponse.rewrite(new URL(guidePath + search, request.url));
+    }
+    return NextResponse.next();
+  }
+
   const sessionCookie =
     request.cookies.get("authjs.session-token") ??
     request.cookies.get("__Secure-authjs.session-token");
@@ -31,5 +50,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/cleaner/:path*", "/owner/:path*", "/login"],
+  matcher: ["/", "/admin/:path*", "/cleaner/:path*", "/owner/:path*", "/login"],
 };

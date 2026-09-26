@@ -14,9 +14,11 @@ import { NearbyServices } from "@/components/guest/nearby-services";
 import { CheckoutSection } from "@/components/guest/checkout-section";
 import { EmergencyContacts } from "@/components/guest/emergency-contacts";
 import { StickyBottomBar } from "@/components/guest/sticky-bottom-bar";
+import { GuideUnlockForm } from "@/components/guest/guide-unlock-form";
+import { isGuideUnlocked, unlockGuide } from "@/lib/guest-access";
 import type { Metadata } from "next";
 
-export const revalidate = 3600;
+export const revalidate = 0;
 
 type Step = {
   step: number;
@@ -25,6 +27,7 @@ type Step = {
   icon?: string;
   mediaUrl?: string;
   mediaType?: "image" | "video";
+  posterUrl?: string;
 };
 
 type Service = {
@@ -68,6 +71,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function GuestGuidePage({ params }: Props) {
   const property = await getProperty(params.slug);
   if (!property || !property.active) notFound();
+
+  // Access-code gate: a property with guestAccessCode set shows an unlock
+  // screen until a guest provides the correct code (then a cookie is set).
+  const accessCode = property.guestAccessCode;
+  if (accessCode) {
+    const { slug } = property;
+    const unlocked = await isGuideUnlocked(slug, accessCode);
+    if (!unlocked) {
+      const unlock = async (
+        formData: FormData,
+      ): Promise<{ error: string | null }> => {
+        "use server";
+        const code = String(formData.get("code") ?? "");
+        const ok = await unlockGuide(slug, accessCode, code);
+        return ok ? { error: null } : { error: "Incorrect code. Try again." };
+      };
+      return (
+        <GuideLayout>
+          <GuideUnlockForm propertyName={property.name} action={unlock} />
+        </GuideLayout>
+      );
+    }
+  }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "https://hostkit.mkgbuilds.com";
   const jsonLd = {

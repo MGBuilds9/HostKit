@@ -6,6 +6,11 @@ import {
   messageTemplates,
   checklistTemplates,
 } from "./schema";
+import type { InferInsertModel } from "drizzle-orm";
+
+// drizzle's `properties` table is large enough that TS can overflow inference
+// on the inline object literal; typing the value explicitly avoids that.
+type NewProperty = InferInsertModel<typeof properties>;
 
 async function seed() {
   console.log("Seeding database...");
@@ -35,10 +40,8 @@ async function seed() {
   console.log(`Created owner: ${owner.name} (${owner.id})`);
 
   // ── 3. Kith 1423 Property ───────────────────────────────────
-  const [property] = await db
-    .insert(properties)
-    .values({
-      ownerId: owner.id,
+  const newProperty: NewProperty = {
+    ownerId: owner.id,
 
       // Identity
       name: "Kith 1423",
@@ -71,10 +74,12 @@ async function seed() {
       wifiPassword: "Welcome123!/@",
       parkingSpot: "P3-257",
       parkingInstructions:
-        "Resident parking is accessed through the yellow gate near the visitor parking entrance. You may need to use the fob to open the garage door. Your spot number (P3-257) is clearly marked on the wall.",
-      buzzerName: "George A.",
+        "On arrival day, come through visitor parking first, then move to your assigned spot P3-257 (parking level 3) once you are checked in. You may need the fob to open the garage door.",
+      buzzerName: "GUIRGUIS, M",
       buzzerInstructions:
-        'At the building entrance buzzer/intercom, select "George A." from the directory. The door will be unlocked for you.',
+        'At the TX-3 Touch Entry System intercom, open the resident directory, find "GUIRGUIS, M", then press CALL. Your host will buzz you in.',
+      // Gates the public guide at /g/kith-1423 behind this shared code.
+      guestAccessCode: "KITH-2485",
 
       // Check-in / Check-out
       checkinTime: "15:00",
@@ -83,45 +88,60 @@ async function seed() {
       checkinSteps: [
         {
           step: 1,
-          title: "Park in Visitor Parking",
+          title: "Say hello before arrival",
           description:
-            "As you enter the underground garage, follow the signs to visitor parking. Park in any available visitor spot.",
-          icon: "car",
+            "Call or text Mariam about 30 minutes before you reach the building so everything is ready for you.",
+          icon: "phone",
         },
         {
           step: 2,
-          title: "One Person Goes Up",
+          title: "Drive in and park",
           description:
-            "Only the reservation holder should go to the unit first — no luggage yet. This is required for key handoff.",
-          icon: "user",
+            "Head into the parking garage and use visitor parking first on arrival. Your assigned spot for the stay is P3-257. Follow the marked direction once inside the garage.",
+          icon: "car",
+          mediaUrl: "/guide-media/kith-1423/assets/arrival-drive.mp4",
+          mediaType: "video",
+          posterUrl: "/guide-media/kith-1423/posters/arrival-drive.jpg",
         },
         {
           step: 3,
-          title: "Enter the Building",
+          title: "Get buzzed in",
           description:
-            'At the buzzer, select "George A." from the directory. The door will unlock automatically.',
-          icon: "door-open",
+            'At the TX-3 Touch Entry System intercom, open the resident directory and look for "GUIRGUIS, M", then press CALL. Your host will buzz you in.',
+          icon: "bell-ring",
+          mediaUrl: "/guide-media/kith-1423/assets/intercom-entry.mp4",
+          mediaType: "video",
+          posterUrl: "/guide-media/kith-1423/posters/intercom-entry.jpg",
         },
         {
           step: 4,
-          title: "Go to Unit 1423",
+          title: "Garage to elevator",
           description:
-            "Take the elevator to the 14th floor. Your keys and fob will be on the kitchen counter inside the unit.",
-          icon: "key",
+            "From the garage, walk through the door and take the elevator up to the 14th floor.",
+          icon: "arrow-up-from-line",
+          mediaUrl: "/guide-media/kith-1423/assets/garage-to-elevator.mp4",
+          mediaType: "video",
+          posterUrl: "/guide-media/kith-1423/posters/garage-to-elevator.jpg",
         },
         {
           step: 5,
-          title: "Move Your Car",
+          title: "Find your unit",
           description:
-            "Return to the garage. Instead of going right to visitor parking, take the yellow gate to resident parking. Your spot is P3-257. You may need the fob for the garage door.",
-          icon: "square-parking",
+            "Walk down the 14th floor hallway to Unit 1423. The key and fob are waiting for you inside.",
+          icon: "key",
+          mediaUrl: "/guide-media/kith-1423/assets/hallway-to-unit.mp4",
+          mediaType: "video",
+          posterUrl: "/guide-media/kith-1423/posters/hallway-to-unit.jpg",
         },
         {
           step: 6,
-          title: "Unload & Settle In",
+          title: "Keys & fob",
           description:
-            "Bring up your luggage. Use the fob to access the door between the parking garage and the elevator. Welcome home!",
-          icon: "luggage",
+            "Your set for the stay is a SALTO access card plus the unit key with the black fob. Tap the black fob on the SALTO reader next to doors to unlock them.",
+          icon: "contact-round",
+          mediaUrl: "/guide-media/kith-1423/assets/fob-and-garbage-room.mp4",
+          mediaType: "video",
+          posterUrl: "/guide-media/kith-1423/posters/fob-and-garbage-room.jpg",
         },
       ],
       checkoutSteps: [
@@ -225,46 +245,40 @@ async function seed() {
         "Candy welcome jars",
         "Extra bedding in closet",
         "Hangers in every closet",
+        "Remote-controlled bedroom blinds (up arrow raises, down arrow lowers, square stops)",
       ],
 
       // Nearby Services
       nearbyServices: [
         {
-          name: "Fortinos",
-          category: "grocery",
-          distance: "350m",
+          name: "Erin Mills Town Centre",
+          category: "entertainment",
+          distance: "2 min walk",
+          notes: "Shopping and dining, just across the street",
           googleMapsUrl:
-            "https://maps.google.com/?q=Fortinos+Eglinton+Mississauga",
-          phone: "+19058286886",
+            "https://maps.google.com/?q=Erin+Mills+Town+Centre",
         },
         {
-          name: "Shoppers Drug Mart",
-          category: "pharmacy",
-          distance: "400m",
-          googleMapsUrl:
-            "https://maps.google.com/?q=Shoppers+Drug+Mart+Eglinton+Mississauga",
-          phone: "+19058286677",
+          name: "Walmart (5100 Erin Mills Pkwy)",
+          category: "grocery",
+          distance: "Steps away",
+          notes: "Grocery and pharmacy, open 8 AM–10 PM daily",
+          googleMapsUrl: "https://maps.google.com/?q=Walmart+5100+Erin+Mills+Pkwy",
         },
         {
           name: "Trillium Health Partners (Credit Valley)",
           category: "hospital",
-          distance: "3.5km",
+          distance: "2 min walk",
+          notes: "Nearest ER, just across Eglinton Ave W",
           googleMapsUrl:
             "https://maps.google.com/?q=Credit+Valley+Hospital",
           phone: "+19058131100",
-          notes: "Nearest ER",
         },
         {
-          name: "MiWay Transit",
+          name: "Transit",
           category: "transit",
-          notes: "Bus stops on Eglinton Ave — routes 19 and 101",
-        },
-        {
-          name: "Erin Mills Town Centre",
-          category: "entertainment",
-          distance: "2km",
-          googleMapsUrl:
-            "https://maps.google.com/?q=Erin+Mills+Town+Centre",
+          notes:
+            "Bus stops across the street; Erin Mills Station nearby (MiWay, GO Bus, Oakville Transit). Quick access to Highways 403 & 407.",
         },
       ],
 
@@ -278,7 +292,10 @@ async function seed() {
 
       // State
       active: true,
-    })
+  };
+  const [property] = await db
+    .insert(properties)
+    .values(newProperty)
     .returning();
 
   console.log(`Created property: ${property.name} (${property.id})`);

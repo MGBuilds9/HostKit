@@ -14,6 +14,7 @@ interface Step {
   icon?: string;
   mediaUrl?: string;
   mediaType?: "image" | "video";
+  posterUrl?: string;
 }
 
 export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
@@ -113,6 +114,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                 <video
                   key={steps[current].mediaUrl}
                   src={steps[current].mediaUrl}
+                  poster={steps[current].posterUrl}
                   controls
                   playsInline
                   preload="metadata"

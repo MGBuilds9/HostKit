@@ -174,6 +174,10 @@ export const properties = pgTable("properties", {
   parkingInstructions: text("parking_instructions"),
   buzzerName: text("buzzer_name"),
   buzzerInstructions: text("buzzer_instructions"),
+  // Per-property shared access code that gates the public guest guide.
+  // When set, /g/[slug] shows an unlock screen until a guest enters it.
+  // null = guide is public (backwards compatible).
+  guestAccessCode: text("guest_access_code"),
 
   // Check-in / Check-out
   checkinTime: text("checkin_time").notNull().default("15:00"),
@@ -187,6 +191,7 @@ export const properties = pgTable("properties", {
       icon?: string;
       mediaUrl?: string;
       mediaType?: "image" | "video";
+      posterUrl?: string;
     }>
   >(),
   checkoutSteps: jsonb("checkout_steps").$type<
