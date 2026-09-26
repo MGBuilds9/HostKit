@@ -12,10 +12,8 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-// Mock @/env so importing the module never touches real env validation.
-vi.mock("@/env", () => ({
-  env: { NEXTAUTH_SECRET: "test-secret" },
-}));
+// Set the secret directly (the lib reads process.env.NEXTAUTH_SECRET lazily).
+process.env.NEXTAUTH_SECRET = "test-secret";
 
 import { isGuideUnlocked, unlockGuide } from "@/lib/guest-access";
 

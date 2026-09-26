@@ -1,6 +1,13 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
-import { env } from "@/env";
+
+// Read the secret lazily (not via @/env) so this module stays importable
+// during Next.js static page-data collection where full env isn't present.
+const secret = () => {
+  const s = process.env.NEXTAUTH_SECRET;
+  if (!s) throw new Error("NEXTAUTH_SECRET is required");
+  return s;
+};
 
 const COOKIE_PREFIX = "guest-access-";
 const SESSION_DAYS = 30;
@@ -12,7 +19,7 @@ const SESSION_DAYS = 30;
  */
 function unlockToken(slug: string, code: string): string {
   return crypto
-    .createHmac("sha256", env.NEXTAUTH_SECRET)
+    .createHmac("sha256", secret())
     .update(`${slug}:${code.trim().toLowerCase()}`)
     .digest("hex");
 }
