@@ -1,13 +1,8 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import type { FormEvent } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { KeyRound } from "lucide-react";
-
-type UnlockFormProps = {
-  propertyName: string;
-  action: (formData: FormData) => Promise<{ error: string | null }>;
-};
+import { unlockGuideAction } from "@/app/g/[slug]/actions";
 
 const inputStyle: React.CSSProperties = {
   background: "hsl(var(--guest-section-bg))",
@@ -15,25 +10,34 @@ const inputStyle: React.CSSProperties = {
   color: "inherit",
 };
 
-export function GuideUnlockForm({ propertyName, action }: UnlockFormProps) {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
+type State = { error: string | null };
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    startTransition(async () => {
-      const result = await action(formData);
-      if (result?.error) {
-        setError(result.error);
-        formRef.current?.reset();
-      } else {
-        // Cookie is set by the server action; reload to render the guide.
-        window.location.reload();
-      }
-    });
-  }
+function UnlockButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full rounded-xl px-4 py-3 font-semibold text-white transition-opacity disabled:opacity-60"
+      style={{ background: "hsl(var(--guest-accent))" }}
+    >
+      {pending ? "Unlocking…" : "Unlock guide"}
+    </button>
+  );
+}
+
+export function GuideUnlockForm({
+  propertyName,
+  slug,
+}: {
+  propertyName: string;
+  slug: string;
+}) {
+  // Bind the slug; the action receives (state, formData) for useFormState.
+  const action = unlockGuideAction.bind(null, slug);
+  const [state, formAction] = useFormState<State, FormData>(action, {
+    error: null,
+  });
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-5 py-16">
@@ -63,9 +67,9 @@ export function GuideUnlockForm({ propertyName, action }: UnlockFormProps) {
           Enter the access code from your check-in message to view the guide.
         </p>
 
-        <form ref={formRef} onSubmit={onSubmit} className="mt-5 space-y-3">
+        <form action={formAction} className="mt-5 space-y-3">
           <input
-            type="password"
+            type="text"
             name="code"
             inputMode="text"
             autoComplete="off"
@@ -76,19 +80,12 @@ export function GuideUnlockForm({ propertyName, action }: UnlockFormProps) {
             className="w-full rounded-xl px-4 py-3 text-center text-lg tracking-widest outline-none focus:ring-2"
             style={inputStyle}
           />
-          {error && (
+          {state.error && (
             <p className="text-center text-sm font-medium text-red-500">
-              {error}
+              {state.error}
             </p>
           )}
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-xl px-4 py-3 font-semibold text-white transition-opacity disabled:opacity-60"
-            style={{ background: "hsl(var(--guest-accent))" }}
-          >
-            {pending ? "Unlocking…" : "Unlock guide"}
-          </button>
+          <UnlockButton />
         </form>
       </div>
     </div>

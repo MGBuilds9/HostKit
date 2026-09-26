@@ -15,7 +15,7 @@ import { CheckoutSection } from "@/components/guest/checkout-section";
 import { EmergencyContacts } from "@/components/guest/emergency-contacts";
 import { StickyBottomBar } from "@/components/guest/sticky-bottom-bar";
 import { GuideUnlockForm } from "@/components/guest/guide-unlock-form";
-import { isGuideUnlocked, unlockGuide } from "@/lib/guest-access";
+import { isGuideUnlocked } from "@/lib/guest-access";
 import type { Metadata } from "next";
 
 export const revalidate = 0;
@@ -79,17 +79,9 @@ export default async function GuestGuidePage({ params }: Props) {
     const { slug } = property;
     const unlocked = await isGuideUnlocked(slug, accessCode);
     if (!unlocked) {
-      const unlock = async (
-        formData: FormData,
-      ): Promise<{ error: string | null }> => {
-        "use server";
-        const code = String(formData.get("code") ?? "");
-        const ok = await unlockGuide(slug, accessCode, code);
-        return ok ? { error: null } : { error: "Incorrect code. Try again." };
-      };
       return (
         <GuideLayout>
-          <GuideUnlockForm propertyName={property.name} action={unlock} />
+          <GuideUnlockForm propertyName={property.name} slug={slug} />
         </GuideLayout>
       );
     }
