@@ -125,8 +125,9 @@ export default async function GuestGuidePage({ params }: Props) {
         wifiName={property.wifiName}
         parkingSpot={property.parkingSpot}
         addressLine={property.addressStreet}
+        imageUrl="/guide-media/kith-1423/assets/parking-arrow.jpg"
       />
-      <div className="px-5 sm:px-0">
+      <div className="px-5 sm:px-8">
         <div className="py-8 space-y-8 pb-24 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
           {/* Left column */}
           <div className="space-y-8">

@@ -229,13 +229,13 @@ describe("guest guide - branding cleanup", () => {
     expect(content).toContain("SOS");
   });
 
-  it("hero-section.tsx uses CSS variables for gradient, not hardcoded color", () => {
+  it("hero-section.tsx uses CSS variables, not hardcoded color", () => {
     const content = readFileSync(
       resolve(__dirname, "../../src/components/guest/hero-section.tsx"),
       "utf-8"
     );
-    expect(content).toContain("var(--guest-hero-from)");
-    expect(content).toContain("var(--guest-hero-to)");
+    expect(content).toContain("var(--guest-accent)");
+    expect(content).toContain("var(--guest-card)");
     expect(content).not.toContain("#FF6B6B");
   });
 });
@@ -364,7 +364,7 @@ describe("responsive layout - guest guide", () => {
     );
     expect(content).toContain("max-w-lg");
     expect(content).toContain("sm:max-w-2xl");
-    expect(content).toContain("lg:max-w-4xl");
+    expect(content).toContain("lg:max-w-6xl");
   });
 
   it("guest page has two-column grid at lg breakpoint", () => {
@@ -383,7 +383,7 @@ describe("responsive layout - guest guide", () => {
     );
     expect(content).toContain("max-w-lg");
     expect(content).toContain("sm:max-w-2xl");
-    expect(content).toContain("lg:max-w-4xl");
+    expect(content).toContain("lg:max-w-6xl");
   });
 
   it("guide layout uses CSS variable for background color", () => {

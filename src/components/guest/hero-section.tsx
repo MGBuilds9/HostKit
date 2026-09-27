@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Clock, Wifi, SquareParking, LogOut, MapPin } from "lucide-react";
 
 interface HeroProps {
@@ -9,6 +10,7 @@ interface HeroProps {
   wifiName?: string | null;
   parkingSpot?: string | null;
   addressLine?: string | null;
+  imageUrl?: string | null;
 }
 
 function formatTime(time?: string): string {
@@ -33,8 +35,9 @@ export function HeroSection({
   wifiName,
   parkingSpot,
   addressLine,
+  imageUrl,
 }: HeroProps) {
-  // Jacob's Law: guests already expect a key-facts strip (Airbnb/Booking).
+  // Jacob's Law: split hero (text + photo) matches Airbnb/Booking listing heads.
   const facts = [
     { icon: Clock, label: "Check-in", value: formatTime(checkinTime), present: !!checkinTime },
     { icon: LogOut, label: "Check-out", value: formatTime(checkoutTime), present: !!checkoutTime },
@@ -43,40 +46,73 @@ export function HeroSection({
   ].filter((f) => f.present);
 
   return (
-    <section
-      className="text-white px-6 pt-16 pb-10 md:pt-20 md:pb-12 lg:pt-24 rounded-b-[2rem]"
-      style={{ background: `linear-gradient(150deg, hsl(var(--guest-hero-from)), hsl(var(--guest-hero-to)))` }}
-    >
-      <div className="max-w-4xl mx-auto">
-        <p className="text-[13px] font-semibold uppercase tracking-[0.28em] text-white/50">Welcome to</p>
-        <h1 className="font-[family-name:var(--font-dm-sans)] text-4xl lg:text-5xl font-bold mt-3 tracking-tight">
-          {name}
-        </h1>
-        {addressLine && (
-          <p className="mt-3 flex items-center gap-1.5 text-sm text-white/70">
-            <MapPin className="h-4 w-4 shrink-0" />
-            {addressLine}
+    <section className="px-5 sm:px-8 pt-8 md:pt-12 lg:pt-14">
+      <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+        {/* Text + facts */}
+        <div>
+          <p
+            className="text-[12px] font-semibold uppercase tracking-[0.28em]"
+            style={{ color: "hsl(var(--guest-accent))" }}
+          >
+            Welcome to
           </p>
-        )}
-        <div className="w-12 h-[3px] mt-5 mb-4 rounded-full" style={{ background: "hsl(var(--guest-accent))" }} />
-        <p className="max-w-xl text-white/85 text-lg leading-relaxed">
-          {description ?? `Your home away from home in ${city}`}
-        </p>
+          <h1 className="font-[family-name:var(--font-dm-sans)] text-3xl sm:text-4xl lg:text-5xl font-bold mt-2 tracking-tight">
+            {name}
+          </h1>
+          {addressLine && (
+            <p
+              className="mt-3 flex items-center gap-1.5 text-sm"
+              style={{ color: "hsl(var(--guest-text-muted))" }}
+            >
+              <MapPin className="h-4 w-4 shrink-0" />
+              {addressLine}
+            </p>
+          )}
+          <p
+            className="mt-4 max-w-xl text-[15px] leading-relaxed"
+            style={{ color: "hsl(var(--guest-text-muted))" }}
+          >
+            {description ?? `Your home away from home in ${city}`}
+          </p>
 
-        {facts.length > 0 && (
-          <div className="mt-9 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {facts.map(({ icon: Icon, label, value }) => (
-              <div
-                key={label}
-                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3.5 py-3.5 backdrop-blur-sm"
-              >
-                <div className="flex items-center gap-1.5 text-white/50">
-                  <Icon className="h-3.5 w-3.5" />
-                  <span className="text-[10.5px] font-medium uppercase tracking-[0.14em]">{label}</span>
+          {facts.length > 0 && (
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2">
+              {facts.map(({ icon: Icon, label, value }) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border px-3.5 py-3"
+                  style={{
+                    background: "hsl(var(--guest-card))",
+                    borderColor: "hsl(var(--guest-card-border))",
+                  }}
+                >
+                  <div
+                    className="flex items-center gap-1.5"
+                    style={{ color: "hsl(var(--guest-text-muted))" }}
+                  >
+                    <Icon className="h-3.5 w-3.5" style={{ color: "hsl(var(--guest-accent))" }} />
+                    <span className="text-[10.5px] font-medium uppercase tracking-[0.14em]">
+                      {label}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 truncate text-sm font-semibold">{value}</p>
                 </div>
-                <p className="mt-1.5 truncate text-sm font-semibold text-white">{value}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Photo */}
+        {imageUrl && (
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-[hsl(var(--guest-card-border))] shadow-sm dark:shadow-none">
+            <Image
+              src={imageUrl}
+              alt={`Arrival at ${name}`}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+              priority
+            />
           </div>
         )}
       </div>
