@@ -90,7 +90,7 @@ export function OwnerStatementTable({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-2 pr-4 font-medium text-muted-foreground">
+                  <th className="pb-2 pr-4 font-medium text-muted-foreground sticky left-0 bg-card">
                     Month
                   </th>
                   <th className="pb-2 pr-4 font-medium text-muted-foreground">
@@ -112,8 +112,8 @@ export function OwnerStatementTable({
               </thead>
               <tbody>
                 {filtered.map((s) => (
-                  <tr key={s.id} className="border-b last:border-0">
-                    <td className="py-3 pr-4 whitespace-nowrap">
+                  <tr key={s.id} className="border-b last:border-0 hover:bg-muted/40 transition-colors">
+                    <td className="py-3 pr-4 whitespace-nowrap sticky left-0 bg-card font-medium">
                       {formatMonth(s.month)}
                     </td>
                     <td className="py-3 pr-4">{s.propertyName}</td>
