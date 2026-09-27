@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Phone, Navigation } from "lucide-react";
+import { SectionHeading } from "@/components/guest/section-heading";
 
 interface Service {
   name: string;
@@ -34,7 +35,7 @@ export function NearbyServices({ services }: { services: Service[] }) {
 
   return (
     <section>
-      <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-3">Nearby</h2>
+      <SectionHeading title="Nearby" />
 
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
         {categories.map(cat => (

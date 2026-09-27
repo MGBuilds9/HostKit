@@ -55,7 +55,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold">
+        <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold tracking-tight">
           Check-In Walkthrough
         </h2>
         {completedSteps.length > 0 && (
@@ -64,7 +64,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           </span>
         )}
       </div>
-      <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: "hsl(var(--guest-section-bg))" }}>
+      <div className="rounded-2xl p-5 relative overflow-hidden shadow-sm dark:shadow-none" style={{ background: "hsl(var(--guest-section-bg))" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={current}

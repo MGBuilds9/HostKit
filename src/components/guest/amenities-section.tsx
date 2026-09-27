@@ -1,6 +1,7 @@
 "use client";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { SectionHeading } from "@/components/guest/section-heading";
 import { UtensilsCrossed, Bath, Sofa } from "lucide-react";
 
 interface AmenitiesProps {
@@ -20,7 +21,7 @@ export function AmenitiesSection({ kitchen, bathroom, general }: AmenitiesProps)
 
   return (
     <section>
-      <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-3">Amenities</h2>
+      <SectionHeading title="Amenities" />
       <Accordion type="multiple" className="space-y-2">
         {sections.map(({ id, label, icon: Icon, items }) => (
           <AccordionItem key={id} value={id} className="rounded-xl border border-[hsl(var(--guest-card-border))] shadow-sm dark:shadow-none px-4" style={{ background: "hsl(var(--guest-card))" }}>

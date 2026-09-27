@@ -1,4 +1,5 @@
 import { Phone, Siren } from "lucide-react";
+import { SectionHeading } from "@/components/guest/section-heading";
 
 interface Props {
   emergency: string | null;
@@ -15,7 +16,7 @@ export function EmergencyContacts({ emergency, hostPhone, ownerPhone }: Props) {
 
   return (
     <section>
-      <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-3">Emergency Contacts</h2>
+      <SectionHeading title="Emergency Contacts" />
       <div className="space-y-2">
         {contacts.map((c) => (
           <a

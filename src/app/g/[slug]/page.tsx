@@ -124,6 +124,7 @@ export default async function GuestGuidePage({ params }: Props) {
         checkoutTime={property.checkoutTime}
         wifiName={property.wifiName}
         parkingSpot={property.parkingSpot}
+        addressLine={property.addressStreet}
       />
       <div className="px-5 sm:px-0">
         <div className="py-8 space-y-8 pb-24 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">

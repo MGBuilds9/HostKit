@@ -2,7 +2,7 @@ import { Phone, AlertTriangle } from "lucide-react";
 
 export function StickyBottomBar({ hostPhone, emergency }: { hostPhone: string | null; emergency: string | null }) {
   return (
-    <div className="fixed bottom-0 inset-x-0 bg-[hsl(var(--guest-card))] border-t border-[hsl(var(--guest-card-border))] px-4 py-3 flex gap-3 max-w-lg sm:max-w-2xl lg:max-w-4xl mx-auto">
+    <div className="fixed bottom-0 inset-x-0 bg-[hsl(var(--guest-card))]/95 backdrop-blur-sm border-t border-[hsl(var(--guest-card-border))] px-4 py-3 flex gap-3 max-w-lg sm:max-w-2xl lg:max-w-4xl mx-auto shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.15)]">
       {hostPhone && (
         <a
           href={`tel:${hostPhone}`}

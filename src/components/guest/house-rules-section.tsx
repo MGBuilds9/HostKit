@@ -1,6 +1,7 @@
 import * as LucideIcons from "lucide-react";
 import { ShieldAlert } from "lucide-react";
 import { toPascalCase } from "@/lib/utils";
+import { SectionHeading } from "@/components/guest/section-heading";
 
 interface Rule {
   rule: string;
@@ -10,7 +11,7 @@ interface Rule {
 export function HouseRulesSection({ rules, securityNote }: { rules: Rule[]; securityNote: string | null }) {
   return (
     <section>
-      <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-3">House Rules</h2>
+      <SectionHeading title="House Rules" />
       <div className="space-y-2">
         {rules.map((r, i) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

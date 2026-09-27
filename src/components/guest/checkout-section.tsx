@@ -1,3 +1,5 @@
+import { SectionHeading } from "@/components/guest/section-heading";
+
 interface CheckoutStep {
   step: number;
   title: string;
@@ -14,8 +16,7 @@ export function CheckoutSection({ steps, time }: { steps: CheckoutStep[]; time: 
 
   return (
     <section>
-      <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold mb-1">Checkout</h2>
-      <p className="text-sm mb-3" style={{ color: "hsl(var(--guest-text-muted))" }}>Please complete by {formatted}</p>
+      <SectionHeading title="Checkout" subtitle={`Please complete by ${formatted}`} />
       <div className="space-y-2">
         {steps.map((s) => (
           <div key={s.step} className="flex items-start gap-3 py-2">
