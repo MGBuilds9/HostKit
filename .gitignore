@@ -48,3 +48,4 @@ drizzle/meta/
 
 # temp scaffolding dirs
 hostkit-temp/
+/design/

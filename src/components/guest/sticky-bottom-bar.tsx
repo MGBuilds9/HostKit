@@ -14,7 +14,8 @@ export function StickyBottomBar({ hostPhone, emergency }: { hostPhone: string | 
       {emergency && (
         <a
           href={`tel:${emergency}`}
-          className="flex items-center justify-center gap-2 rounded-xl bg-red-500 text-white px-4 py-2.5 text-sm font-medium"
+          className="flex items-center justify-center gap-2 rounded-xl text-white px-4 py-2.5 text-sm font-medium"
+          style={{ background: "hsl(var(--guest-danger))" }}
         >
           <AlertTriangle className="h-4 w-4" /> SOS
         </a>

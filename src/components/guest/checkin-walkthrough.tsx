@@ -54,7 +54,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           Check-In Walkthrough
         </h2>
         {completedSteps.length > 0 && (
-          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+          <span className="text-xs font-semibold" style={{ color: "hsl(var(--guest-success))" }}>
             {completedSteps.length} of {steps.length} done
           </span>
         )}
@@ -88,9 +88,9 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
                     style={{
                       background: isDone
-                        ? "rgba(16,185,129,0.15)"
+                        ? "hsl(var(--guest-accent-soft))"
                         : "hsl(var(--guest-accent-soft))",
-                      color: isDone ? "#10b981" : "hsl(var(--guest-accent))",
+                      color: isDone ? "hsl(var(--guest-success))" : "hsl(var(--guest-accent))",
                     }}
                   >
                     {isDone ? <Check className="h-4 w-4" /> : s.step}
@@ -157,13 +157,13 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                           className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-90"
                           style={{
                             background: isDone
-                              ? "rgba(16,185,129,0.15)"
+                              ? "hsl(var(--guest-accent-soft))"
                               : "transparent",
                             color: isDone
-                              ? "#10b981"
+                              ? "hsl(var(--guest-success))"
                               : "hsl(var(--guest-text-muted))",
                             borderColor: isDone
-                              ? "#10b981"
+                              ? "hsl(var(--guest-success))"
                               : "hsl(var(--guest-card-border))",
                           }}
                         >

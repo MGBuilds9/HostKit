@@ -97,8 +97,9 @@ export function GuideUnlockForm({
           {state.error && (
             <p
               id="unlock-error"
-              className="text-center text-sm font-medium text-red-500"
+              className="text-center text-sm font-medium"
               role="alert"
+              style={{ color: "hsl(var(--guest-danger))" }}
             >
               {state.error}
             </p>
