@@ -64,7 +64,10 @@ function taskStatusBadge(status: CleaningTask["status"]) {
   );
 }
 
-function StayCard({ stay }: { stay: Stay }) {
+// Memoizing StayCard prevents unnecessary re-renders of individual stay cards
+// when parent component state updates (e.g. collapsing/expanding rows or filter toggling).
+// Expected performance impact: Reduces DOM re-render count for calendar items.
+const StayCard = React.memo(function StayCard({ stay }: { stay: Stay }) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -100,7 +103,7 @@ function StayCard({ stay }: { stay: Stay }) {
       )}
     </Card>
   );
-}
+});
 
 export const PropertyCalendarRow = React.memo(function PropertyCalendarRow({ group }: { group: PropertyGroup }) {
   const [collapsed, setCollapsed] = useState(false);
