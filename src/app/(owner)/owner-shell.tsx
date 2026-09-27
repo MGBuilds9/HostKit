@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut } from "lucide-react";
 import { OwnerBottomNav } from "@/components/owner/owner-bottom-nav";
+import { OwnerSidebar } from "@/components/owner/owner-sidebar";
 import Link from "next/link";
 
 function OwnerTopbar() {
@@ -47,11 +48,14 @@ export function OwnerShell({ children }: { children: React.ReactNode }) {
       >
         Skip to content
       </a>
-      <div className="flex flex-col h-screen bg-muted/30">
-        <OwnerTopbar />
-        <main id="main-content" className="flex-1 overflow-y-auto p-4 pb-20">
-          <div className="max-w-5xl mx-auto w-full">{children}</div>
-        </main>
+      <div className="flex h-screen bg-muted/30">
+        <OwnerSidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <OwnerTopbar />
+          <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+            <div className="max-w-5xl mx-auto w-full">{children}</div>
+          </main>
+        </div>
         <OwnerBottomNav />
       </div>
     </SessionProvider>

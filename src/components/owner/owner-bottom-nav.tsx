@@ -22,7 +22,7 @@ export function OwnerBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 h-16 border-t bg-background pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 inset-x-0 z-40 h-16 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
       aria-label="Owner navigation"
     >
       <div className="flex h-full items-center justify-around">

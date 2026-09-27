@@ -61,8 +61,8 @@ export function Sidebar() {
     <aside className="hidden md:flex md:w-64 md:flex-col border-r bg-card">
       <div className="flex h-14 items-center border-b px-6 font-semibold text-lg gap-2">
         <svg width="28" height="28" viewBox="0 0 512 512" className="shrink-0" aria-hidden="true">
-          <rect width="512" height="512" rx="64" fill="#0F172A"/>
-          <g fill="none" stroke="#D4726A" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="512" height="512" rx="64" fill="hsl(var(--primary))"/>
+          <g fill="none" stroke="hsl(var(--primary-foreground))" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round">
             <line x1="168" y1="180" x2="168" y2="400"/>
             <line x1="344" y1="180" x2="344" y2="400"/>
             <line x1="168" y1="290" x2="344" y2="290"/>
