@@ -1,0 +1,49 @@
+"use client";
+
+import { SessionProvider, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Sidebar } from "@/components/admin/sidebar";
+import { Topbar } from "@/components/admin/topbar";
+import { BottomTabBar } from "@/components/admin/bottom-tab-bar";
+
+function AdminRoleRedirect({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role === "cleaner") {
+      router.replace("/cleaner");
+    } else if (status === "authenticated" && session?.user?.role === "owner") {
+      router.replace("/owner");
+    }
+  }, [status, session, router]);
+
+  if (status === "loading") return null;
+  if (session?.user?.role === "cleaner") return null;
+  if (session?.user?.role === "owner") return null;
+
+  return <>{children}</>;
+}
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionProvider>
+      <AdminRoleRedirect>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground">Skip to content</a>
+        <div className="flex h-screen">
+          <Sidebar />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Topbar />
+            <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 bg-muted">
+              <div className="max-w-7xl mx-auto w-full">
+                {children}
+              </div>
+            </main>
+          </div>
+          <BottomTabBar />
+        </div>
+      </AdminRoleRedirect>
+    </SessionProvider>
+  );
+}
