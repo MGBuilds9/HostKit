@@ -8,10 +8,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function TemplateForm() {
+interface TemplateFormValues {
+  name: string;
+  bodyTemplate: string;
+  sortOrder: number;
+  isGlobal: boolean;
+}
+
+interface TemplateFormProps {
+  templateId?: string;
+  initialValues?: TemplateFormValues;
+}
+
+export function TemplateForm({ templateId, initialValues }: TemplateFormProps = {}) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(templateId);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,8 +39,8 @@ export function TemplateForm() {
       isGlobal: formData.get("isGlobal") === "on",
     };
 
-    const res = await fetch("/api/templates", {
-      method: "POST",
+    const res = await fetch(isEdit ? `/api/templates/${templateId}` : "/api/templates", {
+      method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
@@ -37,14 +50,19 @@ export function TemplateForm() {
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data?.error?.formErrors?.[0] ?? "Failed to create template. Please try again.");
+      setError(
+        data?.error?.formErrors?.[0] ??
+          `Failed to ${isEdit ? "update" : "create"} template. Please try again.`
+      );
       setSaving(false);
     }
   }
 
   return (
     <div className="max-w-lg">
-      <h1 className="text-2xl font-semibold mb-6">New Message Template</h1>
+      <h1 className="text-2xl font-semibold mb-6">
+        {isEdit ? "Edit Message Template" : "New Message Template"}
+      </h1>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Template Details</CardTitle>
@@ -53,7 +71,13 @@ export function TemplateForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name">Name *</Label>
-              <Input id="name" name="name" required placeholder="Check-in Welcome" />
+              <Input
+                id="name"
+                name="name"
+                required
+                placeholder="Check-in Welcome"
+                defaultValue={initialValues?.name}
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -65,6 +89,7 @@ export function TemplateForm() {
                 placeholder="Hi {{guest_name}}, welcome to {{property_name}}…"
                 rows={8}
                 className="resize-y"
+                defaultValue={initialValues?.bodyTemplate}
               />
             </div>
 
@@ -74,7 +99,7 @@ export function TemplateForm() {
                 id="sortOrder"
                 name="sortOrder"
                 type="number"
-                defaultValue={0}
+                defaultValue={initialValues?.sortOrder ?? 0}
                 placeholder="0"
               />
             </div>
@@ -84,7 +109,7 @@ export function TemplateForm() {
                 id="isGlobal"
                 name="isGlobal"
                 type="checkbox"
-                defaultChecked
+                defaultChecked={initialValues?.isGlobal ?? true}
                 className="h-4 w-4 rounded border-input accent-primary"
               />
               <Label htmlFor="isGlobal">Global template (available to all properties)</Label>
@@ -94,7 +119,7 @@ export function TemplateForm() {
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : "Create Template"}
+                {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Template"}
               </Button>
               <Button
                 type="button"

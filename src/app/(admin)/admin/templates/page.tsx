@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardList, Plus } from "lucide-react";
+import { ClipboardList, Pencil, Plus } from "lucide-react";
 import { desc } from "drizzle-orm";
 import { TemplateDeleteButton } from "./template-actions";
 
@@ -59,6 +59,11 @@ export default async function TemplatesPage() {
                     <Badge variant={tpl.active ? "default" : "secondary"}>
                       {tpl.active ? "Active" : "Inactive"}
                     </Badge>
+                    <Button asChild variant="ghost" size="icon" className="h-7 w-7" aria-label="Edit template">
+                      <Link href={`/admin/templates/${tpl.id}/edit`}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
                     <TemplateDeleteButton id={tpl.id} apiPath="/api/templates" />
                   </div>
                 </div>
@@ -78,8 +83,7 @@ export default async function TemplatesPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Template editing UI is planned for a future release. Templates support Mustache-style
-        variables (e.g.{" "}
+        Templates support Mustache-style variables (e.g.{" "}
         <code className="bg-muted px-1 rounded">{"{{property.wifiName}}"}</code>).
       </p>
     </div>

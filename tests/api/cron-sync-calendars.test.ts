@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // Mock the sync engine + rate limiter at the module boundary.
-const mockSyncAll = vi.fn();
+const mockSyncAll = vi.fn((_?: unknown): Promise<{ results: unknown[]; totalSynced: number }> =>
+  Promise.resolve({ results: [], totalSynced: 0 })
+);
 vi.mock("@/lib/ical-sync", () => ({
   syncAllCalendars: (...a: unknown[]) => mockSyncAll(...a),
 }));
 
-const mockRateCheck = vi.fn(() => ({ success: true, remaining: 0, resetAt: new Date(Date.now() + 60000) }));
+const mockRateCheck = vi.fn((_id: string) => ({ success: true, remaining: 0, resetAt: new Date(Date.now() + 60000) }));
 vi.mock("@/lib/rate-limit", () => ({
   rateLimit: () => ({ check: (id: string) => mockRateCheck(id) }),
 }));

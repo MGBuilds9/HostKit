@@ -11,6 +11,7 @@ import {
   TASK_STATUS_LABELS,
 } from "./calendar-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StayActions } from "./stay-actions";
 
 export function stayStatusBadge(status: Stay["status"]) {
   if (status === "booked")
@@ -29,7 +30,7 @@ export function taskStatusBadge(status: CleaningTask["status"]) {
   );
 }
 
-export function StayCard({ stay }: { stay: Stay }) {
+export function StayCard({ stay, propertyId }: { stay: Stay; propertyId?: string }) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -42,7 +43,15 @@ export function StayCard({ stay }: { stay: Stay }) {
               {formatDateRange(stay.startDate, stay.endDate)}
             </p>
           </div>
-          {stayStatusBadge(stay.status)}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {stay.isManual && (
+              <Badge variant="secondary" className="text-xs">
+                Manual
+              </Badge>
+            )}
+            {stayStatusBadge(stay.status)}
+            {propertyId && <StayActions propertyId={propertyId} stay={stay} />}
+          </div>
         </div>
       </CardHeader>
       {stay.cleaningTasks && stay.cleaningTasks.length > 0 && (

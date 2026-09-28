@@ -5,6 +5,7 @@ import { asc } from "drizzle-orm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RoleSelector } from "@/components/admin/role-selector";
+import { UserActions } from "@/components/admin/user-actions";
 import { Users } from "lucide-react";
 import Image from "next/image";
 
@@ -13,8 +14,10 @@ export default async function UsersPage() {
 
   const allUsers = await db.select().from(users).orderBy(asc(users.createdAt));
 
+  const adminCount = allUsers.filter((u) => u.role === "admin" && u.isActive).length;
+
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <h1 className="text-2xl font-semibold">User Management</h1>
 
       <Card>
@@ -28,6 +31,8 @@ export default async function UsersPage() {
           <div className="divide-y">
             {allUsers.map((user) => {
               const isSelf = user.id === session.user.id;
+              const isLastActiveAdmin =
+                user.role === "admin" && user.isActive && adminCount <= 1;
               return (
                 <div
                   key={user.id}
@@ -61,23 +66,43 @@ export default async function UsersPage() {
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    {user.phone && (
+                      <p className="text-xs text-muted-foreground truncate">{user.phone}</p>
+                    )}
                   </div>
 
-                  {/* Role badge */}
-                  <Badge
-                    variant={user.role === "admin" ? "default" : "secondary"}
-                    className="shrink-0"
-                  >
-                    {user.role}
-                  </Badge>
+                  {/* Badges */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={user.role === "admin" ? "default" : "secondary"}>
+                      {user.role}
+                    </Badge>
+                    <Badge variant={user.isActive ? "outline" : "destructive"}>
+                      {user.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
 
-                  {/* Role selector — disabled for self */}
+                  {/* Role selector — disabled for self and last active admin */}
                   <div className="shrink-0">
                     {isSelf ? (
                       <span className="text-xs text-muted-foreground">Cannot change own role</span>
+                    ) : isLastActiveAdmin ? (
+                      <span className="text-xs text-muted-foreground">Last active admin</span>
                     ) : (
                       <RoleSelector userId={user.id} currentRole={user.role} />
                     )}
+                  </div>
+
+                  {/* Edit / active toggle / delete */}
+                  <div className="shrink-0">
+                    <UserActions
+                      userId={user.id}
+                      name={user.name}
+                      email={user.email}
+                      phone={user.phone}
+                      isActive={user.isActive}
+                      isSelf={isSelf}
+                      isLastActiveAdmin={isLastActiveAdmin}
+                    />
                   </div>
                 </div>
               );

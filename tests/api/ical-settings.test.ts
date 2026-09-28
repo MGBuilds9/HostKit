@@ -7,8 +7,8 @@ vi.mock("@/lib/auth", () => ({ auth: (...a: unknown[]) => mockAuth(...a) }));
 
 const mockUpdateReturning = vi.fn();
 const mockUpdateWhere = vi.fn(() => ({ returning: mockUpdateReturning }));
-const mockUpdateSet = vi.fn(() => ({ where: mockUpdateWhere }));
-const mockUpdate = vi.fn(() => ({ set: mockUpdateSet }));
+const mockUpdateSet = vi.fn((_v: Record<string, unknown>) => ({ where: mockUpdateWhere }));
+const mockUpdate = vi.fn((_table?: unknown) => ({ set: mockUpdateSet }));
 vi.mock("@/db", () => ({ db: { update: (...a: unknown[]) => mockUpdate(...a) } }));
 
 import { PUT } from "@/app/api/properties/[id]/ical-settings/route";

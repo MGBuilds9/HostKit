@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -34,6 +34,28 @@ export async function PATCH(
   const parsed = roleSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  if (parsed.data.role !== "admin") {
+    const [target] = await db.select().from(users).where(eq(users.id, id));
+    if (target && target.role === "admin" && target.isActive) {
+      const others = await db
+        .select()
+        .from(users)
+        .where(
+          and(
+            eq(users.role, "admin"),
+            eq(users.isActive, true),
+            ne(users.id, id)
+          )
+        );
+      if (others.length === 0) {
+        return NextResponse.json(
+          { error: "Cannot remove the last admin" },
+          { status: 409 }
+        );
+      }
+    }
   }
 
   const [updated] = await db

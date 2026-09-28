@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Shared chainable mocks we can re-point per test.
 
 const mockUpdateWhere = vi.fn().mockResolvedValue(undefined);
-const mockUpdateSet = vi.fn(() => ({ where: mockUpdateWhere }));
-const mockUpdate = vi.fn(() => ({ set: mockUpdateSet }));
+const mockUpdateSet = vi.fn((_v?: unknown) => ({ where: mockUpdateWhere }));
+const mockUpdate = vi.fn((_table?: unknown) => ({ set: mockUpdateSet }));
 
 // Per-test programmable select results keyed by call shape. A select call is
 // tagged by its projection / read shape so each logical read returns its own fixture:
@@ -34,8 +34,8 @@ function consume(tag: string): unknown[] {
   return q.length > 1 ? q.shift()! : q[0];
 }
 
-const mockInsertValues = vi.fn(() => ({ returning: vi.fn().mockResolvedValue([{ id: "stay-1" }]) }));
-const mockInsert = vi.fn(() => ({ values: mockInsertValues }));
+const mockInsertValues = vi.fn((_v?: unknown) => ({ returning: vi.fn().mockResolvedValue([{ id: "stay-1" }]) }));
+const mockInsert = vi.fn((_table?: unknown) => ({ values: mockInsertValues }));
 
 const mockSelect = vi.fn((projection?: unknown) => {
   const tag = tagFor(projection);

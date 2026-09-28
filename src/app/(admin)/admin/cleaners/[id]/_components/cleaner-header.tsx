@@ -1,13 +1,21 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone } from "lucide-react";
+import { CleanerDetailActions } from "./cleaner-detail-actions";
 
 interface CleanerHeaderProps {
   cleaner: {
+    id: string;
     fullName: string;
     email?: string | null;
     phone?: string | null;
     isActive?: boolean | null;
+    notificationPreferences?: {
+      emailEnabled: boolean;
+      pushEnabled: boolean;
+      quietHoursStart?: string;
+      quietHoursEnd?: string;
+    } | null;
   };
 }
 
@@ -20,8 +28,8 @@ export function CleanerHeader({ cleaner }: CleanerHeaderProps) {
       >
         &larr; Back to Cleaners
       </Link>
-      <div className="flex items-start justify-between mb-6">
-        <div>
+      <div className="flex items-start justify-between mb-6 gap-4">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold">{cleaner.fullName}</h1>
           <div className="mt-1 space-y-0.5">
             {cleaner.email && (
@@ -42,9 +50,19 @@ export function CleanerHeader({ cleaner }: CleanerHeaderProps) {
             )}
           </div>
         </div>
-        <Badge variant={cleaner.isActive !== false ? "default" : "secondary"}>
-          {cleaner.isActive !== false ? "Active" : "Inactive"}
-        </Badge>
+        <div className="flex items-center gap-3 shrink-0">
+          <CleanerDetailActions
+            cleanerId={cleaner.id}
+            fullName={cleaner.fullName}
+            email={cleaner.email ?? null}
+            phone={cleaner.phone ?? null}
+            isActive={cleaner.isActive !== false}
+            notificationPreferences={cleaner.notificationPreferences ?? null}
+          />
+          <Badge variant={cleaner.isActive !== false ? "default" : "secondary"}>
+            {cleaner.isActive !== false ? "Active" : "Inactive"}
+          </Badge>
+        </div>
       </div>
     </>
   );

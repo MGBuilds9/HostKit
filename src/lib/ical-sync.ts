@@ -365,6 +365,9 @@ export async function syncPropertyCalendar(
             console.error(`[ical-sync] generateCleaningTasks failed for stay ${inserted.id}:`, e);
           }
         }
+      } else if (existing.isManual) {
+        // Never overwrite a human-managed stay from the feed.
+        result.synced++;
       } else if (existing.hash !== hash) {
         // Hash changed → update
         result.updated++;
@@ -416,7 +419,7 @@ export async function syncPropertyCalendar(
 
       if (activeSources.length > 0) {
         const dbStays = await db
-          .select({ id: stays.id, externalUid: stays.externalUid, status: stays.status })
+          .select({ id: stays.id, externalUid: stays.externalUid, status: stays.status, isManual: stays.isManual })
           .from(stays)
           .where(
             and(
@@ -425,12 +428,14 @@ export async function syncPropertyCalendar(
             )
           );
 
+        // Never stale-cancel a stay a human touched (isManual = true).
         const staleIds = dbStays
           .filter(
             (s) =>
               s.externalUid !== null &&
               !feedUids.has(s.externalUid!) &&
-              s.status !== "cancelled"
+              s.status !== "cancelled" &&
+              !s.isManual
           )
           .map((s) => s.id);
 

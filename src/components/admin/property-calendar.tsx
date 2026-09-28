@@ -91,7 +91,7 @@ export function PropertyCalendar({ propertyId }: { propertyId: string }) {
 
       {!loading && !error && stays.length > 0 && (
         <div className="space-y-3">
-          {stays.map((stay) => <StayCard key={stay.id} stay={stay} />)}
+          {stays.map((stay) => <StayCard key={stay.id} stay={stay} propertyId={propertyId} />)}
         </div>
       )}
     </div>
