@@ -2,6 +2,7 @@
 
 import { CalendarDays } from "lucide-react";
 import { TaskCard, type TaskCardTask } from "@/components/cleaner/task-card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type TaskStatus =
   | "pending"
@@ -20,13 +21,13 @@ interface UpcomingTaskListProps {
 export function UpcomingTaskList({ tasks, grouped, onStatusChange }: UpcomingTaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <CalendarDays className="h-12 w-12 text-muted-foreground/40 mb-3" />
-        <p className="font-medium text-muted-foreground">No upcoming tasks</p>
-        <p className="text-sm text-muted-foreground">
-          You&apos;re all clear for the next 14 days
-        </p>
-      </div>
+      <EmptyState
+        dashed
+        icon={CalendarDays}
+        title="No upcoming tasks"
+        description="You're all clear for the next 14 days"
+        className="py-16"
+      />
     );
   }
 
@@ -34,7 +35,7 @@ export function UpcomingTaskList({ tasks, grouped, onStatusChange }: UpcomingTas
     <>
       {Array.from(grouped.entries()).map(([dateLabel, dateTasks]) => (
         <section key={dateLabel}>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {dateLabel}
           </h2>
           <div className="space-y-3">

@@ -52,7 +52,7 @@ export function HeroSection({
         <div>
           <p
             className="text-[12px] font-semibold uppercase tracking-[0.28em]"
-            style={{ color: "hsl(var(--guest-accent))" }}
+            style={{ color: "var(--guest-accent)" }}
           >
             Welcome to
           </p>
@@ -62,7 +62,7 @@ export function HeroSection({
           {addressLine && (
             <p
               className="mt-3 flex items-center gap-1.5 text-sm"
-              style={{ color: "hsl(var(--guest-text-muted))" }}
+              style={{ color: "var(--guest-text-muted)" }}
             >
               <MapPin className="h-4 w-4 shrink-0" />
               {addressLine}
@@ -70,7 +70,7 @@ export function HeroSection({
           )}
           <p
             className="mt-4 max-w-xl text-[15px] leading-relaxed"
-            style={{ color: "hsl(var(--guest-text-muted))" }}
+            style={{ color: "var(--guest-text-muted)" }}
           >
             {description ?? `Your home away from home in ${city}`}
           </p>
@@ -82,15 +82,15 @@ export function HeroSection({
                   key={label}
                   className="rounded-2xl border px-3.5 py-3"
                   style={{
-                    background: "hsl(var(--guest-card))",
-                    borderColor: "hsl(var(--guest-card-border))",
+                    background: "var(--guest-card)",
+                    borderColor: "var(--guest-card-border)",
                   }}
                 >
                   <div
                     className="flex items-center gap-1.5"
-                    style={{ color: "hsl(var(--guest-text-muted))" }}
+                    style={{ color: "var(--guest-text-muted)" }}
                   >
-                    <Icon className="h-3.5 w-3.5" style={{ color: "hsl(var(--guest-accent))" }} />
+                    <Icon className="h-3.5 w-3.5" style={{ color: "var(--guest-accent)" }} />
                     <span className="text-[10.5px] font-medium uppercase tracking-[0.14em]">
                       {label}
                     </span>
@@ -104,7 +104,7 @@ export function HeroSection({
 
         {/* Photo */}
         {imageUrl && (
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-[hsl(var(--guest-card-border))] shadow-sm dark:shadow-none">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl border border-[var(--guest-card-border)] shadow-sm dark:shadow-none">
             <Image
               src={imageUrl}
               alt={`Arrival at ${name}`}

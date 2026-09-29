@@ -20,11 +20,21 @@ interface ChecklistSection {
   items: ChecklistItem[];
 }
 
-export function ChecklistTemplateForm() {
+interface ChecklistTemplateFormProps {
+  templateId?: string;
+  initialValues?: {
+    name: string;
+    isGlobal: boolean;
+    sections: ChecklistSection[];
+  };
+}
+
+export function ChecklistTemplateForm({ templateId, initialValues }: ChecklistTemplateFormProps = {}) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sections, setSections] = useState<ChecklistSection[]>([]);
+  const [sections, setSections] = useState<ChecklistSection[]>(initialValues?.sections ?? []);
+  const isEdit = Boolean(templateId);
 
   function addSection() {
     setSections((prev) => [...prev, { title: "", items: [] }]);
@@ -70,24 +80,27 @@ export function ChecklistTemplateForm() {
     setError(null);
     const formData = new FormData(e.currentTarget);
     const body = { name: formData.get("name") as string, isGlobal: formData.get("isGlobal") === "on", sections };
-    const res = await fetch("/api/templates/checklist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const res = await fetch(
+      isEdit ? `/api/templates/checklist/${templateId}` : "/api/templates/checklist",
+      {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
     if (res.ok) {
       router.push("/admin/templates/checklist");
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data?.error?.formErrors?.[0] ?? "Failed to create checklist template. Please try again.");
+      setError(data?.error?.formErrors?.[0] ?? `Failed to ${isEdit ? "update" : "create"} checklist template. Please try again.`);
       setSaving(false);
     }
   }
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold mb-6">New Checklist Template</h1>
+      <h1 className="text-2xl font-semibold mb-6">{isEdit ? "Edit Checklist Template" : "New Checklist Template"}</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
@@ -96,10 +109,10 @@ export function ChecklistTemplateForm() {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name">Name *</Label>
-              <Input id="name" name="name" required placeholder="Standard Turnover Checklist" />
+              <Input id="name" name="name" required placeholder="Standard Turnover Checklist" defaultValue={initialValues?.name} />
             </div>
             <div className="flex items-center gap-2">
-              <input id="isGlobal" name="isGlobal" type="checkbox" defaultChecked className="h-4 w-4 rounded border-input accent-primary" />
+              <input id="isGlobal" name="isGlobal" type="checkbox" defaultChecked={initialValues?.isGlobal ?? true} className="h-4 w-4 rounded border-input accent-primary" />
               <Label htmlFor="isGlobal">Global template (available to all properties)</Label>
             </div>
           </CardContent>
@@ -126,7 +139,7 @@ export function ChecklistTemplateForm() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Create Checklist Template"}
+            {saving ? "Saving…" : isEdit ? "Save Changes" : "Create Checklist Template"}
           </Button>
           <Button type="button" variant="outline" onClick={() => router.back()} disabled={saving}>
             Cancel

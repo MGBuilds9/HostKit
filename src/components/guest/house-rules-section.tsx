@@ -21,7 +21,7 @@ export function HouseRulesSection({ rules, securityNote }: { rules: Rule[]; secu
             : LucideIcons.CircleDot;
           return (
             <div key={i} className="flex items-center gap-3 py-2">
-              <Icon className="h-4 w-4 shrink-0 text-[hsl(var(--guest-accent))]" />
+              <Icon className="h-4 w-4 shrink-0 text-[var(--guest-accent)]" />
               <span className="text-sm">{r.rule}</span>
             </div>
           );

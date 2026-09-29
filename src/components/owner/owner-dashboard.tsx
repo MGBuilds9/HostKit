@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatCard } from "@/components/ui/stat-card";
 import { Building2, CalendarDays, ClipboardCheck, TrendingUp } from "lucide-react";
 
 interface Turnover {
@@ -49,117 +51,116 @@ export function OwnerDashboard({
       label: "Properties",
       value: propertyCount,
       icon: Building2,
-      color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-50 dark:bg-blue-950/50",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      iconBg: "bg-blue-50 dark:bg-blue-950/50",
     },
     {
       label: "Upcoming Stays",
       value: upcomingStaysCount,
       icon: CalendarDays,
-      color: "text-violet-600 dark:text-violet-400",
-      bg: "bg-violet-50 dark:bg-violet-950/50",
+      iconColor: "text-violet-600 dark:text-violet-400",
+      iconBg: "bg-violet-50 dark:bg-violet-950/50",
     },
     {
       label: "Last Turnover",
       value: lastTurnoverDate ? formatDate(lastTurnoverDate) : "N/A",
       icon: ClipboardCheck,
-      color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-50 dark:bg-amber-950/50",
+      iconColor: "text-amber-600 dark:text-amber-400",
+      iconBg: "bg-amber-50 dark:bg-amber-950/50",
     },
     {
       label: "Occupancy Rate",
       value: `${occupancyRate}%`,
       icon: TrendingUp,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-950/50",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      iconBg: "bg-emerald-50 dark:bg-emerald-950/50",
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Stat Cards */}
+      {/* Stat Cards — Open Design `.stat` pattern via shared StatCard */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        {stats.map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label}>
-            <CardContent className="p-4 md:p-6">
-              <div
-                className={`inline-flex items-center justify-center h-9 w-9 md:h-10 md:w-10 rounded-lg ${bg} mb-3`}
-              >
-                <Icon className={`h-4 w-4 md:h-5 md:w-5 ${color}`} />
-              </div>
-              <div className="text-xl md:text-2xl font-bold tracking-tight">
-                {value}
-              </div>
-              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                {label}
-              </p>
-            </CardContent>
-          </Card>
+        {stats.map(({ label, value, icon, iconColor, iconBg }) => (
+          <StatCard
+            key={label}
+            label={label}
+            value={value}
+            icon={icon}
+            iconColor={iconColor}
+            iconBg={iconBg}
+          />
         ))}
       </div>
 
       {/* Recent Activity + Upcoming Stays */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Turnovers */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Recent Turnovers</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Recent Turnovers</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {recentTurnovers.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No recent turnovers
-              </p>
+              <EmptyState
+                dashed
+                icon={ClipboardCheck}
+                title="No recent turnovers"
+                description="Completed cleanings will show up here."
+              />
             ) : (
-              <div className="space-y-3">
+              <ul className="space-y-2">
                 {recentTurnovers.map((t) => (
-                  <div
+                  <li
                     key={t.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    className="flex min-h-[52px] items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:bg-accent/40"
                   >
-                    <div>
-                      <p className="text-sm font-medium">{t.propertyName}</p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{t.propertyName}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDate(t.completedAt)}
                         {t.completedBy && ` by ${t.completedBy}`}
                       </p>
                     </div>
-                    <Badge variant="secondary">Completed</Badge>
-                  </div>
+                    <Badge variant="secondary" className="shrink-0">Completed</Badge>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>
 
         {/* Upcoming Stays */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Upcoming Stays</CardTitle>
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Upcoming Stays</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {upcomingStays.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
-                No upcoming stays
-              </p>
+              <EmptyState
+                dashed
+                icon={CalendarDays}
+                title="No upcoming stays"
+                description="New bookings will appear here once scheduled."
+              />
             ) : (
-              <div className="space-y-3">
+              <ul className="space-y-2">
                 {upcomingStays.map((s) => (
-                  <div
+                  <li
                     key={s.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
+                    className="flex min-h-[52px] items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:bg-accent/40"
                   >
-                    <div>
-                      <p className="text-sm font-medium">{s.propertyName}</p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{s.propertyName}</p>
                       <p className="text-xs text-muted-foreground">
                         {s.guestName ?? "Guest"} &middot;{" "}
                         {formatDate(s.startDate)} &ndash; {formatDate(s.endDate)}
                       </p>
                     </div>
-                    <Badge>Booked</Badge>
-                  </div>
+                    <Badge className="shrink-0">Booked</Badge>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>

@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   image: text("image"),
   phone: text("phone"),
   role: userRoleEnum("role").notNull().default("owner"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -366,6 +367,9 @@ export const stays = pgTable("stays", {
   rawDescription: text("raw_description"),
   externalUid: text("external_uid"),
   hash: text("hash"),
+  // True when the stay was created or last edited by a human via the admin UI.
+  // Manual stays are never overwritten or stale-cancelled by the iCal sync.
+  isManual: boolean("is_manual").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

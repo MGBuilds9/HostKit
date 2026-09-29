@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Home, CalendarDays, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -17,16 +18,16 @@ interface UpcomingSectionProps {
 
 export function UpcomingSection({ upcomingStays }: UpcomingSectionProps) {
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Home className="h-4 w-4 text-muted-foreground" />
             Upcoming Stays
           </CardTitle>
           <Link
             href="/admin/calendar"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             View all <ArrowRight className="h-3 w-3" />
           </Link>
@@ -34,24 +35,22 @@ export function UpcomingSection({ upcomingStays }: UpcomingSectionProps) {
       </CardHeader>
       <CardContent className="pt-0">
         {upcomingStays.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-3">
-              <CalendarDays className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">No upcoming stays</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Stays will appear once calendars are synced
-            </p>
-          </div>
+          <EmptyState
+            dashed
+            icon={CalendarDays}
+            title="No upcoming stays"
+            description="Stays will appear once calendars are synced"
+            className="py-10"
+          />
         ) : (
-          <div className="space-y-2">
+          <ul className="space-y-2">
             {upcomingStays.map((stay) => (
-              <div
+              <li
                 key={stay.id}
-                className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50 transition-colors"
+                className="flex min-h-[52px] items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/40"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">
+                  <p className="truncate text-sm font-medium">
                     {stay.guestName || "Guest"}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -67,12 +66,12 @@ export function UpcomingSection({ upcomingStays }: UpcomingSectionProps) {
                     })}
                   </p>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 whitespace-nowrap ml-2">
+                <span className="ml-2 whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                   {stay.status}
                 </span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </CardContent>
     </Card>

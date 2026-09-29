@@ -3,11 +3,13 @@ export const dynamic = "force-dynamic";
 import { db } from "@/db";
 import { properties, turnovers, owners, stays, cleaningTasks } from "@/db/schema";
 import { count, eq, gte, lte, and } from "drizzle-orm";
+import { requireAuth } from "@/lib/auth-guard";
 import { StatsRow } from "./_components/stats-row";
 import { RecentActivity } from "./_components/recent-activity";
 import { UpcomingSection } from "./_components/upcoming-section";
 
 export default async function DashboardPage() {
+  await requireAuth(["admin", "manager"]);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);

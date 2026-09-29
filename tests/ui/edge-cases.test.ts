@@ -425,8 +425,10 @@ describe("mobile admin - bottom tab bar", () => {
   });
 
   it("admin layout has bottom padding to clear the mobile tab bar", () => {
+    // The admin chrome (incl. the padded <main>) lives in admin-shell.tsx
+    // since (admin)/layout.tsx became a server-side auth gate.
     const layoutContent = readFileSync(
-      resolve(__dirname, "../../src/app/(admin)/layout.tsx"),
+      resolve(__dirname, "../../src/app/(admin)/admin-shell.tsx"),
       "utf-8"
     );
     expect(layoutContent).toContain("pb-20");

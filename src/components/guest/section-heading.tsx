@@ -17,7 +17,7 @@ export function SectionHeading({
         {title}
       </h2>
       {subtitle && (
-        <p className="mt-1 text-sm leading-relaxed" style={{ color: "hsl(var(--guest-text-muted))" }}>
+        <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--guest-text-muted)" }}>
           {subtitle}
         </p>
       )}

@@ -20,12 +20,12 @@ export function CheckoutSection({ steps, time }: { steps: CheckoutStep[]; time: 
       <div className="space-y-2">
         {steps.map((s) => (
           <div key={s.step} className="flex items-start gap-3 py-2">
-            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-[hsl(var(--guest-card-border))] text-xs mt-0.5" style={{ color: "hsl(var(--guest-text-muted))" }}>
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-[var(--guest-card-border)] text-xs mt-0.5" style={{ color: "var(--guest-text-muted)" }}>
               {s.step}
             </div>
             <div>
               <p className="text-sm font-medium">{s.title}</p>
-              <p className="text-xs" style={{ color: "hsl(var(--guest-text-muted))" }}>{s.description}</p>
+              <p className="text-xs" style={{ color: "var(--guest-text-muted)" }}>{s.description}</p>
             </div>
           </div>
         ))}

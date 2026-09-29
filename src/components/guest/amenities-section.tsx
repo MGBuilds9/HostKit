@@ -24,18 +24,18 @@ export function AmenitiesSection({ kitchen, bathroom, general }: AmenitiesProps)
       <SectionHeading title="Amenities" />
       <Accordion type="multiple" className="space-y-2">
         {sections.map(({ id, label, icon: Icon, items }) => (
-          <AccordionItem key={id} value={id} className="rounded-xl border border-[hsl(var(--guest-card-border))] shadow-sm dark:shadow-none px-4" style={{ background: "hsl(var(--guest-card))" }}>
+          <AccordionItem key={id} value={id} className="rounded-xl border border-[var(--guest-card-border)] shadow-sm dark:shadow-none px-4" style={{ background: "var(--guest-card)" }}>
             <AccordionTrigger className="text-sm font-medium hover:no-underline py-3">
               <span className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-[hsl(var(--guest-accent))]" />
-                <span className="text-[hsl(var(--guest-accent))] font-semibold">{label}</span>
+                <Icon className="h-4 w-4 text-[var(--guest-accent)]" />
+                <span className="text-[var(--guest-accent)] font-semibold">{label}</span>
               </span>
             </AccordionTrigger>
             <AccordionContent>
               <ul className="grid grid-cols-1 gap-1.5 pb-2">
                 {items!.map((item, i) => (
-                  <li key={i} className="text-sm flex items-center gap-2" style={{ color: "hsl(var(--guest-text-muted))" }}>
-                    <span className="h-1 w-1 rounded-full bg-[hsl(var(--guest-text-muted))]" />
+                  <li key={i} className="text-sm flex items-center gap-2" style={{ color: "var(--guest-text-muted)" }}>
+                    <span className="h-1 w-1 rounded-full bg-[var(--guest-text-muted)]" />
                     {item}
                   </li>
                 ))}

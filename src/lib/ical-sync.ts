@@ -27,6 +27,13 @@ export interface SyncResult {
   updated: number;
   cancelled: number;
   errors: string[];
+  /** True when the run was a preview (no DB writes). */
+  dryRun?: boolean;
+}
+
+/** Options for a sync run. dryRun previews changes without writing to the DB. */
+export interface SyncOptions {
+  dryRun?: boolean;
 }
 
 // ── Status inference ───────────────────────────────────────────────────────
@@ -226,7 +233,11 @@ export async function fetchGoogleCalendarEvents(
 
 // ── Main sync function ─────────────────────────────────────────────────────
 
-export async function syncPropertyCalendar(propertyId: string): Promise<SyncResult> {
+export async function syncPropertyCalendar(
+  propertyId: string,
+  options: SyncOptions = {}
+): Promise<SyncResult> {
+  const dryRun = options.dryRun === true;
   const result: SyncResult = {
     propertyId,
     synced: 0,
@@ -234,6 +245,7 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
     updated: 0,
     cancelled: 0,
     errors: [],
+    dryRun: dryRun || undefined,
   };
 
   // Load property with owner
@@ -256,19 +268,23 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
       const airbnbStays = await fetchAndParseIcal(property.airbnbIcalUrl);
       allParsed.push(...airbnbStays);
 
-      await db.insert(syncLog).values({
-        propertyId,
-        eventType: "fetch_airbnb",
-        details: { count: airbnbStays.length, url: property.airbnbIcalUrl },
-      });
+      if (!dryRun) {
+        await db.insert(syncLog).values({
+          propertyId,
+          eventType: "fetch_airbnb",
+          details: { count: airbnbStays.length, url: property.airbnbIcalUrl },
+        });
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       result.errors.push(`Airbnb iCal fetch error: ${msg}`);
-      await db.insert(syncLog).values({
-        propertyId,
-        eventType: "error_airbnb",
-        details: { error: msg },
-      });
+      if (!dryRun) {
+        await db.insert(syncLog).values({
+          propertyId,
+          eventType: "error_airbnb",
+          details: { error: msg },
+        });
+      }
     }
   }
 
@@ -285,19 +301,23 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
       );
       allParsed.push(...googleStays);
 
-      await db.insert(syncLog).values({
-        propertyId,
-        eventType: "fetch_google",
-        details: { count: googleStays.length, calendarId: property.googleCalendarId },
-      });
+      if (!dryRun) {
+        await db.insert(syncLog).values({
+          propertyId,
+          eventType: "fetch_google",
+          details: { count: googleStays.length, calendarId: property.googleCalendarId },
+        });
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       result.errors.push(`Google Calendar fetch error: ${msg}`);
-      await db.insert(syncLog).values({
-        propertyId,
-        eventType: "error_google",
-        details: { error: msg },
-      });
+      if (!dryRun) {
+        await db.insert(syncLog).values({
+          propertyId,
+          eventType: "error_google",
+          details: { error: msg },
+        });
+      }
     }
   }
 
@@ -322,6 +342,10 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
 
       if (!existing) {
         // Insert new stay
+        result.created++;
+        result.synced++;
+        if (dryRun) continue;
+
         const [inserted] = await db.insert(stays).values({
           propertyId,
           source: parsed.source,
@@ -334,8 +358,6 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
           externalUid: parsed.externalUid,
           hash,
         }).returning();
-        result.created++;
-        result.synced++;
 
         // Generate cleaning tasks for booked stays
         if (parsed.status === "booked") {
@@ -343,8 +365,15 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
             console.error(`[ical-sync] generateCleaningTasks failed for stay ${inserted.id}:`, e);
           }
         }
+      } else if (existing.isManual) {
+        // Never overwrite a human-managed stay from the feed.
+        result.synced++;
       } else if (existing.hash !== hash) {
         // Hash changed → update
+        result.updated++;
+        result.synced++;
+        if (dryRun) continue;
+
         await db
           .update(stays)
           .set({
@@ -359,8 +388,6 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
             updatedAt: new Date(),
           })
           .where(eq(stays.id, existing.id));
-        result.updated++;
-        result.synced++;
 
         // Re-generate or cancel cleaning tasks based on new status
         try {
@@ -392,7 +419,7 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
 
       if (activeSources.length > 0) {
         const dbStays = await db
-          .select({ id: stays.id, externalUid: stays.externalUid, status: stays.status })
+          .select({ id: stays.id, externalUid: stays.externalUid, status: stays.status, isManual: stays.isManual })
           .from(stays)
           .where(
             and(
@@ -401,28 +428,32 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
             )
           );
 
+        // Never stale-cancel a stay a human touched (isManual = true).
         const staleIds = dbStays
           .filter(
             (s) =>
               s.externalUid !== null &&
               !feedUids.has(s.externalUid!) &&
-              s.status !== "cancelled"
+              s.status !== "cancelled" &&
+              !s.isManual
           )
           .map((s) => s.id);
 
         if (staleIds.length > 0) {
-          await db
-            .update(stays)
-            .set({ status: "cancelled", updatedAt: new Date() })
-            .where(inArray(stays.id, staleIds));
-          result.cancelled += staleIds.length;
+          if (!dryRun) {
+            await db
+              .update(stays)
+              .set({ status: "cancelled", updatedAt: new Date() })
+              .where(inArray(stays.id, staleIds));
 
-          // Cancel cleaning tasks for stale stays
-          for (const staleId of staleIds) {
-            try { await cancelCleaningTasksForStay(staleId); } catch (e) {
-              console.error(`[ical-sync] cancelCleaningTasksForStay failed for ${staleId}:`, e);
+            // Cancel cleaning tasks for stale stays
+            for (const staleId of staleIds) {
+              try { await cancelCleaningTasksForStay(staleId); } catch (e) {
+                console.error(`[ical-sync] cancelCleaningTasksForStay failed for ${staleId}:`, e);
+              }
             }
           }
+          result.cancelled += staleIds.length;
         }
       }
     } catch (err) {
@@ -433,36 +464,39 @@ export async function syncPropertyCalendar(propertyId: string): Promise<SyncResu
 
   // ── Update property sync metadata ─────────────────────────────────────────
   const syncStatus = result.errors.length === 0 ? "ok" : "error";
-  await db
-    .update(properties)
-    .set({
-      lastSyncAt: new Date(),
-      lastSyncStatus: syncStatus,
-      lastSyncError: result.errors.length > 0 ? result.errors.join("; ") : null,
-      updatedAt: new Date(),
-    })
-    .where(eq(properties.id, propertyId));
+  if (!dryRun) {
+    await db
+      .update(properties)
+      .set({
+        lastSyncAt: new Date(),
+        lastSyncStatus: syncStatus,
+        lastSyncError: result.errors.length > 0 ? result.errors.join("; ") : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(properties.id, propertyId));
 
-  // ── Final sync log entry ───────────────────────────────────────────────────
-  await db.insert(syncLog).values({
-    propertyId,
-    eventType: "sync_complete",
-    details: {
-      synced: result.synced,
-      created: result.created,
-      updated: result.updated,
-      cancelled: result.cancelled,
-      errors: result.errors,
-      status: syncStatus,
-    },
-  });
+    // ── Final sync log entry ─────────────────────────────────────────────────
+    await db.insert(syncLog).values({
+      propertyId,
+      eventType: "sync_complete",
+      details: {
+        synced: result.synced,
+        created: result.created,
+        updated: result.updated,
+        cancelled: result.cancelled,
+        errors: result.errors,
+        status: syncStatus,
+        dryRun: false,
+      },
+    });
+  }
 
   return result;
 }
 
 // ── All-properties sync ────────────────────────────────────────────────────
 
-export async function syncAllCalendars(): Promise<{
+export async function syncAllCalendars(options: SyncOptions = {}): Promise<{
   results: SyncResult[];
   totalSynced: number;
 }> {
@@ -472,7 +506,7 @@ export async function syncAllCalendars(): Promise<{
     .where(eq(properties.icalSyncEnabled, true));
 
   const results = await Promise.allSettled(
-    enabledProperties.map((p) => syncPropertyCalendar(p.id))
+    enabledProperties.map((p) => syncPropertyCalendar(p.id, options))
   );
 
   const syncResults: SyncResult[] = results.map((r, i) => {
@@ -497,8 +531,10 @@ export async function syncAllCalendars(): Promise<{
 /**
  * Resolves the Google OAuth access token for the owner of a given property.
  * Looks up: property → owner → user → accounts (provider = "google").
+ * Exported so it can be unit-tested directly (token-valid / expired-refresh /
+ * refresh-denied paths) without going through a full sync.
  */
-async function resolveGoogleAccessToken(propertyId: string): Promise<string | null> {
+export async function resolveGoogleAccessToken(propertyId: string): Promise<string | null> {
   const [property] = await db
     .select({ ownerId: properties.ownerId })
     .from(properties)

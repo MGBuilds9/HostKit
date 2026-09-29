@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Clock, SprayCan, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -26,16 +27,16 @@ interface RecentActivityProps {
 
 export function RecentActivity({ todaysTasks }: RecentActivityProps) {
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Clock className="h-4 w-4 text-muted-foreground" />
             Today&apos;s Tasks
           </CardTitle>
           <Link
             href="/admin/cleaning-tasks"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             View all <ArrowRight className="h-3 w-3" />
           </Link>
@@ -43,22 +44,22 @@ export function RecentActivity({ todaysTasks }: RecentActivityProps) {
       </CardHeader>
       <CardContent className="pt-0">
         {todaysTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-3">
-              <SprayCan className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">No tasks today</p>
-            <p className="text-xs text-muted-foreground mt-0.5">All clear for now</p>
-          </div>
+          <EmptyState
+            dashed
+            icon={SprayCan}
+            title="No tasks today"
+            description="All clear for now"
+            className="py-10"
+          />
         ) : (
-          <div className="space-y-2">
+          <ul className="space-y-2">
             {todaysTasks.map((task) => (
-              <div
+              <li
                 key={task.id}
-                className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50 transition-colors"
+                className="flex min-h-[52px] items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/40"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{task.property.name}</p>
+                  <p className="truncate text-sm font-medium">{task.property.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(task.scheduledStart).toLocaleTimeString("en-US", {
                       hour: "numeric",
@@ -75,15 +76,15 @@ export function RecentActivity({ todaysTasks }: RecentActivityProps) {
                   </p>
                 </div>
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ml-2 ${
+                  className={`ml-2 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium ${
                     statusColors[task.status ?? "pending"] || ""
                   }`}
                 >
                   {(task.status ?? "pending").replace("_", " ")}
                 </span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </CardContent>
     </Card>

@@ -17,12 +17,12 @@ export function Topbar() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-card px-6">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card/80 px-4 shadow-sm backdrop-blur-sm md:px-6">
       <div className="flex-1" />
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Toggle theme">
+            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Toggle theme">
               {theme === "dark" ? (
                 <Moon className="h-4 w-4" />
               ) : theme === "light" ? (
@@ -44,12 +44,19 @@ export function Topbar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <div className="hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
         <span className="text-sm text-muted-foreground hidden sm:inline">{session?.user?.name}</span>
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-8 w-8 ring-1 ring-border">
           <AvatarImage src={session?.user?.image ?? undefined} />
           <AvatarFallback>{session?.user?.name?.[0] ?? "?"}</AvatarFallback>
         </Avatar>
-        <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => signOut()} aria-label="Sign out">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden md:inline-flex"
+          onClick={() => signOut()}
+          aria-label="Sign out"
+        >
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

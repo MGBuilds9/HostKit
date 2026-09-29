@@ -158,6 +158,21 @@ export const createCleanerSchema = z.object({
   userId: z.string().uuid().optional(),
 });
 
+// ── Users ─────────────────────────────────────────────────
+
+export const userRoleUpdateSchema = z.object({
+  role: z.enum(["admin", "owner", "manager", "cleaner"]),
+});
+
+// Admin user editor — all fields optional, used by PATCH /api/users/[id]
+export const userUpdateSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email("Invalid email").optional(),
+  phone: z.string().optional(),
+  role: z.enum(["admin", "owner", "manager", "cleaner"]).optional(),
+  isActive: z.boolean().optional(),
+});
+
 // ── Owner Statements ──────────────────────────────────────
 
 export const createStatementSchema = z.object({
@@ -178,6 +193,18 @@ export const createStaySchema = z.object({
   endDate: z.string().datetime().or(z.string().date()),
   source: z.enum(["airbnb", "google", "manual"]).default("manual"),
   status: z.enum(["booked", "blocked", "cancelled"]).default("booked"),
+});
+
+// PATCH /api/properties/[id]/stays/[stayId] — all fields optional.
+// Any field present is applied; omitted fields are left unchanged.
+export const stayUpdateSchema = z.object({
+  status: z.enum(["booked", "blocked", "cancelled"]).optional(),
+  guestName: z.string().optional().nullable(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
+  rawSummary: z.string().optional().nullable(),
+  rawDescription: z.string().optional().nullable(),
+  isManual: z.boolean().optional(),
 });
 
 // ── Owner Documents ───────────────────────────────────────

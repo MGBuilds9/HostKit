@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Plus } from "lucide-react";
+import { MessageSquare, Pencil, Plus } from "lucide-react";
 import { desc } from "drizzle-orm";
 import { TemplateDeleteButton } from "../template-actions";
 
@@ -56,6 +56,11 @@ export default async function ChecklistTemplatesPage() {
                     <Badge variant={tpl.isGlobal ? "default" : "secondary"}>
                       {tpl.isGlobal ? "Global" : "Property"}
                     </Badge>
+                    <Button asChild variant="ghost" size="icon" className="h-7 w-7" aria-label="Edit checklist template">
+                      <Link href={`/admin/templates/checklist/${tpl.id}/edit`}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
                     <TemplateDeleteButton id={tpl.id} apiPath="/api/templates/checklist" />
                   </div>
                 </div>
@@ -83,8 +88,7 @@ export default async function ChecklistTemplatesPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Checklist template editing UI is planned for a future release. Templates are applied when
-        creating a new turnover for a property.
+        Templates are applied when creating a new turnover for a property.
       </p>
     </div>
   );

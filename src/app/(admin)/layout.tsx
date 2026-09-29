@@ -1,50 +1,11 @@
-"use client";
+import { requireAuth } from "@/lib/auth-guard";
+import { AdminShell } from "./admin-shell";
 
-import { SessionProvider, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Sidebar } from "@/components/admin/sidebar";
-import { Topbar } from "@/components/admin/topbar";
-import { BottomTabBar } from "@/components/admin/bottom-tab-bar";
-
-function AdminGuard({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === "cleaner") {
-      router.replace("/cleaner");
-    }
-  }, [status, session, router]);
-
-  if (status === "loading") return null;
-  if (session?.user?.role === "cleaner") return null;
-
-  return <>{children}</>;
-}
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <SessionProvider>
-      <AdminGuard>
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-background focus:text-foreground">Skip to content</a>
-        <div className="flex h-screen">
-          <Sidebar />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <Topbar />
-            <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 bg-muted">
-              <div className="max-w-7xl mx-auto w-full">
-                {children}
-              </div>
-            </main>
-          </div>
-          <BottomTabBar />
-        </div>
-      </AdminGuard>
-    </SessionProvider>
-  );
+  await requireAuth(["admin", "manager"]);
+  return <AdminShell>{children}</AdminShell>;
 }

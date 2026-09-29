@@ -54,7 +54,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
           Check-In Walkthrough
         </h2>
         {completedSteps.length > 0 && (
-          <span className="text-xs font-semibold" style={{ color: "hsl(var(--guest-success))" }}>
+          <span className="text-xs font-semibold" style={{ color: "var(--guest-success)" }}>
             {completedSteps.length} of {steps.length} done
           </span>
         )}
@@ -73,10 +73,10 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
               <div
                 className="rounded-2xl border overflow-hidden transition-colors"
                 style={{
-                  background: "hsl(var(--guest-card))",
+                  background: "var(--guest-card)",
                   borderColor: isOpen
-                    ? "hsl(var(--guest-accent))"
-                    : "hsl(var(--guest-card-border))",
+                    ? "var(--guest-accent)"
+                    : "var(--guest-card-border)",
                 }}
               >
                 <button
@@ -88,9 +88,9 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
                     style={{
                       background: isDone
-                        ? "hsl(var(--guest-accent-soft))"
-                        : "hsl(var(--guest-accent-soft))",
-                      color: isDone ? "hsl(var(--guest-success))" : "hsl(var(--guest-accent))",
+                        ? "var(--guest-accent-soft)"
+                        : "var(--guest-accent-soft)",
+                      color: isDone ? "var(--guest-success)" : "var(--guest-accent)",
                     }}
                   >
                     {isDone ? <Check className="h-4 w-4" /> : s.step}
@@ -101,7 +101,7 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                   <ChevronDown
                     className="h-4 w-4 shrink-0 transition-transform duration-200"
                     style={{
-                      color: "hsl(var(--guest-text-muted))",
+                      color: "var(--guest-text-muted)",
                       transform: isOpen ? "rotate(180deg)" : "none",
                     }}
                   />
@@ -120,11 +120,11 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                         <div className="flex items-center gap-2">
                           <IconComponent
                             className="h-4 w-4"
-                            style={{ color: "hsl(var(--guest-accent))" }}
+                            style={{ color: "var(--guest-accent)" }}
                           />
                           <p
                             className="text-sm leading-relaxed"
-                            style={{ color: "hsl(var(--guest-text-muted))" }}
+                            style={{ color: "var(--guest-text-muted)" }}
                           >
                             {s.description}
                           </p>
@@ -157,14 +157,14 @@ export function CheckinWalkthrough({ steps }: { steps: Step[] }) {
                           className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-90"
                           style={{
                             background: isDone
-                              ? "hsl(var(--guest-accent-soft))"
+                              ? "var(--guest-accent-soft)"
                               : "transparent",
                             color: isDone
-                              ? "hsl(var(--guest-success))"
-                              : "hsl(var(--guest-text-muted))",
+                              ? "var(--guest-success)"
+                              : "var(--guest-text-muted)",
                             borderColor: isDone
-                              ? "hsl(var(--guest-success))"
-                              : "hsl(var(--guest-card-border))",
+                              ? "var(--guest-success)"
+                              : "var(--guest-card-border)",
                           }}
                         >
                           {isDone && <Check className="h-3.5 w-3.5" />}

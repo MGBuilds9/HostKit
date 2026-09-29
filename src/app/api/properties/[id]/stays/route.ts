@@ -144,6 +144,8 @@ export async function POST(
       guestName: guestName ?? null,
       startDate: start,
       endDate: end,
+      // Human-created stays are marked manual so the iCal sync never overrides them.
+      isManual: true,
     })
     .returning();
 

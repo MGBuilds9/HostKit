@@ -12,6 +12,7 @@ export interface Stay {
   status: "booked" | "blocked" | "cancelled";
   startDate: string;
   endDate: string;
+  isManual?: boolean;
   cleaningTasks: CleaningTask[];
 }
 
