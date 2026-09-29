@@ -25,25 +25,25 @@ export function EmergencyContacts({ emergency, hostPhone, ownerPhone }: Props) {
             className={`flex items-center justify-between rounded-xl p-4 transition-colors ${
               c.urgent
                 ? "border hover:opacity-90"
-                : "border border-[hsl(var(--guest-card-border))] shadow-sm dark:shadow-none hover:bg-black/5 dark:hover:bg-white/5"
+                : "border border-[var(--guest-card-border)] shadow-sm dark:shadow-none hover:bg-black/5 dark:hover:bg-white/5"
             }`}
             style={
               c.urgent
-                ? { background: "hsl(var(--guest-accent-soft))", borderColor: "hsl(var(--guest-danger))" }
-                : { background: "hsl(var(--guest-card))" }
+                ? { background: "var(--guest-accent-soft)", borderColor: "var(--guest-danger)" }
+                : { background: "var(--guest-card)" }
             }
           >
             <div className="flex items-center gap-3">
               {c.urgent ? (
-                <Siren className="h-4 w-4" style={{ color: "hsl(var(--guest-danger))" }} />
+                <Siren className="h-4 w-4" style={{ color: "var(--guest-danger)" }} />
               ) : (
-                <Phone className="h-4 w-4" style={{ color: "hsl(var(--guest-text-muted))" }} />
+                <Phone className="h-4 w-4" style={{ color: "var(--guest-text-muted)" }} />
               )}
               <span className="text-sm font-medium">{c.label}</span>
             </div>
             <span
               className={`text-sm font-mono ${c.urgent ? "font-semibold" : ""}`}
-              style={c.urgent ? { color: "hsl(var(--guest-danger))" } : { color: "hsl(var(--guest-text-muted))" }}
+              style={c.urgent ? { color: "var(--guest-danger)" } : { color: "var(--guest-text-muted)" }}
             >
               {c.number}
             </span>

@@ -133,8 +133,16 @@ describe("CSS variables - dark mode (.dark)", () => {
   });
 
   it("dark mode overrides all shadcn color variables defined in :root", () => {
+    // Structural Open Design tokens (type scale, spacing, radii, shadows,
+    // ease, focus, target, fonts) are theme-invariant and intentionally do
+    // NOT have dark overrides — only true color variables must.
+    const structural = /^(?:--font-|--fs-|--lh-|--s-\d|--r-|--shadow-|--ease|--target|--focus)/;
     const shadcnColors = rootVars.filter(
-      (v) => !v.startsWith("--guest-") && !v.startsWith("--chart-") && v !== "--radius"
+      (v) =>
+        !v.startsWith("--guest-") &&
+        !v.startsWith("--chart-") &&
+        v !== "--radius" &&
+        !structural.test(v)
     );
     for (const v of shadcnColors) {
       expect(darkVars, v + " in :root but missing from .dark").toContain(v);

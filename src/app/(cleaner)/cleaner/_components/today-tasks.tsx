@@ -2,6 +2,7 @@
 
 import { SprayCan } from "lucide-react";
 import { TaskCard, type TaskCardTask } from "@/components/cleaner/task-card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type TaskStatus =
   | "pending"
@@ -19,21 +20,23 @@ interface TodayTasksProps {
 export function TodayTasks({ tasks, onStatusChange }: TodayTasksProps) {
   return (
     <section>
-      <h1 className="text-xl font-semibold mb-4">
+      <h1 className="mb-4 flex items-baseline gap-2 text-xl font-semibold">
         Today&apos;s Tasks
         {tasks.length > 0 && (
-          <span className="ml-2 text-sm font-normal text-muted-foreground">
+          <span className="text-sm font-normal text-muted-foreground">
             ({tasks.length})
           </span>
         )}
       </h1>
 
       {tasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <SprayCan className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <p className="font-medium text-muted-foreground">No tasks today</p>
-          <p className="text-sm text-muted-foreground">Enjoy your day off!</p>
-        </div>
+        <EmptyState
+          dashed
+          icon={SprayCan}
+          title="No tasks today"
+          description="Enjoy your day off!"
+          className="py-14"
+        />
       ) : (
         <div className="space-y-3">
           {tasks.map((task) => (

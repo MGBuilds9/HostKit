@@ -5,8 +5,8 @@ import { KeyRound, ArrowRight } from "lucide-react";
 import { unlockGuideAction } from "@/app/g/[slug]/actions";
 
 const inputStyle: React.CSSProperties = {
-  background: "hsl(var(--guest-section-bg))",
-  border: "1px solid hsl(var(--guest-card-border))",
+  background: "var(--guest-section-bg)",
+  border: "1px solid var(--guest-card-border)",
   color: "inherit",
 };
 
@@ -19,7 +19,7 @@ function UnlockButton() {
       type="submit"
       disabled={pending}
       className="group inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60"
-      style={{ background: "hsl(var(--guest-accent))" }}
+      style={{ background: "var(--guest-accent)" }}
     >
       {pending ? (
         "Unlocking…"
@@ -51,20 +51,20 @@ export function GuideUnlockForm({
       <div
         className="w-full max-w-sm rounded-3xl p-8 shadow-lg dark:shadow-none"
         style={{
-          background: "hsl(var(--guest-card))",
-          border: "1px solid hsl(var(--guest-card-border))",
+          background: "var(--guest-card)",
+          border: "1px solid var(--guest-card-border)",
         }}
       >
         <div
           className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl"
           style={{
             background:
-              "linear-gradient(135deg, hsl(var(--guest-accent-soft)), transparent)",
+              "linear-gradient(135deg, var(--guest-accent-soft), transparent)",
           }}
         >
           <KeyRound
             className="h-7 w-7"
-            style={{ color: "hsl(var(--guest-accent))" }}
+            style={{ color: "var(--guest-accent)" }}
           />
         </div>
         <h1 className="text-center font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
@@ -72,7 +72,7 @@ export function GuideUnlockForm({
         </h1>
         <p
           className="mx-auto mt-2 max-w-[16rem] text-center text-sm leading-relaxed"
-          style={{ color: "hsl(var(--guest-text-muted))" }}
+          style={{ color: "var(--guest-text-muted)" }}
         >
           Enter the access code from your check-in message to view the guide.
         </p>
@@ -99,7 +99,7 @@ export function GuideUnlockForm({
               id="unlock-error"
               className="text-center text-sm font-medium"
               role="alert"
-              style={{ color: "hsl(var(--guest-danger))" }}
+              style={{ color: "var(--guest-danger)" }}
             >
               {state.error}
             </p>

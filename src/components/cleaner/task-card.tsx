@@ -71,7 +71,13 @@ export function TaskCard({ task, onStatusChange }: TaskCardProps) {
   }
 
   return (
-    <Card className={cn("transition-shadow", isTerminal && "opacity-70")}>
+    <Card
+      className={cn(
+        "rounded-lg border bg-card shadow-sm transition-all duration-200 ease-out",
+        "hover:shadow-md",
+        isTerminal && "opacity-70"
+      )}
+    >
       <CardContent className="p-4">
         <TaskCardHeader
           taskId={task.id}
@@ -83,13 +89,13 @@ export function TaskCard({ task, onStatusChange }: TaskCardProps) {
           guestName={task.guestName}
         />
         {nextAction && (
-          <div className="flex justify-end mt-2">
+          <div className="mt-3 flex justify-end">
             <Button
               size="sm"
               variant={nextAction.nextStatus === "completed" ? "default" : "outline"}
               onClick={handleAction}
               disabled={loading}
-              className="text-xs h-7 px-3"
+              className="h-9 min-h-[44px] px-4 text-xs font-semibold md:min-h-0"
             >
               {loading ? "..." : nextAction.label}
             </Button>

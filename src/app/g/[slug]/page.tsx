@@ -132,56 +132,72 @@ export default async function GuestGuidePage({ params }: Props) {
           {/* Left column */}
           <div className="space-y-8">
             {property.checkinSteps && property.checkinSteps.length > 0 && (
-              <CheckinWalkthrough steps={property.checkinSteps as Step[]} />
+              <section id="arrival" className="scroll-mt-24">
+                <CheckinWalkthrough steps={property.checkinSteps as Step[]} />
+              </section>
             )}
 
             {property.wifiName && property.wifiPassword && (
-              <WifiCard name={property.wifiName} password={property.wifiPassword} />
+              <section id="wifi" className="scroll-mt-24">
+                <WifiCard name={property.wifiName} password={property.wifiPassword} />
+              </section>
             )}
 
-            <ParkingCard
-              spot={property.parkingSpot}
-              instructions={property.parkingInstructions}
-              latitude={property.latitude}
-              longitude={property.longitude}
-            />
+            <section id="parking" className="scroll-mt-24">
+              <ParkingCard
+                spot={property.parkingSpot}
+                instructions={property.parkingInstructions}
+                latitude={property.latitude}
+                longitude={property.longitude}
+              />
+            </section>
           </div>
 
           {/* Right column */}
           <div className="space-y-8">
             {property.houseRules && property.houseRules.length > 0 && (
-              <HouseRulesSection
-                rules={property.houseRules}
-                securityNote={property.securityNote ?? null}
-              />
+              <section id="rules" className="scroll-mt-24">
+                <HouseRulesSection
+                  rules={property.houseRules}
+                  securityNote={property.securityNote ?? null}
+                />
+              </section>
             )}
 
-            <AmenitiesSection
-              kitchen={property.kitchenAmenities as string[] | null}
-              bathroom={property.bathroomAmenities as string[] | null}
-              general={property.generalAmenities as string[] | null}
-            />
+            <section id="included" className="scroll-mt-24">
+              <AmenitiesSection
+                kitchen={property.kitchenAmenities as string[] | null}
+                bathroom={property.bathroomAmenities as string[] | null}
+                general={property.generalAmenities as string[] | null}
+              />
+            </section>
 
             {property.nearbyServices && property.nearbyServices.length > 0 && (
-              <NearbyServices services={property.nearbyServices as Service[]} />
+              <section id="nearby" className="scroll-mt-24">
+                <NearbyServices services={property.nearbyServices as Service[]} />
+              </section>
             )}
 
             {property.checkoutSteps && property.checkoutSteps.length > 0 && (
-              <CheckoutSection
-                steps={property.checkoutSteps}
-                time={property.checkoutTime}
-              />
+              <section id="checkout" className="scroll-mt-24">
+                <CheckoutSection
+                  steps={property.checkoutSteps}
+                  time={property.checkoutTime}
+                />
+              </section>
             )}
           </div>
         </div>
 
         {/* Full-width sections */}
         <div className="space-y-8 pb-24">
-          <EmergencyContacts
-            emergency={property.emergencyContact ?? null}
-            hostPhone={property.hostPhone ?? null}
-            ownerPhone={property.ownerPhone ?? null}
-          />
+          <section id="emergency" className="scroll-mt-24">
+            <EmergencyContacts
+              emergency={property.emergencyContact ?? null}
+              hostPhone={property.hostPhone ?? null}
+              ownerPhone={property.ownerPhone ?? null}
+            />
+          </section>
         </div>
       </div>
 
