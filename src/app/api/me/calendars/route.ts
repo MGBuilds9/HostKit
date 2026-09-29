@@ -20,9 +20,11 @@ import {
 // Errors:
 //   401 — no session.
 //   409 { error: "no_google_account", reconnectUrl }
-//   502 { error: "google_auth_failed", message, reconnectUrl }
+//   409 { error: "google_auth_failed", message, reconnectUrl }
 //        Google rejected the grant (invalid_grant) or the Calendar API returned
-//        401/403. Reconnect with consent.
+//        401/403. Reconnect with consent. This is 409, not 502, because
+//        Cloudflare replaces origin 5xx bodies and the browser would lose
+//        the reconnect action.
 //   502 { error: "google_list_failed", message }
 //        Pagination repeated or the list response was unusable. Do not reconnect.
 //   503 { error: "google_temporarily_unavailable" }
@@ -94,7 +96,7 @@ export async function GET() {
             message: "Google access was revoked. Reconnect to continue.",
             reconnectUrl: "/login?prompt=consent",
           },
-          { status: 502 }
+          { status: 409 }
         );
       }
       if (err instanceof GoogleRefreshTransientError) {
@@ -115,8 +117,9 @@ export async function GET() {
       {
         error: "google_auth_failed",
         message: "Your Google session has expired. Reconnect to continue.",
+        reconnectUrl: "/login?prompt=consent",
       },
-      { status: 502 }
+      { status: 409 }
     );
   }
 
@@ -170,7 +173,7 @@ export async function GET() {
             message: "Google rejected your session — reconnect the calendar.",
             reconnectUrl: "/login?prompt=consent",
           },
-          { status: 502 }
+          { status: 409 }
         );
       }
       if (res.status === 429 || res.status >= 500) {

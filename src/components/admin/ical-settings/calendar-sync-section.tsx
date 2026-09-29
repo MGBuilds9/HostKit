@@ -83,7 +83,15 @@ export function CalendarSyncSection({
     try {
       const res = await fetch("/api/me/calendars");
       if (res.status === 409) {
-        setCalendarsState({ status: "no_account" });
+        const body = await res.json().catch(() => ({}));
+        if (body?.error === "google_auth_failed") {
+          setCalendarsState({
+            status: "auth_failed",
+            message: body?.message ?? "Google rejected the session.",
+          });
+        } else {
+          setCalendarsState({ status: "no_account" });
+        }
         return;
       }
       if (res.status === 502) {

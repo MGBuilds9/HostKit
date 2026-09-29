@@ -106,11 +106,11 @@ describe("GET /api/me/calendars", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("502 google_auth_failed when Google rejects the token (401)", async () => {
+  it("409 google_auth_failed when Google rejects the token (401)", async () => {
     mockAuth.mockResolvedValue({ user: { id: "u1", role: "admin" } });
     mockFetch.mockResolvedValue(new Response("unauthorized", { status: 401 }));
     const res = await GET();
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(409);
     const body = await res.json();
     expect(body.error).toBe("google_auth_failed");
     expect(body.reconnectUrl).toBe("/login?prompt=consent");
@@ -186,7 +186,7 @@ describe("GET /api/me/calendars", () => {
     expect(mockFetch.mock.calls[0][1]?.headers?.Authorization).toBe("Bearer tok-refreshed");
   });
 
-  it("502 google_auth_failed and does not call Calendar when the refresh grant is revoked", async () => {
+  it("409 google_auth_failed and does not call Calendar when the refresh grant is revoked", async () => {
     mockAuth.mockResolvedValue({ user: { id: "u1", role: "admin" } });
     mockSelectLimit.mockResolvedValue([accountRow({
       access_token: "tok-stale",
@@ -195,7 +195,7 @@ describe("GET /api/me/calendars", () => {
     })]);
     mockRefresh.mockRejectedValue(new GoogleCredentialsRevokedError());
     const res = await GET();
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(409);
     const body = await res.json();
     expect(body.error).toBe("google_auth_failed");
     expect(body.reconnectUrl).toBe("/login?prompt=consent");
