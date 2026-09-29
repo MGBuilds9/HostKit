@@ -4,12 +4,13 @@ import { db } from "@/db";
 import { properties, stays, syncLog, owners, accounts } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { generateCleaningTasks, cancelCleaningTasksForStay } from "@/lib/turnover-generator";
+import { parseAirbnbDescription, parseGoogleEvent, type ParsedDetails } from "@/lib/parse-stay-details";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export type StayStatus = "booked" | "blocked" | "cancelled";
 
-export interface ParsedStay {
+export interface ParsedStay extends ParsedDetails {
   externalUid: string;
   startDate: Date;
   endDate: Date;
@@ -101,6 +102,7 @@ export async function fetchAndParseIcal(url: string): Promise<ParsedStay[]> {
     const description = ((event.description as string | undefined) ?? "").trim();
 
     const status = inferAirbnbStatus(summary);
+    const details = parseAirbnbDescription(summary, description);
     const guestName = extractGuestName(summary, description);
 
     results.push({
@@ -112,6 +114,7 @@ export async function fetchAndParseIcal(url: string): Promise<ParsedStay[]> {
       status,
       guestName,
       source: "airbnb",
+      ...details,
     });
   }
 
@@ -126,6 +129,14 @@ export function computeStayHash(stay: ParsedStay): string {
     stay.startDate.toISOString(),
     stay.endDate.toISOString(),
     stay.summary,
+    // Include enriched details so a change in them is detected as an update.
+    stay.guestName ?? "",
+    stay.guestEmail ?? "",
+    stay.guestPhone ?? "",
+    String(stay.guestCount ?? ""),
+    stay.confirmationCode ?? "",
+    stay.bookingUrl ?? "",
+    stay.eventLocation ?? "",
   ].join("|");
   return createHash("sha256").update(raw).digest("hex");
 }
@@ -137,6 +148,10 @@ interface GoogleCalendarEvent {
   summary?: string;
   description?: string;
   status?: string;
+  location?: string;
+  htmlLink?: string;
+  attendees?: Array<{ email?: string; displayName?: string }>;
+  extendedProperties?: { private?: Record<string, string>; shared?: Record<string, string> };
   start?: { dateTime?: string; date?: string };
   end?: { dateTime?: string; date?: string };
 }
@@ -214,6 +229,7 @@ export async function fetchGoogleCalendarEvents(
       const summary = (event.summary ?? "").trim();
       const description = (event.description ?? "").trim();
       const status = inferGoogleStatus(event);
+      const details = parseGoogleEvent(event);
 
       results.push({
         externalUid: event.id,
@@ -224,6 +240,9 @@ export async function fetchGoogleCalendarEvents(
         status,
         guestName: summary || null,
         source: "google",
+        ...details,
+        // Prefer the parsed bookingUrl; fall back to the event's htmlLink.
+        bookingUrl: details.bookingUrl ?? event.htmlLink ?? null,
       });
     }
   } while (pageToken);
@@ -351,6 +370,12 @@ export async function syncPropertyCalendar(
           source: parsed.source,
           status: parsed.status,
           guestName: parsed.guestName,
+          guestEmail: parsed.guestEmail ?? null,
+          guestPhone: parsed.guestPhone ?? null,
+          guestCount: parsed.guestCount ?? null,
+          confirmationCode: parsed.confirmationCode ?? null,
+          bookingUrl: parsed.bookingUrl ?? null,
+          eventLocation: parsed.eventLocation ?? null,
           startDate: parsed.startDate,
           endDate: parsed.endDate,
           rawSummary: parsed.summary,
@@ -380,6 +405,12 @@ export async function syncPropertyCalendar(
             source: parsed.source,
             status: parsed.status,
             guestName: parsed.guestName,
+            guestEmail: parsed.guestEmail ?? null,
+            guestPhone: parsed.guestPhone ?? null,
+            guestCount: parsed.guestCount ?? null,
+            confirmationCode: parsed.confirmationCode ?? null,
+            bookingUrl: parsed.bookingUrl ?? null,
+            eventLocation: parsed.eventLocation ?? null,
             startDate: parsed.startDate,
             endDate: parsed.endDate,
             rawSummary: parsed.summary,
