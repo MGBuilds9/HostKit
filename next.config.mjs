@@ -21,6 +21,9 @@ const nextConfig = {
     ],
   },
   experimental: {
+    // Keep node-ical external so its lazy require('temporal-polyfill') resolves
+    // from node_modules at runtime (bundling breaks on Temporal polyfill init).
+    // The standalone runner image ships these deps via the Dockerfile copy step.
     serverComponentsExternalPackages: ["node-ical"],
   },
   async headers() {
