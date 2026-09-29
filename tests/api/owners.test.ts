@@ -32,9 +32,15 @@ vi.mock("@/db", () => ({
     })),
     select: vi.fn(() => ({
       from: vi.fn(() => ({
-        where: vi.fn(() => Promise.resolve([{ value: 0 }])),
+        where: vi.fn(() => {
+          const pending = Promise.resolve([{ value: 0 }]);
+          return Object.assign(pending, {
+            for: vi.fn().mockResolvedValue([{ id: "user-1" }]),
+          });
+        }),
       })),
     })),
+    transaction: vi.fn(),
   },
 }));
 
@@ -44,6 +50,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 
 const mockAuth = auth as ReturnType<typeof vi.fn>;
+(db.transaction as ReturnType<typeof vi.fn>).mockImplementation(
+  async (fn: (tx: typeof db) => Promise<unknown>) => fn(db)
+);
 
 function makeRequest(opts?: { method?: string; body?: unknown; url?: string }) {
   return new Request(opts?.url ?? "http://localhost/api/owners", {
@@ -116,6 +125,27 @@ describe("POST /api/owners", () => {
       })
     );
     expect(res.status).toBe(201);
+    expect(db.transaction).toHaveBeenCalled();
+  });
+
+  it("locks the linked user before inserting an owner profile", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "u1", role: "admin" } });
+    const forUpdate = vi.fn().mockResolvedValue([{ id: "user-9" }]);
+    (db.select as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      from: () => ({ where: () => ({ for: forUpdate }) }),
+    });
+    const res = await POST(
+      makeRequest({
+        method: "POST",
+        body: {
+          name: "John Owner",
+          email: "john@test.com",
+          userId: "11111111-1111-4111-8111-111111111111",
+        },
+      })
+    );
+    expect(res.status).toBe(201);
+    expect(forUpdate).toHaveBeenCalledWith("update");
   });
 });
 

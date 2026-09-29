@@ -2,9 +2,16 @@ import { createHash } from "crypto";
 import ical from "node-ical";
 import { db } from "@/db";
 import { properties, stays, syncLog, owners, accounts } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import { generateCleaningTasks, cancelCleaningTasksForStay } from "@/lib/turnover-generator";
 import { parseAirbnbDescription, parseGoogleEvent, type ParsedDetails } from "@/lib/parse-stay-details";
+import { refreshGoogleAccessToken, GoogleCredentialsRevokedError, GoogleRefreshTransientError } from "@/lib/google-token";
+
+// ── Google auth UX contract ────────────────────────────────────────────────
+// Exact actionable messages written to properties.lastSyncError (and surfaced
+// in the UI) when Google auth fails during a sync run.
+export const GOOGLE_CREDENTIALS_REVOKED_MESSAGE =
+  "Google credentials revoked — reconnect the calendar in property settings";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -21,15 +28,28 @@ export interface ParsedStay extends ParsedDetails {
   source: "airbnb" | "google";
 }
 
+/** Predictions from a dry run. These are not committed writes. */
+export interface SyncPreviewCounts {
+  wouldCreate: number;
+  wouldUpdate: number;
+  wouldCancel: number;
+}
+
 export interface SyncResult {
   propertyId: string;
   synced: number;
   created: number;
   updated: number;
+  /**
+   * Live run: stays marked cancelled.
+   * Dry run: the same number is a prediction and is copied to preview.wouldCancel.
+   */
   cancelled: number;
   errors: string[];
   /** True when the run was a preview (no DB writes). */
   dryRun?: boolean;
+  /** Present only when dryRun is true. Names created/updated/cancelled as predictions. */
+  preview?: SyncPreviewCounts;
 }
 
 /** Options for a sync run. dryRun previews changes without writing to the DB. */
@@ -187,8 +207,22 @@ export async function fetchGoogleCalendarEvents(
 
   const results: ParsedStay[] = [];
   let pageToken: string | undefined;
+  const seenPageTokens = new Set<string>();
+  let pages = 0;
+  const maxPages = 20;
 
   do {
+    if (pageToken) {
+      if (seenPageTokens.has(pageToken)) {
+        throw new Error("Google Calendar pagination repeated a page token");
+      }
+      seenPageTokens.add(pageToken);
+    }
+    pages += 1;
+    if (pages > maxPages) {
+      throw new Error("Google Calendar pagination exceeded 20 pages");
+    }
+
     const params = new URLSearchParams({
       timeMin,
       timeMax,
@@ -281,6 +315,15 @@ export async function syncPropertyCalendar(
 
   const allParsed: ParsedStay[] = [];
 
+  // Fetch/refresh failure flags per source. A source that errored must be
+  // excluded from stale-cancellation: a dead Google token must never wipe
+  // existing bookings. A calendar-id swap is a separate guard below — a
+  // successful fetch of a new calendar is not a leg failure, but its event
+  // ids do not match the previous calendar's stays.
+  let googleLegFailed = false;
+  let airbnbFetchFailed = false;
+  let googleCalendarUnproven = false;
+
   // ── Airbnb iCal ─────────────────────────────────────────────────────────
   if (property.airbnbIcalUrl) {
     try {
@@ -297,6 +340,7 @@ export async function syncPropertyCalendar(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       result.errors.push(`Airbnb iCal fetch error: ${msg}`);
+      airbnbFetchFailed = true;
       if (!dryRun) {
         await db.insert(syncLog).values({
           propertyId,
@@ -309,10 +353,17 @@ export async function syncPropertyCalendar(
 
   // ── Google Calendar ──────────────────────────────────────────────────────
   if (property.googleCalendarId) {
+    // Read the previous successful fetch BEFORE this run writes its own log.
+    // Stale-cancel is safe only when that log used this same calendar id.
+    const previousCalendarId = await lastFetchedGoogleCalendarId(propertyId);
+    googleCalendarUnproven = previousCalendarId !== property.googleCalendarId;
     try {
-      const accessToken = await resolveGoogleAccessToken(propertyId);
+      const accessToken = await resolveGoogleAccessToken(propertyId, {
+        persist: !dryRun,
+      });
+      // Sentinel — mapped to an actionable human message in the catch block.
       if (!accessToken) {
-        throw new Error("No Google OAuth access token found for property owner");
+        throw new Error("no_google_account");
       }
       const googleStays = await fetchGoogleCalendarEvents(
         property.googleCalendarId,
@@ -329,12 +380,34 @@ export async function syncPropertyCalendar(
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      result.errors.push(`Google Calendar fetch error: ${msg}`);
+      const revoked = err instanceof GoogleCredentialsRevokedError;
+      const transient = err instanceof GoogleRefreshTransientError;
+      const noAccount = msg === "no_google_account";
+      // Only a genuinely-revoked (or missing) credential gets the "reconnect"
+      // CTA. A transient refresh failure (Google 5xx / timeout) is a normal
+      // sync error and must NOT write the scary reconnect message: the stored
+      // access token may still be valid, and we surface "Google refresh
+      // temporarily unavailable; will retry" instead.
+      const authError = revoked || noAccount;
+      // Actionable, human-readable message for auth failures; raw error text otherwise.
+      const displayMsg = noAccount
+        ? "No Google OAuth access token found for property owner"
+        : revoked
+          ? `Google Calendar fetch error: ${GOOGLE_CREDENTIALS_REVOKED_MESSAGE}`
+          : transient
+            ? `Google Calendar fetch error: temporary Google token refresh failure (will retry)`
+            : `Google Calendar fetch error: ${msg}`;
+      result.errors.push(displayMsg);
+      // authError drives a distinct syncLog eventType (error_google_auth) so
+      // the UI can render a reconnect CTA. ANY google-leg error excludes
+      // 'google' from stale-cancellation. A transient failure also fails the
+      // leg, and is logged as error_google rather than error_google_auth.
+      googleLegFailed = true;
       if (!dryRun) {
         await db.insert(syncLog).values({
           propertyId,
-          eventType: "error_google",
-          details: { error: msg },
+          eventType: authError ? "error_google_auth" : "error_google",
+          details: { error: msg, revoked, transient },
         });
       }
     }
@@ -448,14 +521,24 @@ export async function syncPropertyCalendar(
       if (property.airbnbIcalUrl) activeSources.push("airbnb");
       if (property.googleCalendarId) activeSources.push("google");
 
-      if (activeSources.length > 0) {
+      // Never cancel stays for a source whose fetch failed this run.
+      // Also skip Google when this calendar id has no prior successful fetch:
+      // the first sync after a calendar swap must not cancel the previous
+      // calendar's bookings. The next sync, once the log matches, may.
+      let staleSources = activeSources;
+      if (googleLegFailed || googleCalendarUnproven) {
+        staleSources = staleSources.filter((s) => s !== "google");
+      }
+      if (airbnbFetchFailed) staleSources = staleSources.filter((s) => s !== "airbnb");
+
+      if (staleSources.length > 0) {
         const dbStays = await db
           .select({ id: stays.id, externalUid: stays.externalUid, status: stays.status, isManual: stays.isManual })
           .from(stays)
           .where(
             and(
               eq(stays.propertyId, propertyId),
-              inArray(stays.source, activeSources)
+              inArray(stays.source, staleSources)
             )
           );
 
@@ -522,6 +605,14 @@ export async function syncPropertyCalendar(
     });
   }
 
+  if (dryRun) {
+    result.preview = {
+      wouldCreate: result.created,
+      wouldUpdate: result.updated,
+      wouldCancel: result.cancelled,
+    };
+  }
+
   return result;
 }
 
@@ -559,28 +650,74 @@ export async function syncAllCalendars(options: SyncOptions = {}): Promise<{
 
 // ── Internal helpers ───────────────────────────────────────────────────────
 
+/** Calendar id recorded on the latest successful Google fetch, if any. */
+async function lastFetchedGoogleCalendarId(propertyId: string): Promise<string | null> {
+  const [row] = await db
+    .select({
+      eventType: syncLog.eventType,
+      details: syncLog.details,
+    })
+    .from(syncLog)
+    .where(
+      and(eq(syncLog.propertyId, propertyId), eq(syncLog.eventType, "fetch_google"))
+    )
+    .orderBy(desc(syncLog.eventTime))
+    .limit(1);
+
+  if (!row?.details || typeof row.details !== "object") return null;
+  const calendarId = (row.details as { calendarId?: unknown }).calendarId;
+  return typeof calendarId === "string" && calendarId.length > 0 ? calendarId : null;
+}
+
 /**
- * Resolves the Google OAuth access token for the owner of a given property.
- * Looks up: property → owner → user → accounts (provider = "google").
+ * Resolves the Google OAuth access token for the calendar connected to a
+ * given property.
+ *
+ * Resolution order:
+ *   1. properties.calendarConnectedByUserId — the user who explicitly
+ *      connected the calendar (wins when set).
+ *   2. Legacy fallback when null: property.ownerId → owners.userId.
+ * Then: accounts row WHERE userId AND provider='google'. An explicit pointer
+ * whose user has no google account returns null — we never fall through to
+ * the owner's account in that case.
+ *
+ * Expired tokens are refreshed via refreshGoogleAccessToken; a refused
+ * refresh (invalid_grant / revoked) throws GoogleCredentialsRevokedError so
+ * callers never call the Calendar API with a dead token.
+ *
  * Exported so it can be unit-tested directly (token-valid / expired-refresh /
  * refresh-denied paths) without going through a full sync.
+ *
+ * persist defaults to true. A dry-run passes false so the preview can use a
+ * refreshed access token without writing accounts.
  */
-export async function resolveGoogleAccessToken(propertyId: string): Promise<string | null> {
+export async function resolveGoogleAccessToken(
+  propertyId: string,
+  options?: { persist?: boolean }
+): Promise<string | null> {
   const [property] = await db
-    .select({ ownerId: properties.ownerId })
+    .select({
+      calendarConnectedByUserId: properties.calendarConnectedByUserId,
+      ownerId: properties.ownerId,
+    })
     .from(properties)
     .where(eq(properties.id, propertyId))
     .limit(1);
 
   if (!property) return null;
 
-  const [owner] = await db
-    .select({ userId: owners.userId })
-    .from(owners)
-    .where(eq(owners.id, property.ownerId))
-    .limit(1);
+  let userId = property.calendarConnectedByUserId;
 
-  if (!owner?.userId) return null;
+  if (!userId) {
+    const [owner] = await db
+      .select({ userId: owners.userId })
+      .from(owners)
+      .where(eq(owners.id, property.ownerId))
+      .limit(1);
+
+    if (!owner?.userId) return null;
+    userId = owner.userId;
+  }
 
   const [account] = await db
     .select({
@@ -592,7 +729,7 @@ export async function resolveGoogleAccessToken(propertyId: string): Promise<stri
     })
     .from(accounts)
     .where(
-      and(eq(accounts.userId, owner.userId), eq(accounts.provider, "google"))
+      and(eq(accounts.userId, userId), eq(accounts.provider, "google"))
     )
     .limit(1);
 
@@ -602,47 +739,31 @@ export async function resolveGoogleAccessToken(propertyId: string): Promise<stri
   const nowSecs = Math.floor(Date.now() / 1000);
   const isExpired = account.expires_at !== null && account.expires_at <= nowSecs + 60;
 
-  if (isExpired && account.refresh_token) {
-    try {
-      const params = new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        grant_type: "refresh_token",
-        refresh_token: account.refresh_token,
-      });
-
-      const response = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params.toString(),
-        signal: AbortSignal.timeout(10_000),
-      });
-
-      if (response.ok) {
-        const data = (await response.json()) as {
-          access_token: string;
-          expires_in: number;
-        };
-        const newExpiresAt = Math.floor(Date.now() / 1000) + data.expires_in;
-
-        await db
-          .update(accounts)
-          .set({
-            access_token: data.access_token,
-            expires_at: newExpiresAt,
-          })
-          .where(
-            and(
-              eq(accounts.provider, account.provider),
-              eq(accounts.providerAccountId, account.providerAccountId)
-            )
-          );
-
-        return data.access_token;
-      }
-    } catch (err) {
-      console.error("[ical-sync] Google token refresh failed:", err);
+  if (isExpired) {
+    if (!account.refresh_token?.trim()) {
+      throw new GoogleCredentialsRevokedError();
     }
+    // invalid_grant throws GoogleCredentialsRevokedError.
+    // 429/5xx/timeout throw GoogleRefreshTransientError. Both propagate.
+    const data = await refreshGoogleAccessToken(account);
+    const newExpiresAt = Math.floor(Date.now() / 1000) + data.expires_in;
+
+    if (options?.persist !== false) {
+      await db
+        .update(accounts)
+        .set({
+          access_token: data.access_token,
+          expires_at: newExpiresAt,
+        })
+        .where(
+          and(
+            eq(accounts.provider, account.provider),
+            eq(accounts.providerAccountId, account.providerAccountId)
+          )
+        );
+    }
+
+    return data.access_token;
   }
 
   return account.access_token ?? null;

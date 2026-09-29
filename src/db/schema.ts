@@ -9,7 +9,10 @@ import {
   pgEnum,
   primaryKey,
   index,
+  uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 import type { AdapterAccount } from "next-auth/adapters";
 
@@ -20,6 +23,8 @@ export const cleaningTaskStatusEnum = pgEnum("cleaning_task_status", [
   "pending", "offered", "accepted", "in_progress", "completed", "cancelled",
 ]);
 export const calendarSourceEnum = pgEnum("calendar_source", ["airbnb", "google", "manual"]);
+// Invite-only role subset — admin can NEVER be granted via invite.
+export const inviteRoleEnum = pgEnum("invite_role", ["owner", "manager", "cleaner"]);
 
 // ── NextAuth Required Tables ───────────────────────────
 // NOTE: `name` is nullable (differs from PRD which says notNull).
@@ -247,6 +252,9 @@ export const properties = pgTable("properties", {
   // Calendar Sync
   airbnbIcalUrl: text("airbnb_ical_url"),
   googleCalendarId: text("google_calendar_id"),
+  // User whose Google account the calendar is connected with. When null, sync
+  // falls back to the legacy path: property.ownerId → owners.userId.
+  calendarConnectedByUserId: uuid("calendar_connected_by_user_id").references(() => users.id),
   icalSyncEnabled: boolean("ical_sync_enabled").default(false),
   lastSyncAt: timestamp("last_sync_at"),
   lastSyncStatus: text("last_sync_status"), // "ok" | "error"
@@ -348,6 +356,43 @@ export const cleaners = pgTable("cleaners", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// ============================================================
+// INVITES
+// ============================================================
+
+// Invites grant one of three non-admin roles. The role is enforced at the
+// DB level via a CHECK constraint (admins can never be created via invite).
+// A matching raw SQL migration for prod is documented alongside the Drizzle
+// schema in `drizzle/` migration files (see `pnpm db:generate`).
+export const invites = pgTable("invites", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull(),
+  intendedRole: inviteRoleEnum("intended_role").notNull(),
+  propertyId: uuid("property_id").references(() => properties.id),
+  ownerId: uuid("owner_id").references(() => owners.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+  acceptedByUserId: uuid("accepted_by_user_id").references(() => users.id),
+  revokedAt: timestamp("revoked_at"),
+  invitedByUserId: uuid("invited_by_user_id")
+    .references(() => users.id)
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  emailIdx: index("invites_email_idx").on(table.email),
+  tokenIdx: uniqueIndex("invites_token_idx").on(table.token),
+  propertyIdIdx: index("invites_property_id_idx").on(table.propertyId),
+  ownerIdIdx: index("invites_owner_id_idx").on(table.ownerId),
+  // NOTE: For the manual prod migration, also add this SQL CHECK constraint:
+  //   ALTER TABLE invites ADD CONSTRAINT invites_intended_role_check
+  //     CHECK (intended_role IN ('owner','manager','cleaner'));
+  roleCheck: check(
+    "invites_intended_role_check",
+    sql`${table.intendedRole} IN ('owner', 'manager', 'cleaner')`
+  ),
+}));
 
 // ============================================================
 // STAYS
@@ -588,4 +633,25 @@ export const ownerStatementsRelations = relations(ownerStatements, ({ one }) => 
 
 export const ownerDocumentsRelations = relations(ownerDocuments, ({ one }) => ({
   owner: one(owners, { fields: [ownerDocuments.ownerId], references: [owners.id] }),
+}));
+
+export const invitesRelations = relations(invites, ({ one }) => ({
+  property: one(properties, {
+    fields: [invites.propertyId],
+    references: [properties.id],
+  }),
+  owner: one(owners, {
+    fields: [invites.ownerId],
+    references: [owners.id],
+  }),
+  acceptedBy: one(users, {
+    fields: [invites.acceptedByUserId],
+    references: [users.id],
+    relationName: "invitesAcceptedBy",
+  }),
+  invitedBy: one(users, {
+    fields: [invites.invitedByUserId],
+    references: [users.id],
+    relationName: "invitesInvitedBy",
+  }),
 }));

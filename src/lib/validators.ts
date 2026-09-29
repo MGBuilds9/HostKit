@@ -214,3 +214,71 @@ export const createDocumentSchema = z.object({
   name: z.string().min(1),
   fileUrl: z.string().url(),
 });
+
+// ── Google Calendar Onboarding (CONNECT-CALENDAR) ──────────
+
+/**
+ * A single entry from Google's calendarList.list API as surfaced to clients.
+ * `primary` marks the Google account's own primary calendar.
+ */
+export const googleCalendarListEntrySchema = z.object({
+  id: z.string().min(1),
+  summary: z.string().min(1),
+  primary: z.boolean().default(false),
+});
+
+/** Outbound shape of GET /api/me/calendars. */
+export const googleCalendarListResponseSchema = z.object({
+  calendars: z.array(googleCalendarListEntrySchema),
+});
+
+/** Optional body for POST /api/properties/[id]/calendar-connection. */
+export const connectCalendarBodySchema = z.object({
+  googleCalendarId: z.string().trim().min(1).max(512).optional(),
+});
+
+// ── Invites ───────────────────────────────────────────────
+
+export const createInviteSchema = z
+  .object({
+    email: z.string().email("Invalid email"),
+    intendedRole: z.enum(["owner", "manager", "cleaner"]),
+    propertyId: z.string().uuid().optional(),
+    ownerId: z.string().uuid().optional(),
+    ownerName: z.string().min(1).optional(),
+    expiresInDays: z.number().int().min(1).max(30).default(14),
+  })
+  .superRefine((data, ctx) => {
+    if (data.intendedRole === "manager") {
+      if (!data.propertyId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Manager invites require a propertyId",
+          path: ["propertyId"],
+        });
+      }
+      if (data.ownerId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Manager invites must not include ownerId",
+          path: ["ownerId"],
+        });
+      }
+    }
+    if (data.intendedRole === "owner") {
+      if (!data.ownerId && !data.ownerName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Owner invites require either ownerId or ownerName",
+          path: ["ownerId"],
+        });
+      }
+      if (data.propertyId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Owner invites must not include propertyId",
+          path: ["propertyId"],
+        });
+      }
+    }
+  });

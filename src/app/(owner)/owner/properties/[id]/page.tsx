@@ -1,12 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/db";
-import { owners, properties, stays, turnovers } from "@/db/schema";
+import { owners, properties, stays, turnovers, users } from "@/db/schema";
 import { eq, and, gte, or } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { OwnerCalendarConnect } from "@/components/owner/calendar-connect";
 
 function formatDate(date: Date) {
   return date.toLocaleDateString("en-US", {
@@ -43,6 +44,16 @@ export default async function OwnerPropertyDetailPage({
   });
 
   if (!property) notFound();
+
+  let connectedEmail: string | null = null;
+  if (property.calendarConnectedByUserId) {
+    const [connectedUser] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, property.calendarConnectedByUserId))
+      .limit(1);
+    connectedEmail = connectedUser?.email ?? null;
+  }
 
   // Get upcoming stays
   const now = new Date();
@@ -85,6 +96,26 @@ export default async function OwnerPropertyDetailPage({
           </p>
         )}
       </div>
+
+      {owner.userId === session.user.id ? (
+        <OwnerCalendarConnect
+          propertyId={property.id}
+          googleCalendarId={property.googleCalendarId ?? null}
+          connectedEmail={connectedEmail}
+          lastSyncStatus={property.lastSyncStatus ?? null}
+          lastSyncError={property.lastSyncError ?? null}
+        />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Google Calendar</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            This owner profile is not linked to your sign-in, so calendar
+            connection stays off. Accept the owner invite for this profile first.
+          </CardContent>
+        </Card>
+      )}
 
       {/* Property Info */}
       <Card>

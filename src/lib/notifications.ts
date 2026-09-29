@@ -185,6 +185,84 @@ async function isEmailEnabled(cleanerId: string): Promise<boolean> {
   return cleaner?.notificationPreferences?.emailEnabled !== false;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export function buildInviteEmailHtml(
+  inviteUrl: string,
+  role: "owner" | "manager" | "cleaner",
+  propertyName?: string
+): string {
+  const roleLabel = escapeHtml(role.charAt(0).toUpperCase() + role.slice(1));
+  const propertyBit = propertyName
+    ? ` for <strong>${escapeHtml(propertyName)}</strong>`
+    : "";
+  const safeUrl = escapeHtml(inviteUrl);
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;padding:32px;">
+          <tr>
+            <td>
+              <p style="margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6366f1;">HostKit</p>
+              <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">You're invited to HostKit</h1>
+              <p style="margin:0 0 24px;font-size:14px;color:#6b7280;">
+                You've been invited as a <strong>${roleLabel}</strong>${propertyBit}.
+                Click below to accept and sign in with Google.
+              </p>
+              <a href="${safeUrl}"
+                style="display:inline-block;padding:10px 20px;background:#6366f1;color:#ffffff;font-size:14px;font-weight:600;border-radius:6px;text-decoration:none;">
+                Accept Invitation
+              </a>
+              <p style="margin:24px 0 0;font-size:12px;color:#9ca3af;">
+                This invitation expires in 14 days. If you did not expect it, you can ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendInviteEmail(
+  to: string,
+  inviteUrl: string,
+  role: "owner" | "manager" | "cleaner",
+  propertyName?: string
+): Promise<void> {
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+  const html = buildInviteEmailHtml(inviteUrl, role, propertyName);
+
+  if (!process.env.RESEND_API_KEY || !resend) {
+    // Do not log the invite URL. It is a bearer token.
+    console.info("[notifications] invite email skipped; RESEND_API_KEY is not set");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      subject: `You're invited to HostKit as a ${roleLabel}`,
+      html,
+    });
+  } catch (err) {
+    console.error("[notifications] Failed to send invite email:", err);
+  }
+}
+
 export async function notifyTaskAssigned(taskId: string): Promise<void> {
   const task = await loadTaskWithRelations(taskId);
 

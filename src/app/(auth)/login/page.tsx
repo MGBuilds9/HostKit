@@ -1,10 +1,17 @@
 "use client";
 
+import { Suspense } from "react";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { safeCallbackUrl } from "@/lib/safe-callback-url";
 
-export default function LoginPage() {
+function LoginCard() {
+  const search = useSearchParams();
+  const callbackUrl = safeCallbackUrl(search.get("callbackUrl"));
+  const consent = search.get("prompt") === "consent";
+
   return (
     <Card className="w-full max-w-sm rounded-3xl shadow-none sm:shadow-lg">
       <CardHeader className="text-center space-y-3 pt-10">
@@ -28,11 +35,31 @@ export default function LoginPage() {
       <CardContent className="pb-8 pt-2">
         <Button
           className="w-full"
-          onClick={() => signIn("google", { callbackUrl: "/admin" })}
+          onClick={() =>
+            signIn(
+              "google",
+              { callbackUrl },
+              consent
+                ? { prompt: "consent", access_type: "offline" }
+                : { access_type: "offline" }
+            )
+          }
         >
           Sign in with Google
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-sm text-muted-foreground">Loading sign-in…</div>
+      }
+    >
+      <LoginCard />
+    </Suspense>
   );
 }

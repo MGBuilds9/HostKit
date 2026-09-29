@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { syncPropertyCalendar } from "@/lib/ical-sync";
+import { authorizePropertyCalendarActor } from "@/lib/property-calendar-access";
 
 // POST /api/properties/[id]/sync
 // Manually trigger a calendar sync for a single property.
-// Admin and manager only.
+// Admin, manager, or the property's own owner. Cleaners cannot.
 export async function POST(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { role } = session.user;
-  if (role !== "admin" && role !== "manager") {
+  const gate = await authorizePropertyCalendarActor(params.id);
+  if (gate.kind === "unauthorized") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (gate.kind === "forbidden") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (gate.kind === "not_found") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   try {

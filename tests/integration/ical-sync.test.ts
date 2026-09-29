@@ -9,10 +9,11 @@ const mockUpdate = vi.fn((_table?: unknown) => ({ set: mockUpdateSet }));
 // Per-test programmable select results keyed by call shape. A select call is
 // tagged by its projection / read shape so each logical read returns its own fixture:
 //  - select({ id })                                -> "enabledProps"   (syncAllCalendars)
-//  - select({ ownerId })                           -> "propOwner"      (resolve token step 1)
-//  - select({ userId })                            -> "ownerUser"      (resolve token step 2)
+//  - select({ calendarConnectedByUserId, ownerId })-> "propOwner"      (resolve token step 1)
+//  - select({ userId })                            -> "ownerUser"      (resolve token step 2, legacy fallback)
 //  - select({ provider, ... })                     -> "googleAccount"  (resolve token step 3)
 //  - select({ id, externalUid, status })           -> "stale"          (stale read, NO .limit())
+//  - select({ eventType, details })                -> "lastGoogleFetch" (prior calendar id, .orderBy().limit())
 //  - full-row select (no projection, .limit())     -> "full"           (load property / upsert lookup)
 // Each tag value is a QUEUE of row-sets, consumed in call order for that tag.
 let selectResults: Record<string, unknown[][]> = {};
@@ -21,6 +22,8 @@ function tagFor(projection: unknown): string {
     const keys = Object.keys(projection as object);
     if (keys.includes("provider")) return "googleAccount";
     if (keys.includes("externalUid") && keys.includes("status")) return "stale";
+    if (keys.includes("eventType") && keys.includes("details")) return "lastGoogleFetch";
+    if (keys.includes("calendarConnectedByUserId")) return "propOwner";
     if (keys.includes("ownerId")) return "propOwner";
     if (keys.includes("userId")) return "ownerUser";
     if (keys.length === 1 && keys[0] === "id") return "enabledProps";
@@ -43,10 +46,14 @@ const mockSelect = vi.fn((projection?: unknown) => {
     from: vi.fn(() => ({
       where: vi.fn(() => {
         const rows = () => Promise.resolve(consume(tag));
-        return {
+        const limited = {
           limit: vi.fn().mockImplementation(rows),
           // stale-cancellation read awaits the where() result directly (no .limit())
-          then: (onF?: (v: unknown[]) => unknown) => rows().then(onF),
+          then: (onF?: (v: unknown[]) => unknown, onR?: (e: unknown) => unknown) => rows().then(onF, onR),
+        };
+        return {
+          ...limited,
+          orderBy: () => limited,
         };
       }),
     })),
@@ -78,6 +85,7 @@ import {
   resolveGoogleAccessToken,
   type ParsedStay,
 } from "@/lib/ical-sync";
+import { GoogleCredentialsRevokedError } from "@/lib/google-token";
 
 // Minimal valid iCal string
 const ICAL_FIXTURE = `BEGIN:VCALENDAR
@@ -316,6 +324,14 @@ describe("fetchGoogleCalendarEvents", () => {
     expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls[1][0]).toContain("pageToken=tok2");
   });
 
+  it("throws when Google repeats a page token so a partial feed is not treated as complete", async () => {
+    global.fetch = vi.fn().mockResolvedValue(okJson({ items: [], nextPageToken: "loop" }));
+    await expect(fetchGoogleCalendarEvents("cal@example.com", "token")).rejects.toThrow(
+      /repeated a page token/
+    );
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("throws a descriptive error on API failure", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
@@ -346,7 +362,7 @@ describe("syncPropertyCalendar (Google token path)", () => {
         [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
         [], // upsert lookup for the single event → not found
       ],
-      propOwner: [[{ ownerId: "owner-1" }]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
       ownerUser: [[{ userId: "user-1" }]],
       googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-valid", refresh_token: "rt", expires_at: futureExpiry }]],
       stale: [[]],
@@ -372,7 +388,7 @@ describe("syncPropertyCalendar (Google token path)", () => {
         [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
         [], // upsert lookup
       ],
-      propOwner: [[{ ownerId: "owner-1" }]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
       ownerUser: [[{ userId: "user-1" }]],
       googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-old", refresh_token: "rt-1", expires_at: pastExpiry }]],
       stale: [[]],
@@ -389,15 +405,73 @@ describe("syncPropertyCalendar (Google token path)", () => {
     const result = await syncPropertyCalendar("prop-1");
     expect(result.errors).toHaveLength(0);
     expect(calendarAuth).toBe("Bearer tok-new");
-    // account row updated with new token
-    expect(mockUpdate).toHaveBeenCalled();
+    const tokenWrites = mockUpdateSet.mock.calls
+      .map((c) => c[0] as Record<string, unknown>)
+      .filter((v) => v && "access_token" in v);
+    expect(tokenWrites[0]?.access_token).toBe("tok-new");
+    expect(typeof tokenWrites[0]?.expires_at).toBe("number");
+  });
+
+  it("does not write the refreshed token during a dry run", async () => {
+    const pastExpiry = Math.floor(Date.now() / 1000) - 100;
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
+        [],
+      ],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-old", refresh_token: "rt-1", expires_at: pastExpiry }]],
+      stale: [[]],
+    };
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (String(url).includes("oauth2.googleapis.com/token")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ access_token: "tok-preview", expires_in: 3600 }) });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          items: [{ id: "g1", summary: "Guest A", start: { dateTime: "2026-07-01T14:00:00Z" }, end: { dateTime: "2026-07-05T11:00:00Z" } }],
+        }),
+      });
+    });
+    const result = await syncPropertyCalendar("prop-1", { dryRun: true });
+    expect(result.errors).toHaveLength(0);
+    expect(result.preview).toEqual({ wouldCreate: 1, wouldUpdate: 0, wouldCancel: 0 });
+    const tokenWrites = mockUpdateSet.mock.calls
+      .map((c) => c[0] as Record<string, unknown>)
+      .filter((v) => v && "access_token" in v);
+    expect(tokenWrites).toHaveLength(0);
+    expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("treats a 429 refresh as transient and does not call the Calendar API", async () => {
+    const pastExpiry = Math.floor(Date.now() / 1000) - 100;
+    selectResults = {
+      full: [[{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-old", refresh_token: "rt-1", expires_at: pastExpiry }]],
+    };
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (String(url).includes("oauth2.googleapis.com/token")) {
+        return Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({ error: "rate_limit_exceeded" }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ items: [] }) });
+    });
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.errors.join(" ")).toMatch(/temporary Google token refresh failure/);
+    expect(result.errors.join(" ")).not.toMatch(/revoked/);
+    const urls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => String(c[0]));
+    expect(urls.some((u) => u.includes("googleapis.com/calendar"))).toBe(false);
+    expect(result.cancelled).toBe(0);
   });
 
   it("records an error when refresh is denied (invalid_grant)", async () => {
     const pastExpiry = Math.floor(Date.now() / 1000) - 100;
     selectResults = {
       full: [[{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }]],
-      propOwner: [[{ ownerId: "owner-1" }]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
       ownerUser: [[{ userId: "user-1" }]],
       googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-old", refresh_token: "rt-expired", expires_at: pastExpiry }]],
     };
@@ -411,12 +485,31 @@ describe("syncPropertyCalendar (Google token path)", () => {
     const result = await syncPropertyCalendar("prop-1");
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors.join(" ")).toMatch(/Google Calendar fetch error/);
+    // The dead token must never reach the Calendar API: a revoked grant throws
+    // before any calendar fetch happens.
+    const urls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => String(c[0]));
+    expect(urls.some((u) => u.includes("googleapis.com/calendar"))).toBe(false);
+    // Actionable message surfaced for reconnect UX
+    expect(result.errors.join(" ")).toContain("Google credentials revoked");
+    // Auth failures log a distinct event type
+    const authWrites = mockInsertValues.mock.calls
+      .map((c) => c[0] as { eventType?: string })
+      .filter((v) => v && v.eventType === "error_google_auth");
+    expect(authWrites.length).toBe(1);
+    // Property lastSyncError carries the actionable contract message
+    const propWrites = mockUpdateSet.mock.calls
+      .map((c) => c[0] as Record<string, unknown>)
+      .filter((v) => v && "lastSyncStatus" in v);
+    expect(propWrites.length).toBeGreaterThan(0);
+    expect(String(propWrites[0].lastSyncError)).toContain(
+      "Google credentials revoked — reconnect the calendar in property settings"
+    );
   });
 
   it("pushes an error when the property has no Google account at all", async () => {
     selectResults = {
       full: [[{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }]],
-      propOwner: [[{ ownerId: "owner-1" }]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
       ownerUser: [[{ userId: "user-1" }]],
       googleAccount: [[]], // no google account row
     };
@@ -437,12 +530,29 @@ describe("resolveGoogleAccessToken", () => {
   it("returns the stored access token when not expired", async () => {
     const future = Math.floor(Date.now() / 1000) + 3600;
     selectResults = {
-      propOwner: [[{ ownerId: "owner-1" }]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
       ownerUser: [[{ userId: "user-1" }]],
       googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-live", refresh_token: "rt", expires_at: future }]],
     };
     global.fetch = vi.fn();
     await expect(resolveGoogleAccessToken("prop-1")).resolves.toBe("tok-live");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("throws revoked when the access token is expired and there is no refresh token", async () => {
+    selectResults = {
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{
+        provider: "google",
+        providerAccountId: "g-1",
+        access_token: "tok-dead",
+        refresh_token: null,
+        expires_at: Math.floor(Date.now() / 1000) - 100,
+      }]],
+    };
+    global.fetch = vi.fn();
+    await expect(resolveGoogleAccessToken("prop-1")).rejects.toBeInstanceOf(GoogleCredentialsRevokedError);
     expect(global.fetch).not.toHaveBeenCalled();
   });
 });
@@ -477,7 +587,26 @@ END:VCALENDAR`;
     expect(result.dryRun).toBe(true);
     expect(result.created).toBe(1);
     expect(result.errors).toHaveLength(0);
+    expect(result.preview).toEqual({ wouldCreate: 1, wouldUpdate: 0, wouldCancel: 0 });
     // NO DB writes at all in dry-run
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it("previews a stale cancellation without writing it", async () => {
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: "https://example.com/cal.ics", googleCalendarId: null }],
+        [],
+      ],
+      stale: [[{ id: "stay-old", externalUid: "gone@airbnb.com", status: "booked", isManual: false }]],
+    };
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve(ICAL_ONE_BOOKING) });
+
+    const result = await syncPropertyCalendar("prop-1", { dryRun: true });
+    expect(result.created).toBe(1);
+    expect(result.cancelled).toBe(1);
+    expect(result.preview).toEqual({ wouldCreate: 1, wouldUpdate: 0, wouldCancel: 1 });
     expect(mockInsert).not.toHaveBeenCalled();
     expect(mockUpdate).not.toHaveBeenCalled();
   });
@@ -497,5 +626,209 @@ END:VCALENDAR`;
     // real run does write (stay insert + sync logs + property update)
     expect(mockInsert).toHaveBeenCalled();
     expect(mockUpdate).toHaveBeenCalled();
+  });
+});
+
+// ── resolveGoogleAccessToken — calendarConnectedByUserId plumbing ────────────
+
+describe("resolveGoogleAccessToken (calendar_connected_by_user_id)", () => {
+  beforeEach(() => { vi.clearAllMocks(); selectResults = {}; });
+
+  it("uses the connected-by user's token when set (not the owner's)", async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    selectResults = {
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: "user-2" }]],
+      // ownerUser must NOT be consulted when the explicit pointer is set;
+      // if it were, it would resolve to the owner's user instead:
+      ownerUser: [[{ userId: "user-owner" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-2", access_token: "tok-connected-by", refresh_token: "rt", expires_at: future }]],
+    };
+    global.fetch = vi.fn();
+    await expect(resolveGoogleAccessToken("prop-1")).resolves.toBe("tok-connected-by");
+  });
+
+  it("falls back to the legacy owner path when calendarConnectedByUserId is null", async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    selectResults = {
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-legacy-owner", refresh_token: "rt", expires_at: future }]],
+    };
+    global.fetch = vi.fn();
+    await expect(resolveGoogleAccessToken("prop-1")).resolves.toBe("tok-legacy-owner");
+  });
+
+  it("returns null when the connected-by user has no google account (explicit pointer wins over owner)", async () => {
+    selectResults = {
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: "user-2" }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[]], // connected-by user has NO google account
+    };
+    global.fetch = vi.fn();
+    await expect(resolveGoogleAccessToken("prop-1")).resolves.toBeNull();
+  });
+});
+
+// ── Stale-cancellation guard — failed source never cancels its stays ─────────
+
+describe("syncPropertyCalendar (stale-cancellation guard)", () => {
+  beforeEach(() => { vi.clearAllMocks(); selectResults = {}; });
+
+  it("does not stale-cancel google stays when the google token is revoked (invalid_grant)", async () => {
+    const pastExpiry = Math.floor(Date.now() / 1000) - 100;
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
+      ],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-dead", refresh_token: "rt-revoked", expires_at: pastExpiry }]],
+    };
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (String(url).includes("oauth2.googleapis.com/token")) {
+        return Promise.resolve({ ok: false, status: 400, json: () => Promise.resolve({ error: "invalid_grant" }) });
+      }
+      // Calendar API must NOT be called; if it were, fail loudly.
+      return Promise.resolve({ ok: false, status: 401, statusText: "Unauthorized", json: () => Promise.resolve({ error: { message: "Invalid Credentials" } }) });
+    });
+
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.errors.join(" ")).toContain("Google credentials revoked");
+    expect(result.cancelled).toBe(0);
+
+    // No STAY cancellation updates — only the property's own sync metadata.
+    const setCalls = mockUpdateSet.mock.calls.map((c) => c[0] as Record<string, unknown>);
+    expect(setCalls.some((v) => v && v.status === "cancelled")).toBe(false);
+  });
+
+  it("does not stale-cancel airbnb stays when only the airbnb leg errors", async () => {
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: "https://example.com/cal.ics", googleCalendarId: "cal@example.com" }],
+      ],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: "user-2" }]],
+      googleAccount: [[]], // connected-by user has no google account → google leg errors
+    };
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+    });
+
+    // Both legs error → both sources excluded from stale-cancellation.
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.errors.join(" ")).toMatch(/Airbnb iCal fetch error/);
+    expect(result.errors.join(" ")).toMatch(/No Google OAuth access token/);
+    expect(result.cancelled).toBe(0);
+    const setCallsAirbnb = mockUpdateSet.mock.calls.map((c) => c[0] as Record<string, unknown>);
+    expect(setCallsAirbnb.some((v) => v && v.status === "cancelled")).toBe(false);
+  });
+
+  it("stale-cancels an errored source only when another source succeeded and stays are out of feed", async () => {
+    // Google succeeds with empty feed; Airbnb fails with a live booking in DB.
+    // Airbnb stays must NOT be cancelled; google stays are eligible (none here).
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: "https://example.com/cal.ics", googleCalendarId: "cal@example.com" }],
+      ],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-live", refresh_token: "rt", expires_at: Math.floor(Date.now() / 1000) + 3600 }]],
+      stale: [[{ id: "stay-airbnb-1", externalUid: "resv-x@airbnb.com", status: "booked", isManual: false }]],
+    };
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (String(url).includes("googleapis.com/calendar")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ items: [] }) });
+      }
+      // airbnb ical fails
+      return Promise.resolve({ ok: false, status: 404, statusText: "Not Found" });
+    });
+
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.errors.join(" ")).toMatch(/Airbnb iCal fetch error/);
+    expect(result.cancelled).toBe(0);
+    const setCallsMixed = mockUpdateSet.mock.calls.map((c) => c[0] as Record<string, unknown>);
+    expect(setCallsMixed.some((v) => v && v.status === "cancelled")).toBe(false);
+  });
+
+  it("stale-cancels a google stay only after a prior fetch of the same calendar", async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
+        [],
+      ],
+      lastGoogleFetch: [[
+        { eventType: "fetch_google", details: { calendarId: "cal@example.com" } },
+      ]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-live", refresh_token: "rt", expires_at: future }]],
+      stale: [[{ id: "stay-old", externalUid: "old-event", status: "booked", isManual: false }]],
+    };
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        items: [{ id: "g-keep", summary: "Guest", start: { dateTime: "2026-08-01T14:00:00Z" }, end: { dateTime: "2026-08-05T11:00:00Z" } }],
+      }),
+    });
+
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.errors).toHaveLength(0);
+    expect(result.cancelled).toBe(1);
+    const setCalls = mockUpdateSet.mock.calls.map((c) => c[0] as Record<string, unknown>);
+    expect(setCalls.some((v) => v && v.status === "cancelled")).toBe(true);
+  });
+
+  it("does not stale-cancel google stays on the first sync after a calendar swap", async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
+        [],
+      ],
+      lastGoogleFetch: [[
+        { eventType: "fetch_google", details: { calendarId: "previous-cal@example.com" } },
+      ]],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-live", refresh_token: "rt", expires_at: future }]],
+      stale: [[{ id: "stay-old", externalUid: "old-event", status: "booked", isManual: false }]],
+    };
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        items: [{ id: "g-keep", summary: "Guest", start: { dateTime: "2026-08-01T14:00:00Z" }, end: { dateTime: "2026-08-05T11:00:00Z" } }],
+      }),
+    });
+
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.errors).toHaveLength(0);
+    expect(result.cancelled).toBe(0);
+    const setCalls = mockUpdateSet.mock.calls.map((c) => c[0] as Record<string, unknown>);
+    expect(setCalls.some((v) => v && v.status === "cancelled")).toBe(false);
+  });
+
+  it("does not stale-cancel google stays when no prior google fetch exists", async () => {
+    const future = Math.floor(Date.now() / 1000) + 3600;
+    selectResults = {
+      full: [
+        [{ id: "prop-1", airbnbIcalUrl: null, googleCalendarId: "cal@example.com" }],
+        [],
+      ],
+      propOwner: [[{ ownerId: "owner-1", calendarConnectedByUserId: null }]],
+      ownerUser: [[{ userId: "user-1" }]],
+      googleAccount: [[{ provider: "google", providerAccountId: "g-1", access_token: "tok-live", refresh_token: "rt", expires_at: future }]],
+      stale: [[{ id: "stay-old", externalUid: "old-event", status: "booked", isManual: false }]],
+    };
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        items: [{ id: "g-keep", summary: "Guest", start: { dateTime: "2026-08-01T14:00:00Z" }, end: { dateTime: "2026-08-05T11:00:00Z" } }],
+      }),
+    });
+
+    const result = await syncPropertyCalendar("prop-1");
+    expect(result.cancelled).toBe(0);
   });
 });

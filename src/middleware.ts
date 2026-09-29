@@ -50,5 +50,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // NOTE: /invite/:path* is intentionally absent — it is a public passthrough
+  // so invitees can view the accept page before signing in with Google.
   matcher: ["/", "/admin/:path*", "/cleaner/:path*", "/owner/:path*", "/login"],
 };

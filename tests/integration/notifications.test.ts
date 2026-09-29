@@ -31,7 +31,14 @@ vi.mock("@/db", () => ({
   },
 }));
 
-import { notifyTaskAssigned, notifyTaskUpdated, notifyTaskCancelled, formatTaskDate } from "@/lib/notifications";
+import {
+  notifyTaskAssigned,
+  notifyTaskUpdated,
+  notifyTaskCancelled,
+  formatTaskDate,
+  buildInviteEmailHtml,
+  sendInviteEmail,
+} from "@/lib/notifications";
 
 function buildMockTask(overrides?: Partial<{ emailEnabled: boolean; pushEnabled: boolean }>) {
   return {
@@ -148,5 +155,41 @@ describe("formatTaskDate", () => {
     const result = formatTaskDate(new Date("2026-06-01T14:00:00Z"));
     expect(typeof result).toBe("string");
     expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe("invite email", () => {
+  it("escapes property names and the invite URL in HTML", () => {
+    const html = buildInviteEmailHtml(
+      "https://hostkit.example/invite/tok?x=1&y=2",
+      "owner",
+      'Beach <script>"house"'
+    );
+    expect(html).toContain("Beach &lt;script&gt;&quot;house&quot;");
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("https://hostkit.example/invite/tok?x=1&amp;y=2");
+    expect(html).toContain(">Owner<");
+  });
+
+  it("does not log the invite URL when Resend is not configured", async () => {
+    const previous = process.env.RESEND_API_KEY;
+    delete process.env.RESEND_API_KEY;
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    try {
+      await sendInviteEmail(
+        "person@example.com",
+        "https://hostkit.example/invite/secret-token",
+        "manager",
+        "Kith 1423"
+      );
+      const logged = info.mock.calls.flat().join(" ");
+      expect(logged).toContain("RESEND_API_KEY is not set");
+      expect(logged).not.toContain("secret-token");
+      expect(logged).not.toContain("person@example.com");
+    } finally {
+      info.mockRestore();
+      if (previous === undefined) delete process.env.RESEND_API_KEY;
+      else process.env.RESEND_API_KEY = previous;
+    }
   });
 });

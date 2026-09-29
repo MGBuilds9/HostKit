@@ -9,15 +9,28 @@ import { combinedSchema, CombinedValues, Cleaner } from "./ical-settings/types";
 import { CalendarSyncSection } from "./ical-settings/calendar-sync-section";
 import { TurnoverRulesSection } from "./ical-settings/turnover-rules-section";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function IcalSettingsForm({ property }: { property: any }) {
+interface IcalSettingsFormProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  property: any;
+  /** Email of the user whose Google account currently drives the sync. */
+  calendarConnectedByEmail?: string | null;
+  /** Caller role — drives role-specific UX down the tree. */
+  currentUserRole?: "admin" | "owner" | "manager" | "cleaner";
+}
+
+export function IcalSettingsForm({
+  property,
+  calendarConnectedByEmail,
+  currentUserRole,
+}: IcalSettingsFormProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [cleaners, setCleaners] = useState<Cleaner[]>([]);
+  const [useMyAccount, setUseMyAccount] = useState<boolean>(true);
 
   useEffect(() => {
     fetch("/api/cleaners")
-      .then((r) => r.ok ? r.json() : [])
+      .then((r) => (r.ok ? r.json() : []))
       .then(setCleaners)
       .catch(() => setCleaners([]));
   }, []);
@@ -52,7 +65,49 @@ export function IcalSettingsForm({ property }: { property: any }) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error ?? `Request failed: ${res.status}`);
       }
-      toast({ title: "Settings saved", description: "Calendar sync and turnover rules updated." });
+
+      // ── CONNECT-CALENDAR: pin caller as the sync account ──────────────
+      if (useMyAccount && data.googleCalendarId) {
+        const connRes = await fetch(`/api/properties/${property.id}/calendar-connection`, {
+          method: "POST",
+        });
+        if (connRes.status === 409) {
+          toast({
+            title: "Settings saved, but reconnect required",
+            description:
+              "Sign in with Google again so we can keep syncing the calendar.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!connRes.ok) {
+          const body = await connRes.json().catch(() => ({}));
+          throw new Error(body?.error ?? `connection failed: ${connRes.status}`);
+        }
+
+        // Kick off an immediate sync so the user sees stays pulled in now
+        // instead of waiting for the next cron tick. Fire-and-forget toast
+        // once the SyncResult resolves.
+        fetch(`/api/properties/${property.id}/sync`, { method: "POST" })
+          .then(async (r) => {
+            const body = await r.json().catch(() => ({}));
+            if (r.ok && typeof body?.synced === "number") {
+              toast({
+                title: `Connected — ${body.synced} ${
+                  body.synced === 1 ? "stay" : "stays"
+                } pulled`,
+              });
+            }
+          })
+          .catch(() => {
+            /* ignore — cron will pick it up */
+          });
+      }
+
+      toast({
+        title: "Settings saved",
+        description: "Calendar sync and turnover rules updated.",
+      });
     } catch (e: unknown) {
       toast({
         title: "Save failed",
@@ -72,6 +127,11 @@ export function IcalSettingsForm({ property }: { property: any }) {
         errors={errors}
         icalSyncEnabled={watch("icalSyncEnabled")}
         syncIntervalMinutes={watch("syncIntervalMinutes")}
+        googleCalendarId={watch("googleCalendarId") ?? ""}
+        useMyAccount={useMyAccount}
+        onUseMyAccountChange={setUseMyAccount}
+        currentConnectedEmail={calendarConnectedByEmail}
+        calendarConnectedByUserId={property.calendarConnectedByUserId ?? null}
       />
       <TurnoverRulesSection
         register={register}
@@ -83,9 +143,13 @@ export function IcalSettingsForm({ property }: { property: any }) {
         defaultCleanerId={watch("defaultCleanerId")}
         cleaners={cleaners}
       />
-      <Button type="submit" disabled={saving} className="w-full md:w-auto h-12 md:h-10">
-        {saving ? "Saving..." : "Save Settings"}
-      </Button>
+      {/* Role visibility only — admin/manager can edit; for owner/cleaner the
+          server component hides the form and shows read-only state instead. */}
+      {currentUserRole !== "cleaner" && (
+        <Button type="submit" disabled={saving} className="w-full md:w-auto h-12 md:h-10">
+          {saving ? "Saving..." : "Save Settings"}
+        </Button>
+      )}
     </form>
   );
 }

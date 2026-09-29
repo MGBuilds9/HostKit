@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { owners } from "@/db/schema";
+import { owners, users } from "@/db/schema";
 import { createOwnerSchema } from "@/lib/validators";
 
 export async function GET() {
@@ -19,11 +20,22 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const parsed = createOwnerSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const [owner] = await db.insert(owners).values({
-    name: parsed.data.name,
-    email: parsed.data.email,
-    phone: parsed.data.phone,
-    userId: parsed.data.userId,
-  }).returning();
+  const [owner] = await db.transaction(async (tx) => {
+    // Same user-row lock claimInvite takes, so a profile link cannot land
+    // between the provisional-owner check and the role write.
+    if (parsed.data.userId) {
+      await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, parsed.data.userId))
+        .for("update");
+    }
+    return tx.insert(owners).values({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      userId: parsed.data.userId,
+    }).returning();
+  });
   return NextResponse.json(owner, { status: 201 });
 }
