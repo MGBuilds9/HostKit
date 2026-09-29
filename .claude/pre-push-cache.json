@@ -1,5 +1,7 @@
 {
-  "last_green_sha": "b3c1f3c5508214327653bc5ab36db068e4398d07",
-  "last_green_time": "2026-05-27T15:53:28Z",
-  "stages_passed": ["lint","typecheck","test","build"]
+  "last_green_sha": "0ab8ef503b3780c6109246a103331a7f73f37138",
+  "last_green_time": "2026-09-29T01:09:23Z",
+  "stages_passed": ["lint","typecheck","test","build"],
+  "profile": "default",
+  "required_stages": ["test"]
 }
