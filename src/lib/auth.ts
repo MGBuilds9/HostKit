@@ -16,6 +16,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Request offline access (long-lived refresh_token) and the Calendar
+      // read scope so the iCal sync engine can list events for linked
+      // properties. Without these, the stored token can sign a user in but
+      // cannot read Google Calendar and may not receive a refresh_token.
+      authorization: {
+        params: {
+          scope:
+            "openid email profile https://www.googleapis.com/auth/calendar.readonly",
+          // offline -> Google issues a refresh_token (persisted in accounts) on
+          // first consent, which the sync engine later exchanges for fresh
+          // access tokens. No prompt: "consent" — that would force re-consent on
+          // every login.
+          access_type: "offline",
+        },
+      },
     }),
   ],
   callbacks: {
