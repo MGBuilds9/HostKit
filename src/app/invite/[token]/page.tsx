@@ -3,6 +3,7 @@ import { findInviteByToken, claimInvite } from "@/lib/invites";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { EmailSignInForm } from "@/components/auth/email-sign-in-form";
 
 interface InvitePageProps {
   params: { token: string };
@@ -91,12 +92,19 @@ export default async function InvitePage({ params }: InvitePageProps) {
           </h1>
           <p className="text-sm text-gray-600 mb-6">
             You&rsquo;ve been invited as a{" "}
-            <strong className="capitalize">{invite.intendedRole}</strong>. Sign
-            in with Google to accept.
+            <strong className="capitalize">{invite.intendedRole}</strong>. Use
+            the invited email, or a Google account with that same address.
           </p>
+          <div className="text-left">
+            <EmailSignInForm
+              callbackUrl={`/invite/${params.token}`}
+              defaultEmail={invite.email}
+              lockEmail
+            />
+          </div>
           <a
             href={`/login?callbackUrl=${callbackUrl}&prompt=consent`}
-            className="inline-block w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700 transition-colors"
+            className="mt-3 inline-block w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700 transition-colors"
           >
             Sign in with Google to accept
           </a>
@@ -119,7 +127,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
           <p className="text-sm text-gray-600 mb-4">
             This invite is addressed to <strong>{invite.email}</strong> but you
             are signed in as <strong>{session.user.email}</strong>. Sign out
-            and sign in with the correct Google account.
+            and sign in with the invited email.
           </p>
           <SignOutButton
             callbackUrl={`/invite/${params.token}`}

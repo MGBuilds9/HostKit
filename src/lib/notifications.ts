@@ -217,7 +217,7 @@ export function buildInviteEmailHtml(
               <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">You're invited to HostKit</h1>
               <p style="margin:0 0 24px;font-size:14px;color:#6b7280;">
                 You've been invited as a <strong>${roleLabel}</strong>${propertyBit}.
-                Click below to accept and sign in with Google.
+                Open the invitation and sign in with this email address. A Google account that uses the same address also works.
               </p>
               <a href="${safeUrl}"
                 style="display:inline-block;padding:10px 20px;background:#6366f1;color:#ffffff;font-size:14px;font-weight:600;border-radius:6px;text-decoration:none;">

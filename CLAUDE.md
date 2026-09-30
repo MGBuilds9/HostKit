@@ -6,7 +6,7 @@ Airbnb/short-term rental management platform. Three portals: Admin (PM), Owner (
 
 - **Framework:** Next.js 14.2.35 (App Router)
 - **Database:** PostgreSQL 16 via Drizzle ORM 0.45.1
-- **Auth:** NextAuth.js v5 beta (Google OAuth)
+- **Auth:** NextAuth.js v5 beta (Google or a one-time email link for an active user or a pending invite)
 - **Storage:** MinIO (S3-compatible, on Proxmox .31)
 - **Email:** Resend
 - **Styling:** Tailwind CSS 3.4 + shadcn/ui

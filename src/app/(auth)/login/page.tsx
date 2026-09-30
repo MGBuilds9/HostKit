@@ -5,12 +5,22 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { EmailSignInForm } from "@/components/auth/email-sign-in-form";
 import { safeCallbackUrl } from "@/lib/safe-callback-url";
+
+const EMAIL_SIGN_IN_ERRORS = new Set([
+  "EmailNotAllowed",
+  "EmailNotConfigured",
+  "EmailRateLimited",
+  "Verification",
+]);
 
 function LoginCard() {
   const search = useSearchParams();
   const callbackUrl = safeCallbackUrl(search.get("callbackUrl"));
   const consent = search.get("prompt") === "consent";
+  const authError = search.get("error");
+  const emailError = authError && EMAIL_SIGN_IN_ERRORS.has(authError) ? authError : null;
 
   return (
     <Card className="w-full max-w-sm rounded-3xl shadow-none sm:shadow-lg">
@@ -32,7 +42,17 @@ function LoginCard() {
           </p>
         </div>
       </CardHeader>
-      <CardContent className="pb-8 pt-2">
+      <CardContent className="space-y-4 pb-8 pt-2">
+        <EmailSignInForm
+          callbackUrl={callbackUrl}
+          initialError={emailError}
+          initialSent={search.get("sent") === "1" || search.get("provider") === "resend"}
+        />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          or
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <Button
           className="w-full"
           onClick={() =>
@@ -47,6 +67,9 @@ function LoginCard() {
         >
           Sign in with Google
         </Button>
+        {authError && !emailError && (
+          <p className="text-sm text-destructive">Sign-in didn&apos;t complete. Try again.</p>
+        )}
       </CardContent>
     </Card>
   );
