@@ -54,13 +54,25 @@ export function PropertyCalendar({ propertyId }: { propertyId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <Button variant="outline" size="sm" onClick={() => shiftWeek(-1)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => shiftWeek(-1)}
+          aria-label="Previous week"
+          title="Previous week"
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Button variant="outline" size="sm" onClick={goToToday}>
           Today
         </Button>
-        <Button variant="outline" size="sm" onClick={() => shiftWeek(1)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => shiftWeek(1)}
+          aria-label="Next week"
+          title="Next week"
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
         <span className="text-sm text-muted-foreground ml-1">
