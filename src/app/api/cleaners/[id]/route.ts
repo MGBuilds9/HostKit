@@ -14,7 +14,7 @@ export async function GET(
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { role } = session.user;
-  if (role !== "admin" && role !== "manager") {
+  if (role !== "admin" && role !== "manager" && role !== "cleaner") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -26,6 +26,11 @@ export async function GET(
   });
 
   if (!cleaner) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Security check: Cleaners can only view their own cleaner record
+  if (role === "cleaner" && cleaner.userId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   // Task count (total ever assigned, all statuses)
   const [taskCountRow] = await db
