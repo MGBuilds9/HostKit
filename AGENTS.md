@@ -8,12 +8,21 @@ Do not store session logs, rolling progress notes, or project history in this fi
 
 Use the LifeOS/vault MCP for semantic context when available; if it is unavailable, fall back to the mounted vault and state that context is degraded.
 
+## Code Discovery (this repo)
+
+This repo is indexed by codebase-memory-mcp, enabled via the local `opencode.json` (gitignored — it holds a machine-specific binary path).
+
+- Exact current state of the code: grep/glob/read the files. The graph is a snapshot from index time and can drift.
+- Useful graph supplements here: `trace_call_path` (call chains), `get_architecture` (overviews), `search_graph` (symbol lookup).
+- The files always win on conflict — re-read the real source before acting on any graph result.
+- Do not re-index unless explicitly asked.
+
 ## Project Structure & Module Organization
-- Next.js 14 App Router in `src/app/`. Three portals: `(admin)`, `(owner)`, `(cleaner)`. Public guest guides at `/guide/[slug]`.
-- Drizzle schemas in `src/db/schema.ts`; queries in `src/db/queries/`. Migrations via `drizzle-kit`.
-- Shared components in `src/components/`; auth in `src/lib/auth/` (NextAuth v5 beta).
-- MinIO S3-compatible storage wrapper in `src/lib/storage/`.
-- Tests in `src/__tests__/` (Vitest).
+- Next.js 14 App Router in `src/app/`. Three portals: `(admin)`, `(owner)`, `(cleaner)`. Public guest guides at `/g/[slug]`.
+- Drizzle client + schemas in `src/db/` (`index.ts`, `schema.ts`); queries are colocated in pages/route handlers. Migrations via `drizzle-kit`.
+- Shared components in `src/components/`; auth config in `src/lib/auth.ts`, route guards in `src/lib/auth-guard.ts` (NextAuth v5 beta).
+- MinIO S3-compatible storage wrapper in `src/lib/s3.ts`.
+- Tests in `tests/` (Vitest: api, db, hooks, integration, lib, ui).
 
 ## Build, Test, and Development Commands
 Use **pnpm** (pnpm-lock.yaml present):
