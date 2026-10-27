@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Home, Building2, ClipboardCheck, MessageSquare, Users,
-  Settings, CalendarDays, SprayCan, UserCog, ChevronDown,
+  Settings, CalendarDays, SprayCan, UserCog, ChevronDown, Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ const mainGroups = [
       { href: "/admin/cleaning-tasks", label: "Cleaning Tasks", icon: SprayCan },
       { href: "/admin/turnovers", label: "Turnovers", icon: ClipboardCheck },
       { href: "/admin/messages", label: "Messages", icon: MessageSquare },
+      { href: "/admin/host-agent", label: "Host Agent", icon: Bot },
     ],
   },
 ];
