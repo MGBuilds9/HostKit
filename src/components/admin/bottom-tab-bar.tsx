@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, Building2, CalendarDays, MessageSquare, MoreHorizontal, Users, Settings, LogOut, ClipboardCheck, SprayCan } from "lucide-react";
+import { LayoutDashboard, Building2, CalendarDays, MessageSquare, MoreHorizontal, Users, Settings, LogOut, ClipboardCheck, SprayCan, Bot } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
@@ -23,6 +23,7 @@ const tabs = [
 const moreLinks = [
   { href: "/admin/turnovers", label: "Turnovers", icon: ClipboardCheck },
   { href: "/admin/messages", label: "Messages", icon: MessageSquare },
+  { href: "/admin/host-agent", label: "Host Agent", icon: Bot },
   { href: "/admin/cleaners", label: "Cleaners", icon: Users },
   { href: "/admin/owners", label: "Owners", icon: Users },
   { href: "/admin/templates", label: "Templates", icon: MessageSquare },

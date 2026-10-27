@@ -25,6 +25,19 @@ export const cleaningTaskStatusEnum = pgEnum("cleaning_task_status", [
 export const calendarSourceEnum = pgEnum("calendar_source", ["airbnb", "google", "manual"]);
 // Invite-only role subset — admin can NEVER be granted via invite.
 export const inviteRoleEnum = pgEnum("invite_role", ["owner", "manager", "cleaner"]);
+export const hostDraftStatusEnum = pgEnum("host_draft_status", [
+  "pending", "approved", "sent", "rejected",
+]);
+export const hostThreadSourceEnum = pgEnum("host_thread_source", ["archive", "live"]);
+export const hostMessageRoleEnum = pgEnum("host_message_role", [
+  "guest", "host", "user", "assistant", "system",
+]);
+export const hostExampleLabelEnum = pgEnum("host_example_label", [
+  "yes", "no", "screening", "stay",
+]);
+export const hostDraftEventActionEnum = pgEnum("host_draft_event_action", [
+  "created", "approved", "edited", "rejected", "sent",
+]);
 
 // ── NextAuth Required Tables ───────────────────────────
 // NOTE: `name` is nullable (differs from PRD which says notNull).
@@ -525,6 +538,97 @@ export const syncLog = pgTable("sync_log", {
 }));
 
 // ============================================================
+// HOST AGENT (KITH-2) — drafts, archive threads, learning
+// ============================================================
+
+export const hostThreads = pgTable("host_threads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  propertyId: uuid("property_id").references(() => properties.id),
+  stayId: uuid("stay_id").references(() => stays.id),
+  source: hostThreadSourceEnum("source").notNull().default("archive"),
+  title: text("title").notNull(),
+  guestName: text("guest_name"),
+  // airbnb | email | paste | workspace
+  channel: text("channel").notNull().default("paste"),
+  importedByUserId: uuid("imported_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  propertyIdIdx: index("host_threads_property_id_idx").on(table.propertyId),
+  sourceIdx: index("host_threads_source_idx").on(table.source),
+  channelIdx: index("host_threads_channel_idx").on(table.channel),
+}));
+
+export const hostThreadLabels = pgTable("host_thread_labels", {
+  threadId: uuid("thread_id")
+    .references(() => hostThreads.id, { onDelete: "cascade" })
+    .notNull(),
+  label: hostExampleLabelEnum("label").notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.threadId, table.label] }),
+  labelIdx: index("host_thread_labels_label_idx").on(table.label),
+}));
+
+export const hostDrafts = pgTable("host_drafts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  threadId: uuid("thread_id").references(() => hostThreads.id, { onDelete: "set null" }),
+  propertyId: uuid("property_id").references(() => properties.id),
+  templateId: uuid("template_id").references(() => messageTemplates.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  status: hostDraftStatusEnum("status").notNull().default("pending"),
+  isSafeTemplate: boolean("is_safe_template").notNull().default(false),
+  // chat | template | thread
+  source: text("source").notNull().default("chat"),
+  retrievedThreadIds: jsonb("retrieved_thread_ids").$type<string[]>(),
+  createdByUserId: uuid("created_by_user_id")
+    .references(() => users.id)
+    .notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  feedbackNote: text("feedback_note"),
+  originalBody: text("original_body"),
+  sentAt: timestamp("sent_at"),
+  sendNote: text("send_note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  statusIdx: index("host_drafts_status_idx").on(table.status),
+  threadIdIdx: index("host_drafts_thread_id_idx").on(table.threadId),
+  createdAtIdx: index("host_drafts_created_at_idx").on(table.createdAt),
+}));
+
+export const hostMessages = pgTable("host_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  threadId: uuid("thread_id").references(() => hostThreads.id, { onDelete: "cascade" }),
+  draftId: uuid("draft_id").references(() => hostDrafts.id, { onDelete: "set null" }),
+  role: hostMessageRoleEnum("role").notNull(),
+  body: text("body").notNull(),
+  occurredAt: timestamp("occurred_at").defaultNow().notNull(),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  threadIdIdx: index("host_messages_thread_id_idx").on(table.threadId),
+  draftIdIdx: index("host_messages_draft_id_idx").on(table.draftId),
+  occurredAtIdx: index("host_messages_occurred_at_idx").on(table.occurredAt),
+}));
+
+export const hostDraftEvents = pgTable("host_draft_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  draftId: uuid("draft_id")
+    .references(() => hostDrafts.id, { onDelete: "cascade" })
+    .notNull(),
+  action: hostDraftEventActionEnum("action").notNull(),
+  note: text("note"),
+  bodySnapshot: text("body_snapshot"),
+  actorUserId: uuid("actor_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  draftIdIdx: index("host_draft_events_draft_id_idx").on(table.draftId),
+  actionIdx: index("host_draft_events_action_idx").on(table.action),
+}));
+
+// ============================================================
 // RELATIONS
 // ============================================================
 
@@ -557,6 +661,8 @@ export const propertiesRelations = relations(properties, ({ one, many }) => ({
   stays: many(stays),
   cleaningTasks: many(cleaningTasks),
   syncLogs: many(syncLog),
+  hostThreads: many(hostThreads),
+  hostDrafts: many(hostDrafts),
   defaultCleaner: one(cleaners, {
     fields: [properties.defaultCleanerId],
     references: [cleaners.id],
@@ -653,5 +759,83 @@ export const invitesRelations = relations(invites, ({ one }) => ({
     fields: [invites.invitedByUserId],
     references: [users.id],
     relationName: "invitesInvitedBy",
+  }),
+}));
+
+export const hostThreadsRelations = relations(hostThreads, ({ one, many }) => ({
+  property: one(properties, {
+    fields: [hostThreads.propertyId],
+    references: [properties.id],
+  }),
+  stay: one(stays, {
+    fields: [hostThreads.stayId],
+    references: [stays.id],
+  }),
+  importedBy: one(users, {
+    fields: [hostThreads.importedByUserId],
+    references: [users.id],
+  }),
+  labels: many(hostThreadLabels),
+  messages: many(hostMessages),
+  drafts: many(hostDrafts),
+}));
+
+export const hostThreadLabelsRelations = relations(hostThreadLabels, ({ one }) => ({
+  thread: one(hostThreads, {
+    fields: [hostThreadLabels.threadId],
+    references: [hostThreads.id],
+  }),
+}));
+
+export const hostDraftsRelations = relations(hostDrafts, ({ one, many }) => ({
+  thread: one(hostThreads, {
+    fields: [hostDrafts.threadId],
+    references: [hostThreads.id],
+  }),
+  property: one(properties, {
+    fields: [hostDrafts.propertyId],
+    references: [properties.id],
+  }),
+  template: one(messageTemplates, {
+    fields: [hostDrafts.templateId],
+    references: [messageTemplates.id],
+  }),
+  createdBy: one(users, {
+    fields: [hostDrafts.createdByUserId],
+    references: [users.id],
+    relationName: "hostDraftsCreatedBy",
+  }),
+  reviewedBy: one(users, {
+    fields: [hostDrafts.reviewedByUserId],
+    references: [users.id],
+    relationName: "hostDraftsReviewedBy",
+  }),
+  events: many(hostDraftEvents),
+  messages: many(hostMessages),
+}));
+
+export const hostMessagesRelations = relations(hostMessages, ({ one }) => ({
+  thread: one(hostThreads, {
+    fields: [hostMessages.threadId],
+    references: [hostThreads.id],
+  }),
+  draft: one(hostDrafts, {
+    fields: [hostMessages.draftId],
+    references: [hostDrafts.id],
+  }),
+  createdBy: one(users, {
+    fields: [hostMessages.createdByUserId],
+    references: [users.id],
+  }),
+}));
+
+export const hostDraftEventsRelations = relations(hostDraftEvents, ({ one }) => ({
+  draft: one(hostDrafts, {
+    fields: [hostDraftEvents.draftId],
+    references: [hostDrafts.id],
+  }),
+  actor: one(users, {
+    fields: [hostDraftEvents.actorUserId],
+    references: [users.id],
   }),
 }));

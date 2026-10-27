@@ -282,3 +282,43 @@ export const createInviteSchema = z
       }
     }
   });
+
+// ── Host agent (KITH-2) ───────────────────────────────────
+
+export const hostExampleLabelSchema = z.enum(["yes", "no", "screening", "stay"]);
+export const hostDraftStatusSchema = z.enum(["pending", "approved", "sent", "rejected"]);
+
+export const createHostDraftSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  body: z.string().min(1).max(20_000).optional(),
+  threadId: z.string().uuid().optional().nullable(),
+  propertyId: z.string().uuid().optional().nullable(),
+  templateId: z.string().uuid().optional().nullable(),
+  source: z.enum(["chat", "template", "thread"]).optional(),
+  retrievedThreadIds: z.array(z.string().uuid()).optional(),
+  isSafeTemplate: z.boolean().optional(),
+});
+
+export const updateHostDraftSchema = z.object({
+  action: z.enum(["approve", "reject", "send", "edit"]),
+  body: z.string().min(1).max(20_000).optional(),
+  note: z.string().max(2_000).optional(),
+});
+
+export const appendHostChatSchema = z.object({
+  body: z.string().min(1).max(8_000),
+  draftId: z.string().uuid().optional().nullable(),
+  threadId: z.string().uuid().optional().nullable(),
+});
+
+export const ingestArchiveSchema = z.object({
+  text: z.string().min(1).max(200_000),
+  labels: z.array(hostExampleLabelSchema).optional().default([]),
+  propertyId: z.string().uuid().optional().nullable(),
+  channel: z.string().max(40).optional(),
+});
+
+export const updateHostThreadSchema = z.object({
+  labels: z.array(hostExampleLabelSchema).optional(),
+  title: z.string().min(1).max(200).optional(),
+});

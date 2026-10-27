@@ -30,4 +30,18 @@ describe("schema exports", () => {
     expect(schema.notifications).toBeDefined();
     expect(schema.syncLog).toBeDefined();
   });
+
+  it("exports host-agent tables and enums", () => {
+    expect(schema.hostThreads).toBeDefined();
+    expect(schema.hostMessages).toBeDefined();
+    expect(schema.hostDrafts).toBeDefined();
+    expect(schema.hostThreadLabels).toBeDefined();
+    expect(schema.hostDraftEvents).toBeDefined();
+    expect(schema.hostDraftStatusEnum.enumValues).toEqual([
+      "pending", "approved", "sent", "rejected",
+    ]);
+    expect(schema.hostExampleLabelEnum.enumValues).toEqual([
+      "yes", "no", "screening", "stay",
+    ]);
+  });
 });
