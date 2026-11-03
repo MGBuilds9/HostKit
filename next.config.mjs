@@ -1,8 +1,19 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
+const isDockerBuild = process.env.DOCKER_BUILD === "1";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // Local/CI builds run full ESLint + TypeScript checks (and /pre-push-gate enforces
+  // pnpm lint + pnpm typecheck). Inside CT120's LXC memory cgroup, skipping the two
+  // extra Node worker processes keeps peak RSS ~1 GiB instead of >3.1 GiB OOM.
+  ...(isDockerBuild
+    ? {
+        eslint: { ignoreDuringBuilds: true },
+        typescript: { ignoreBuildErrors: true },
+      }
+    : {}),
   images: {
     remotePatterns: [
       {
@@ -25,6 +36,16 @@ const nextConfig = {
     // from node_modules at runtime (bundling breaks on Temporal polyfill init).
     // The standalone runner image ships these deps via the Dockerfile copy step.
     serverComponentsExternalPackages: ["node-ical"],
+    // Prevent 8-core Next.js build worker fan-out from exceeding CT120's LXC memory cgroup
+    ...(isDockerBuild
+      ? { cpus: 2, workerThreads: false, webpackBuildWorker: false }
+      : {}),
+  },
+  webpack(config) {
+    if (isDockerBuild) {
+      config.cache = false;
+    }
+    return config;
   },
   async rewrites() {
     // Route all /guide-media/* assets through /api/guide-media BEFORE public/
@@ -55,6 +76,7 @@ export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: true,
-  disableServerWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN,
-  disableClientWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
 });
