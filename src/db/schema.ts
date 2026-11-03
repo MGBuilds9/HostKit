@@ -209,8 +209,9 @@ export const properties = pgTable("properties", {
       description: string;
       icon?: string;
       mediaUrl?: string;
-      mediaType?: "image" | "video";
+      mediaType?: "image" | "video" | "";
       posterUrl?: string;
+      playbackRate?: number;
     }>
   >(),
   checkoutSteps: jsonb("checkout_steps").$type<

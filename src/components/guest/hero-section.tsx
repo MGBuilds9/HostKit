@@ -47,7 +47,7 @@ export function HeroSection({
 
   return (
     <section className="px-5 sm:px-8 pt-8 md:pt-12 lg:pt-14">
-      <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+      <div className={`grid items-center gap-8 ${imageUrl ? "lg:grid-cols-2 lg:gap-12" : ""}`}>
         {/* Text + facts */}
         <div>
           <p
@@ -76,7 +76,11 @@ export function HeroSection({
           </p>
 
           {facts.length > 0 && (
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2">
+            <div
+              className={`mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4 ${
+                imageUrl ? "lg:grid-cols-2" : "lg:max-w-3xl"
+              }`}
+            >
               {facts.map(({ icon: Icon, label, value }) => (
                 <div
                   key={label}

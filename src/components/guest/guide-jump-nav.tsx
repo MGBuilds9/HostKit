@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-const SECTIONS: { id: string; label: string }[] = [
+const SECTIONS: { id: string; label: string; optional?: boolean }[] = [
   { id: "arrival", label: "Arrival" },
   { id: "wifi", label: "Wi-Fi" },
   { id: "parking", label: "Parking" },
   { id: "rules", label: "Rules" },
   { id: "included", label: "Included" },
+  { id: "stay-guides", label: "Video Guides", optional: true },
   { id: "nearby", label: "Nearby" },
   { id: "checkout", label: "Check-out" },
   { id: "emergency", label: "Emergency" },
@@ -15,6 +16,9 @@ const SECTIONS: { id: string; label: string }[] = [
 
 export function GuideJumpNav() {
   const [active, setActive] = useState<string | null>(null);
+  const [visibleSections, setVisibleSections] = useState(
+    () => SECTIONS.filter((s) => !s.optional),
+  );
 
   useEffect(() => {
     // Smooth in-page scrolling for the anchor links (scoped to the guest guide).
@@ -25,6 +29,10 @@ export function GuideJumpNav() {
   }, []);
 
   useEffect(() => {
+    const present = SECTIONS.filter((s) => document.getElementById(s.id) !== null);
+    if (present.length > 0) {
+      setVisibleSections(present);
+    }
     if (!("IntersectionObserver" in window)) return;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -34,9 +42,9 @@ export function GuideJumpNav() {
       },
       { rootMargin: "-96px 0px -70% 0px", threshold: 0 }
     );
-    const targets = SECTIONS.map((s) => document.getElementById(s.id)).filter(
-      (el): el is HTMLElement => el !== null
-    );
+    const targets = present
+      .map((s) => document.getElementById(s.id))
+      .filter((el): el is HTMLElement => el !== null);
     targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
@@ -51,7 +59,7 @@ export function GuideJumpNav() {
       }}
     >
       <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-5 sm:px-8">
-        {SECTIONS.map((s) => {
+        {visibleSections.map((s) => {
           const isActive = active === s.id;
           return (
             <a

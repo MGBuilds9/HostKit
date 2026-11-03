@@ -15,11 +15,12 @@
 | **Check-Out Time** | 11:00 AM | Cleaners arrive promptly at 11:00 AM |
 | **Wi-Fi Network** | `MG-1423` | High-speed 500Mbps dual-band |
 | **Wi-Fi Password** | `Welcome123!/@` | Instant QR code scan available in guide |
-| **Parking Level & Spot** | **Level P3 — Spot 257** | Dedicated assigned stall, clearly numbered |
+| **Parking Level & Spot** | **Level P3 — Spot 257** | Dedicated assigned stall (`P3-257`), clearly numbered |
 | **Garage Gate Access** | Black proximity FOB | Required to open yellow security gate |
-| **Intercom / Buzzer** | Search **`George A.`** | Direct line to host for remote door release |
+| **Intercom / Buzzer** | Search **`GUIRGUIS, M`** | Direct line to host on TX-3 Touch Entry System |
+| **Guide Access Code** | `KITH-2485` | Unlocks `/g/kith-1423` (and `kith.mkguirguis.com`) |
 | **Thermostat Setting** | **22°C (72°F)** | Wall-mounted in hallway; toggle Cool/Heat |
-| **Garbage Chute** | 14th Floor Disposal Room | **8:00 AM – 10:00 PM ONLY** (locked overnight) |
+| **Garbage Chute** | 14th Floor Disposal Room | **8:00 AM – 10:00 PM ONLY** (bulk bins on Ground Moving Room) |
 | **Primary Host Phone** | +1 (647) 470-9434 | Available 24/7 for guest support |
 | **Owner Contact** | +1 (647) 339-2100 | Michael Guirguis |
 
@@ -28,16 +29,15 @@
 ## 2. Friction-Free Arrival Sequences
 
 ### Route A: Arriving by Car (Two-Stage Garage Flow)
-1. **P1/P2 Visitor Parking**: Enter underground garage from main driveway. Park in any visitor stall temporarily.
-2. **Lobby Intercom**: Walk to front entrance. Select **`George A.`** on directory. Host buzzes door open.
-3. **Unit 1423 Key Pickup**: Take elevator to 14th floor, enter Unit 1423. Collect physical keys and black garage fob from kitchen island counter.
-4. **Yellow Gate Access**: Return to vehicle. Drive toward the yellow resident security barrier. Tap black fob against reader.
-5. **Level P3 Stall 257**: Follow ramp down to Level P3. Park in assigned stall **P3-257**.
-6. **Luggage & Settle In**: Take elevator from P3 directly up to 14th floor using the fob.
+1. **1st Ramp → P1 Visitor Parking**: Turn into main driveway, pass the first garage door on the right, curve left past the 2485 front lobby, and enter the second garage entrance down the **first ramp** into Level P1. Park temporarily in Visitor Parking on the right.
+2. **Vestibule & Intercom (`GUIRGUIS, M`)**: Enter the green vestibule (`WAVE TO OPEN`), open the TX-3 Touch Entry System directory, select **`GUIRGUIS, M`**, and press **CALL**. Once buzzed in, follow the hallway to the ground-floor elevators.
+3. **Unit 1423 Key & Fob Pickup**: Ride the elevator to the **14th floor**, enter **Unit 1423**, and pick up the physical unit key, SALTO card, and black proximity fob from the kitchen counter.
+4. **Yellow Gate → Down Two More Ramps to P3**: Return to your car in P1 Visitor Parking and tap the black fob at the yellow resident gate. Once inside the garage after that first street ramp, **go down two more ramps** to **Level P3** and park in **Spot 257**.
+5. **P3 Elevator to 14th Floor**: Walk from Spot 257 to the P3 elevator vestibule door, tap the black fob on the reader, and take the elevator up to the **14th floor** to Unit 1423.
 
 ### Route B: Arriving by Rideshare or Public Transit
 1. **Lobby Walkway**: Drop-off at 2485 Eglinton Ave W main walkway.
-2. **Intercom Entry**: Select **`George A.`** on buzzer directory to unlock front lobby doors.
+2. **Intercom Entry**: Select **`GUIRGUIS, M`** on the TX-3 buzzer directory and press **CALL** to unlock front lobby doors.
 3. **Unit 1423**: Take elevator straight to 14th floor, enter Unit 1423, retrieve keys/fob from counter.
 
 ---

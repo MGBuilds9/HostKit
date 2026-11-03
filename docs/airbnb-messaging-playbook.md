@@ -19,8 +19,9 @@ Here are your reservation details:
 • Check-Out: {{check_out_date}} by 11:00 AM
 • Address: 2485 Eglinton Avenue West, Unit 1423, Mississauga, ON L5M 2V8
 
-To help you prepare, here is your digital guest guide with photos, Wi-Fi info, and local tips:
+To help you prepare, here is your digital guest guide with step-by-step videos, Wi-Fi info, and local tips:
 https://hostkit.mkgbuilds.com/g/kith-1423
+Access code: KITH-2485
 
 A quick note on building etiquette:
 Our condo is a quiet, private residential community. We maintain strict non-smoking and quiet hours (10:00 PM – 8:00 AM). Check-in is 100% self-guided, with keys waiting inside your unit.
@@ -63,21 +64,21 @@ Unit 1423 will be ready for you at 3:00 PM today!
 
 Here are the key details for your arrival:
 📍 Address: 2485 Eglinton Avenue West, Mississauga, ON
-🚪 Intercom / Buzzer: Scroll to "George A." on the directory to buzz in.
-🔑 Keys & Fob: Resting on the kitchen island counter inside the unit.
+🚪 Intercom / Buzzer: Select "GUIRGUIS, M" on the TX-3 directory and press CALL.
+🔑 Keys & Fob: Resting on the kitchen counter inside Unit 1423.
 
 🚗 If Arriving by Car:
-1. Enter the garage and park temporarily in Visitor Parking on Level P1/P2.
-2. Take the elevator to the 14th floor, enter Unit 1423, and pick up the garage fob and keys from the kitchen counter.
-3. Return to your car, tap the fob at the yellow gate to enter resident parking, and park in Stall P3-257.
+1. Drive past the first garage door on the right, curve left past the 2485 front lobby, and enter the second garage entrance down the first ramp into Level P1 Visitor Parking (temporary).
+2. Enter the green vestibule, buzz "GUIRGUIS, M" on the intercom, take the ground-floor elevator to the 14th floor, and pick up the keys and black fob from the kitchen counter inside Unit 1423.
+3. Return to your car, tap the black fob at the yellow resident gate: once you're inside the garage after that first ramp, go down two more ramps to Level P3, park in Spot 257, and take the P3 elevator up to the 14th floor.
 
 🚶 If Arriving by Uber / Transit:
-Simply buzz "George A." at the front entrance, take the elevator straight to the 14th floor, and collect your keys inside.
+Simply buzz "GUIRGUIS, M" at the 2485 front entrance, take the elevator straight to the 14th floor, and collect your keys inside.
 
 ⚠️ Private Residence Note:
-Concierge and security do not manage guest check-ins or key handovers. You do not need to speak with the desk; your keys are waiting inside for you. If you need anything at all, text or call me directly at (647) 470-9434.
+Concierge and security do not manage guest check-ins or key handovers. You do not need to speak with the desk; your keys are waiting inside for you. If you need anything at all, text or call your host directly at (647) 470-9434.
 
-Interactive arrival guide: https://hostkit.mkgbuilds.com/g/kith-1423
+Interactive arrival guide: https://hostkit.mkgbuilds.com/g/kith-1423 (Access code: KITH-2485)
 
 See you soon!
 Michael

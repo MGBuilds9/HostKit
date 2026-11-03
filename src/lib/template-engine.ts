@@ -35,6 +35,8 @@ export function buildVariablesFromProperty(
     wifiName: "property.wifiName",
     wifiPassword: "property.wifiPassword",
     parkingSpot: "property.parkingSpot",
+    parkingInstructions: "property.parkingInstructions",
+    guestAccessCode: "property.guestAccessCode",
     checkinTime: "property.checkinTime",
     checkoutTime: "property.checkoutTime",
     buzzerName: "property.buzzerName",
@@ -47,6 +49,14 @@ export function buildVariablesFromProperty(
   for (const [field, varName] of Object.entries(fieldMap)) {
     const val = property[field];
     if (val != null) vars[varName] = String(val);
+  }
+
+  // Ensure global templates never emit literal "[missing]" for optional access/parking fields
+  if (!vars["property.guestAccessCode"]) {
+    vars["property.guestAccessCode"] = "None required (direct link)";
+  }
+  if (vars["property.parkingInstructions"] === undefined) {
+    vars["property.parkingInstructions"] = "";
   }
 
   if (property.slug) {

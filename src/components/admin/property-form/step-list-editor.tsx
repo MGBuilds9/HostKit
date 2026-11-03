@@ -49,8 +49,8 @@ export function StepListEditor({ register, fields, remove, setValue, watch, name
             </div>
             {withMedia && (
               <div className="space-y-1">
-                <Label>Icon (emoji)</Label>
-                <Input {...register(`${name}.${index}.icon`)} placeholder="🏠" />
+                <Label>Icon name</Label>
+                <Input {...register(`${name}.${index}.icon`)} placeholder="car, key, phone..." />
               </div>
             )}
           </div>
@@ -63,8 +63,12 @@ export function StepListEditor({ register, fields, remove, setValue, watch, name
               <Label>Media (optional)</Label>
               <div className="flex flex-col md:flex-row gap-2">
                 <Input {...register(`${name}.${index}.mediaUrl`)} placeholder="Paste URL or use upload below" className="flex-1" />
-                <select {...register(`${name}.${index}.mediaType`)}
-                  className="border rounded-md px-2 py-1.5 text-sm bg-background">
+                <select
+                  {...register(`${name}.${index}.mediaType`, {
+                    setValueAs: (v: string) => (v === "" ? undefined : v),
+                  })}
+                  className="border rounded-md px-2 py-1.5 text-sm bg-background"
+                >
                   <option value="">Type</option>
                   <option value="image">Image</option>
                   <option value="video">Video</option>
@@ -73,8 +77,12 @@ export function StepListEditor({ register, fields, remove, setValue, watch, name
               <MediaUpload
                 onUpload={(url, mediaType) => {
                   if (url) {
+                    const prevUrl = watch(`${name}.${index}.mediaUrl`);
                     setValue(`${name}.${index}.mediaUrl`, url);
                     setValue(`${name}.${index}.mediaType`, mediaType);
+                    if (prevUrl && prevUrl !== url) {
+                      setValue(`${name}.${index}.posterUrl`, undefined);
+                    }
                   }
                 }}
                 currentUrl={watch(`${name}.${index}.mediaUrl`)}
