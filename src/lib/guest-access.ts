@@ -17,14 +17,14 @@ const SESSION_DAYS = 30;
  * The token proves the guest entered the correct access code without
  * storing the code in the cookie.
  */
-function unlockToken(slug: string, code: string): string {
+export function deriveGuideUnlockToken(slug: string, code: string): string {
   return crypto
     .createHmac("sha256", secret())
     .update(`${slug}:${code.trim().toLowerCase()}`)
     .digest("hex");
 }
 
-function cookieName(slug: string): string {
+export function guestAccessCookieName(slug: string): string {
   return `${COOKIE_PREFIX}${slug}`;
 }
 
@@ -33,6 +33,20 @@ function safeEqual(a: string, b: string): boolean {
   const ba = Buffer.from(a);
   const bb = Buffer.from(b);
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
+}
+
+/**
+ * Pure verification of a guest unlock cookie value against a property's access code.
+ * Returns true when the property has no access code (public guide).
+ */
+export function verifyGuideUnlockCookie(
+  slug: string,
+  accessCode: string | null,
+  cookieValue: string | undefined,
+): boolean {
+  if (!accessCode) return true;
+  if (!cookieValue) return false;
+  return safeEqual(cookieValue, deriveGuideUnlockToken(slug, accessCode));
 }
 
 /**
@@ -45,9 +59,8 @@ export async function isGuideUnlocked(
 ): Promise<boolean> {
   if (!accessCode) return true;
   const store = await cookies();
-  const value = store.get(cookieName(slug))?.value;
-  if (!value) return false;
-  return safeEqual(value, unlockToken(slug, accessCode));
+  const value = store.get(guestAccessCookieName(slug))?.value;
+  return verifyGuideUnlockCookie(slug, accessCode, value);
 }
 
 /**
@@ -63,7 +76,7 @@ export async function unlockGuide(
     return false;
   }
   const store = await cookies();
-  store.set(cookieName(slug), unlockToken(slug, accessCode), {
+  store.set(guestAccessCookieName(slug), deriveGuideUnlockToken(slug, accessCode), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

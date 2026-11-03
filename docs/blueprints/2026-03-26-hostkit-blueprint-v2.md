@@ -1,8 +1,10 @@
-# HostKit — Technical Architecture Blueprint v2
+# HostKit — Technical Architecture Blueprint v2.1
 
-> Generated: 2026-03-26
+> Generated: 2026-03-26 (Updated v2.1: 2026-11-03)
 > Supersedes: 2026-03-14-hostkit-blueprint.md
 > Source: Codebase audit + e2e trace of production code
+> Changelog:
+> - **v2.1 (2026-11-03):** Added `/api/guide-media/[...path]` RFC 9110 `206 Partial Content` byte-range streaming & property access-cookie gate (via `beforeFiles` rewrite on `/guide-media/:path*` with `Cache-Control: private, max-age=3600, no-transform` + `Vary: Cookie` for gated guides and backpressure-safe Node file streams), optional `playbackRate` per step in `properties.checkin_steps` JSONB (defaulting `garage-to-elevator.mp4` to `0.25x`), portrait-aware touch/pointer video scrubber + speed controls in `CheckinWalkthrough`, `{{property.parkingInstructions}}` + `{{property.guestAccessCode}}` variable bindings (with non-`[missing]` fallbacks) in `template-engine.ts`, reordered Kith 1423 two-stage P1->P3-257 arrival walkthrough + in-stay video guides (`blinds-remote`, 14th-floor chute, ground bulk waste room), blurred physical key bitting on `keys-and-fob.jpg`, and removed unguarded static `/guide/index.html`.
 
 ---
 

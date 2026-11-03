@@ -74,7 +74,7 @@ async function seed() {
       wifiPassword: "Welcome123!/@",
       parkingSpot: "P3-257",
       parkingInstructions:
-        "On arrival day, come through visitor parking first, then move to your assigned spot P3-257 (parking level 3) once you are checked in. You may need the fob to open the garage door.",
+        "On arrival, come down the first garage ramp into Level P1 and park temporarily in Visitor Parking while you buzz in and pick up the keys and black fob inside Unit 1423. Then drive through the yellow resident gate (tap the black fob): once you're inside the garage after that first ramp, go down two more ramps to Level P3, park in Spot 257, and take the elevator up to the 14th floor.",
       buzzerName: "GUIRGUIS, M",
       buzzerInstructions:
         'At the TX-3 Touch Entry System intercom, open the resident directory, find "GUIRGUIS, M", then press CALL. Your host will buzz you in.',
@@ -90,14 +90,14 @@ async function seed() {
           step: 1,
           title: "Say hello before arrival",
           description:
-            "Call or text Mariam about 30 minutes before you reach the building so everything is ready for you.",
+            "Call or text your host about 30 minutes before you reach the building so everything is ready for you.",
           icon: "phone",
         },
         {
           step: 2,
-          title: "Drive in and park",
+          title: "Enter garage (1st ramp) & park in Visitor Parking",
           description:
-            "Head into the parking garage and use visitor parking first on arrival. Your assigned spot for the stay is P3-257. Follow the marked direction once inside the garage.",
+            "Turn into the main driveway, pass the first garage door on your right, curve left past the 2485 front lobby, and enter the second garage entrance down the first ramp into Level P1. Park temporarily in Visitor Parking on your right.",
           icon: "car",
           mediaUrl: "/guide-media/kith-1423/assets/arrival-drive.mp4",
           mediaType: "video",
@@ -105,9 +105,9 @@ async function seed() {
         },
         {
           step: 3,
-          title: "Get buzzed in",
+          title: "Buzz in & take lobby elevator to 14th floor",
           description:
-            'At the TX-3 Touch Entry System intercom, open the resident directory and look for "GUIRGUIS, M", then press CALL. Your host will buzz you in.',
+            'From P1 Visitor Parking, enter the green vestibule (wave hand at WAVE TO OPEN). At the TX-3 Touch Entry System intercom, open the directory, select "GUIRGUIS, M", and press CALL to get buzzed in — then follow the hallway to the ground-floor elevators and head up to the 14th floor. (Arriving on foot or Uber? Use the same buzzer at the 2485 front entrance.)',
           icon: "bell-ring",
           mediaUrl: "/guide-media/kith-1423/assets/intercom-entry.mp4",
           mediaType: "video",
@@ -115,33 +115,32 @@ async function seed() {
         },
         {
           step: 4,
-          title: "Garage to elevator",
+          title: "Pick up keys & black fob inside Unit 1423",
           description:
-            "From the garage, walk through the door and take the elevator up to the 14th floor.",
+            "Enter Unit 1423 on the 14th floor and pick up the key set on the kitchen counter: unit key, SALTO card, and black proximity fob. You will need the black fob for the resident garage gate, P3 elevator lobby door, and building doors.",
+          icon: "key",
+          mediaUrl: "/guide-media/kith-1423/assets/keys-and-fob.jpg",
+          mediaType: "image",
+        },
+        {
+          step: 5,
+          title: "Go down two more ramps to P3 Spot 257",
+          description:
+            "Return to your car in P1 Visitor Parking and tap the black fob at the yellow resident gate. Once you're inside the garage after that first street ramp, go down two more ramps to Level P3 and park in Spot 257.",
+          icon: "square-parking",
+          mediaUrl: "/guide-media/kith-1423/assets/parking-arrow.jpg",
+          mediaType: "image",
+        },
+        {
+          step: 6,
+          title: "Spot 257 to elevator & up to 14th floor",
+          description:
+            "From Spot 257 on P3, walk to the elevator vestibule door, tap the black fob on the reader to unlock it, and take the elevator up to the 14th floor to Unit 1423.",
           icon: "arrow-up-from-line",
           mediaUrl: "/guide-media/kith-1423/assets/garage-to-elevator.mp4",
           mediaType: "video",
           posterUrl: "/guide-media/kith-1423/posters/garage-to-elevator.jpg",
-        },
-        {
-          step: 5,
-          title: "Find your unit",
-          description:
-            "Walk down the 14th floor hallway to Unit 1423. The key and fob are waiting for you inside.",
-          icon: "key",
-          mediaUrl: "/guide-media/kith-1423/assets/hallway-to-unit.mp4",
-          mediaType: "video",
-          posterUrl: "/guide-media/kith-1423/posters/hallway-to-unit.jpg",
-        },
-        {
-          step: 6,
-          title: "Keys & fob",
-          description:
-            "Your set for the stay is a SALTO access card plus the unit key with the black fob. Tap the black fob on the SALTO reader next to doors to unlock them.",
-          icon: "contact-round",
-          mediaUrl: "/guide-media/kith-1423/assets/fob-and-garbage-room.mp4",
-          mediaType: "video",
-          posterUrl: "/guide-media/kith-1423/posters/fob-and-garbage-room.jpg",
+          playbackRate: 0.25,
         },
       ],
       checkoutSteps: [
@@ -376,14 +375,15 @@ Your reserved spot: {{property.parkingSpot}}
 {{property.parkingInstructions}}
 
 --- BUILDING ACCESS ---
-At the front buzzer, look up {{property.buzzerName}} in the directory. The door will unlock automatically.
+At the intercom directory, look up {{property.buzzerName}} and press CALL. Your host will buzz you in.
 
 --- THERMOSTAT ---
 Default setting: {{property.thermostat}}
 
 --- FULL GUIDE ---
-For everything else (checkout steps, nearby restaurants, house rules, and more), check your digital guest guide:
+For step-by-step arrival videos, checkout steps, house rules, and local tips, open your digital guest guide:
 {{property.guideUrl}}
+Access code: {{property.guestAccessCode}}
 
 Text me if anything comes up. Enjoy your stay!
 

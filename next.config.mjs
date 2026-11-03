@@ -26,6 +26,17 @@ const nextConfig = {
     // The standalone runner image ships these deps via the Dockerfile copy step.
     serverComponentsExternalPackages: ["node-ical"],
   },
+  async rewrites() {
+    // Route all /guide-media/* assets through /api/guide-media BEFORE public/
+    // static file lookup so:
+    // 1. Access-code-gated properties enforce guest unlock cookies on videos & photos
+    // 2. Video Range requests return HTTP 206 Partial Content without gzip
+    return {
+      beforeFiles: [
+        { source: "/guide-media/:path*", destination: "/api/guide-media/:path*" },
+      ],
+    };
+  },
   async headers() {
     return [
       {

@@ -26,8 +26,9 @@ type Step = {
   description: string;
   icon?: string;
   mediaUrl?: string;
-  mediaType?: "image" | "video";
+  mediaType?: "image" | "video" | "";
   posterUrl?: string;
+  playbackRate?: number;
 };
 
 type Service = {
@@ -39,6 +40,39 @@ type Service = {
   phone?: string;
   notes?: string;
 };
+
+const KITH_1423_STAY_GUIDES: Step[] = [
+  {
+    step: 1,
+    title: "Bedroom Motorized Blinds",
+    description:
+      "Use the handheld remote in the bedroom: press Up to raise, the center Stop button to pause at any height, and Down to lower the blackout roller shades.",
+    icon: "blinds",
+    mediaUrl: "/guide-media/kith-1423/assets/blinds-remote.mp4",
+    mediaType: "video",
+    posterUrl: "/guide-media/kith-1423/posters/blinds-remote.jpg",
+  },
+  {
+    step: 2,
+    title: "14th-Floor Garbage & Recycling Chute",
+    description:
+      "From Unit 1423, walk down the 14th-floor hallway past the elevators to the disposal room. Use the selector buttons on the chute panel for Garbage, Recycling, or Organics (8:00 AM – 10:00 PM only).",
+    icon: "trash-2",
+    mediaUrl: "/guide-media/kith-1423/assets/hallway-to-unit.mp4",
+    mediaType: "video",
+    posterUrl: "/guide-media/kith-1423/posters/hallway-to-unit.jpg",
+  },
+  {
+    step: 3,
+    title: "Ground-Floor Bulk Waste / Moving Room",
+    description:
+      "For oversized bags or flattened cardboard boxes that do not fit the 14th-floor chute, take the elevator to Ground (1), tap your black fob through the service corridor, and use the Residential & Retail Moving Room bins.",
+    icon: "package",
+    mediaUrl: "/guide-media/kith-1423/assets/fob-and-garbage-room.mp4",
+    mediaType: "video",
+    posterUrl: "/guide-media/kith-1423/posters/fob-and-garbage-room.jpg",
+  },
+];
 
 const getProperty = cache(async (slug: string) => {
   return db.query.properties.findFirst({
@@ -125,7 +159,6 @@ export default async function GuestGuidePage({ params }: Props) {
         wifiName={property.wifiName}
         parkingSpot={property.parkingSpot}
         addressLine={property.addressStreet}
-        imageUrl="/guide-media/kith-1423/assets/parking-arrow.jpg"
       />
       <div className="px-5 sm:px-8">
         <div className="py-8 space-y-8 pb-24 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
@@ -133,7 +166,10 @@ export default async function GuestGuidePage({ params }: Props) {
           <div className="space-y-8">
             {property.checkinSteps && property.checkinSteps.length > 0 && (
               <section id="arrival" className="scroll-mt-24">
-                <CheckinWalkthrough steps={property.checkinSteps as Step[]} />
+                <CheckinWalkthrough
+                  steps={property.checkinSteps as Step[]}
+                  storageKey={`hostkit_completed_steps_${property.slug}_v2`}
+                />
               </section>
             )}
 
@@ -149,6 +185,11 @@ export default async function GuestGuidePage({ params }: Props) {
                 instructions={property.parkingInstructions}
                 latitude={property.latitude}
                 longitude={property.longitude}
+                imageUrl={
+                  property.slug === "kith-1423"
+                    ? "/guide-media/kith-1423/assets/parking-arrow.jpg"
+                    : null
+                }
               />
             </section>
           </div>
@@ -171,6 +212,17 @@ export default async function GuestGuidePage({ params }: Props) {
                 general={property.generalAmenities as string[] | null}
               />
             </section>
+
+            {property.slug === "kith-1423" && (
+              <section id="stay-guides" className="scroll-mt-24">
+                <CheckinWalkthrough
+                  heading="During Your Stay — Video Guides"
+                  steps={KITH_1423_STAY_GUIDES}
+                  completable={false}
+                  defaultOpenFirst={false}
+                />
+              </section>
+            )}
 
             {property.nearbyServices && property.nearbyServices.length > 0 && (
               <section id="nearby" className="scroll-mt-24">
