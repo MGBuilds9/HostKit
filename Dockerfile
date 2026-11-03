@@ -7,6 +7,9 @@ RUN corepack enable && pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
+ENV DOCKER_BUILD=1
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=1536"
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN corepack enable && pnpm run build

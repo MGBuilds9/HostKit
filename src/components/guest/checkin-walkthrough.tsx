@@ -48,11 +48,13 @@ export function formatVideoTime(seconds: number): string {
 
 type FullscreenCapableVideo = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
 };
 
 function StepVideoPlayer({ step }: { step: Step }) {
   const initialRate = resolveInitialPlaybackRate(step);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const speedRef = useRef<number>(initialRate);
   const scrubbingRef = useRef(false);
   const resumeAfterScrubRef = useRef(false);
   const pendingSeekRef = useRef<number | null>(null);
@@ -64,6 +66,7 @@ function StepVideoPlayer({ step }: { step: Step }) {
   const [isLandscape, setIsLandscape] = useState(false);
 
   useEffect(() => {
+    speedRef.current = speed;
     const el = videoRef.current;
     if (!el) return;
     el.defaultPlaybackRate = speed;
@@ -73,6 +76,8 @@ function StepVideoPlayer({ step }: { step: Step }) {
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
+    el.defaultPlaybackRate = speedRef.current;
+    el.playbackRate = speedRef.current;
     if (el.readyState >= 1) {
       if (Number.isFinite(el.duration) && el.duration > 0) {
         setDuration(el.duration);
@@ -84,6 +89,7 @@ function StepVideoPlayer({ step }: { step: Step }) {
   }, []);
 
   function applySpeed(nextSpeed: number) {
+    speedRef.current = nextSpeed;
     setSpeed(nextSpeed);
     const el = videoRef.current;
     if (el) {
@@ -101,16 +107,16 @@ function StepVideoPlayer({ step }: { step: Step }) {
     if (el.videoWidth > 0 && el.videoHeight > 0) {
       setIsLandscape(el.videoWidth > el.videoHeight);
     }
-    el.defaultPlaybackRate = speed;
-    el.playbackRate = speed;
+    el.defaultPlaybackRate = speedRef.current;
+    el.playbackRate = speedRef.current;
   }
 
   function togglePlay() {
     const el = videoRef.current;
     if (!el) return;
     if (el.paused || el.ended) {
-      el.defaultPlaybackRate = speed;
-      el.playbackRate = speed;
+      el.defaultPlaybackRate = speedRef.current;
+      el.playbackRate = speedRef.current;
       void el.play().catch(() => {});
     } else {
       el.pause();
@@ -168,8 +174,8 @@ function StepVideoPlayer({ step }: { step: Step }) {
     }
     if (el && resumeAfterScrubRef.current) {
       resumeAfterScrubRef.current = false;
-      el.defaultPlaybackRate = speed;
-      el.playbackRate = speed;
+      el.defaultPlaybackRate = speedRef.current;
+      el.playbackRate = speedRef.current;
       void el.play().catch(() => {});
     }
   }
@@ -218,6 +224,7 @@ function StepVideoPlayer({ step }: { step: Step }) {
           preload="metadata"
           onClick={togglePlay}
           onLoadedMetadata={handleLoadedMetadata}
+          onLoadedData={handleLoadedMetadata}
           onDurationChange={handleLoadedMetadata}
           onSeeked={() => {
             const el = videoRef.current;
@@ -228,9 +235,20 @@ function StepVideoPlayer({ step }: { step: Step }) {
             }
           }}
           onRateChange={() => {
-            const el = videoRef.current;
-            if (el && Number.isFinite(el.playbackRate) && el.playbackRate > 0) {
-              setSpeed(el.playbackRate);
+            const el = videoRef.current as FullscreenCapableVideo | null;
+            if (!el || !Number.isFinite(el.playbackRate) || el.playbackRate <= 0) return;
+            const inNativeFullscreen = Boolean(
+              el.webkitDisplayingFullscreen ||
+                (typeof document !== "undefined" && document.fullscreenElement === el),
+            );
+            if (inNativeFullscreen) {
+              if (el.playbackRate !== speedRef.current) {
+                speedRef.current = el.playbackRate;
+                setSpeed(el.playbackRate);
+              }
+            } else if (Math.abs(el.playbackRate - speedRef.current) > 0.001) {
+              el.defaultPlaybackRate = speedRef.current;
+              el.playbackRate = speedRef.current;
             }
           }}
           onTimeUpdate={() => {
@@ -239,8 +257,9 @@ function StepVideoPlayer({ step }: { step: Step }) {
             }
           }}
           onPlay={() => {
-            if (videoRef.current && videoRef.current.playbackRate !== speed) {
-              videoRef.current.playbackRate = speed;
+            if (videoRef.current && videoRef.current.playbackRate !== speedRef.current) {
+              videoRef.current.defaultPlaybackRate = speedRef.current;
+              videoRef.current.playbackRate = speedRef.current;
             }
             setIsPlaying(true);
           }}
