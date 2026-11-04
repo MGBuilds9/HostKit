@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Wifi, Copy, Check, QrCode } from "lucide-react";
+import { Wifi, QrCode } from "lucide-react";
 import QRCode from "qrcode";
 import Image from "next/image";
+import { CopyButton } from "@/components/guest/copy-button";
+import { buildWifiQrPayload } from "@/lib/guide-utils";
 
 interface WifiProps {
   name: string;
@@ -11,87 +13,150 @@ interface WifiProps {
 }
 
 export function WifiCard({ name, password }: WifiProps) {
-  const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (name && password) {
-      QRCode.toDataURL(`WIFI:S:${name};T:WPA;P:${password};;`, {
-        margin: 1,
-        width: 140,
-        color: {
-          dark: "#0F172A",
-          light: "#FFFFFF",
-        },
+    if (!name || !password) return;
+    let cancelled = false;
+    const rootStyle = getComputedStyle(document.documentElement);
+    const darkHex = rootStyle.getPropertyValue("--guest-qr-dark-hex").trim();
+    const lightHex = rootStyle.getPropertyValue("--guest-qr-light-hex").trim();
+
+    QRCode.toDataURL(buildWifiQrPayload(name, password), {
+      margin: 1,
+      width: 160,
+      ...(darkHex && lightHex
+        ? {
+            color: {
+              dark: darkHex,
+              light: lightHex,
+            },
+          }
+        : {}),
+    })
+      .then((url) => {
+        if (!cancelled) setQrDataUrl(url);
       })
-        .then(setQrDataUrl)
-        .catch((err) => {
-          console.error("Failed to generate Wi-Fi QR code", err);
-        });
-    }
+      .catch((err) => {
+        console.error("Failed to generate Wi-Fi QR code", err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [name, password]);
 
-  async function copyPassword() {
-    await navigator.clipboard.writeText(password);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   return (
-    <section>
-      <div className="rounded-xl p-5 shadow-sm dark:shadow-none border border-[var(--guest-card-border)]" style={{ background: "var(--guest-card)" }}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Wifi className="h-4 w-4" style={{ color: "var(--guest-accent)" }} />
-            <h3 className="font-semibold">WiFi</h3>
-          </div>
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "var(--guest-accent-soft)", color: "var(--guest-accent)" }}>
-            High-Speed
-          </span>
+    <div>
+      <div className="mb-3.5 flex flex-col">
+        <div className="flex items-center gap-2">
+          <Wifi
+            className="h-4 w-4 shrink-0"
+            strokeWidth={1.75}
+            style={{ color: "var(--guest-accent)" }}
+          />
+          <h2
+            className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold tracking-tight not-italic"
+            style={{ overflowWrap: "anywhere", minWidth: 0 }}
+          >
+            Wi-Fi
+          </h2>
         </div>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm" style={{ color: "var(--guest-text-muted)" }}>Network</span>
-            <span className="font-medium">{name}</span>
-          </div>
-          <div className="flex justify-between items-start flex-wrap gap-2">
-            <span className="text-sm" style={{ color: "var(--guest-text-muted)" }}>Password</span>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-sm break-all">{password}</span>
-              <button
-                onClick={copyPassword}
-                className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
-                style={{ background: "var(--guest-accent-soft)", color: "var(--guest-accent)" }}
-              >
-                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          </div>
-
-          {qrDataUrl && (
-            <div className="mt-3 pt-3 border-t border-[var(--guest-card-border)] flex items-center gap-3">
-              <div className="p-1.5 bg-white rounded-lg border shadow-sm shrink-0">
-                <Image
-                  src={qrDataUrl}
-                  alt="Wi-Fi QR Code"
-                  width={80}
-                  height={80}
-                  className="rounded"
-                  unoptimized
-                />
-              </div>
-              <div className="text-xs leading-relaxed" style={{ color: "var(--guest-text-muted)" }}>
-                <span className="font-semibold flex items-center gap-1 text-[var(--guest-text-main)] mb-0.5">
-                  <QrCode className="h-3.5 w-3.5" style={{ color: "var(--guest-accent)" }} />
-                  Scan to Connect Instantly
-                </span>
-                Point your phone camera here to join the network without typing the password.
-              </div>
-            </div>
-          )}
-        </div>
+        <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--guest-text-muted)" }}>
+          Copy the password or scan the QR code to join right away.
+        </p>
       </div>
-    </section>
+
+      <div
+        className="divide-y overflow-hidden rounded-2xl border"
+        style={{
+          background: "var(--guest-card)",
+          borderColor: "var(--guest-card-border)",
+        }}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
+          <div className="min-w-0">
+            <span
+              className="block text-xs font-medium"
+              style={{ color: "var(--guest-text-muted)" }}
+            >
+              Network (SSID)
+            </span>
+            <span className="mt-0.5 block break-words font-mono text-sm font-semibold tabular-nums">
+              {name}
+            </span>
+          </div>
+          <CopyButton
+            value={name}
+            label="Copy name"
+            copiedLabel="Copied"
+            ariaLabel={`Copy Wi-Fi network name ${name}`}
+          />
+        </div>
+
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5"
+          style={{ borderColor: "var(--guest-card-border)" }}
+        >
+          <div className="min-w-0">
+            <span
+              className="block text-xs font-medium"
+              style={{ color: "var(--guest-text-muted)" }}
+            >
+              Password
+            </span>
+            <span className="mt-0.5 block break-all font-mono text-sm font-semibold">
+              {password}
+            </span>
+          </div>
+          <CopyButton
+            value={password}
+            label="Copy password"
+            copiedLabel="Password copied"
+            ariaLabel="Copy Wi-Fi password"
+          />
+        </div>
+
+        {qrDataUrl && (
+          <div
+            className="flex items-center gap-3.5 px-4 py-3.5 sm:px-5"
+            style={{
+              background: "var(--guest-section-bg)",
+              borderColor: "var(--guest-card-border)",
+            }}
+          >
+            <div
+              className="shrink-0 rounded-lg p-1.5"
+              style={{
+                background: "var(--color-qr-paper)",
+              }}
+            >
+              <Image
+                src={qrDataUrl}
+                alt={`QR code to join Wi-Fi network ${name}`}
+                width={76}
+                height={76}
+                className="rounded"
+                unoptimized
+              />
+            </div>
+            <div className="min-w-0 text-xs leading-relaxed" style={{ color: "var(--guest-text-muted)" }}>
+              <p
+                className="mb-0.5 flex items-center gap-1.5 font-semibold"
+                style={{ color: "var(--guest-text)" }}
+              >
+                <QrCode
+                  className="h-3.5 w-3.5 shrink-0"
+                  strokeWidth={1.75}
+                  style={{ color: "var(--guest-accent)" }}
+                />
+                <span>Scan camera to join</span>
+              </p>
+              <p>Point your phone camera at the QR code to connect without typing.</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

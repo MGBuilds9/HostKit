@@ -1,0 +1,18 @@
+{
+  "version": "1.1.0",
+  "scannedAt": "2026-11-03T20:35:00-05:00",
+  "scope": "guest-guide (/g/[slug])",
+  "framework": "nextjs-app-router",
+  "styling": "tailwind-v3 + css-custom-properties",
+  "preservedFonts": ["DM Sans", "Inter"],
+  "preservedAssets": [
+    "/guide-media/kith-1423/assets/arrival-drive.mp4",
+    "/guide-media/kith-1423/assets/intercom-entry.mp4",
+    "/guide-media/kith-1423/assets/keys-and-fob.jpg",
+    "/guide-media/kith-1423/assets/parking-arrow.jpg",
+    "/guide-media/kith-1423/assets/garage-to-elevator.mp4",
+    "/guide-media/kith-1423/assets/blinds-remote.mp4",
+    "/guide-media/kith-1423/assets/hallway-to-unit.mp4",
+    "/guide-media/kith-1423/assets/fob-and-garbage-room.mp4"
+  ]
+}

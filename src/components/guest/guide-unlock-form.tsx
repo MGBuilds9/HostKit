@@ -1,16 +1,17 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { KeyRound, ArrowRight } from "lucide-react";
+import { KeyRound, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { unlockGuideAction } from "@/app/g/[slug]/actions";
 
-const inputStyle: React.CSSProperties = {
-  background: "var(--guest-section-bg)",
-  border: "1px solid var(--guest-card-border)",
-  color: "inherit",
-};
-
 type State = { error: string | null };
+
+type SurfaceVars = CSSProperties & {
+  "--guest-ctl-bg"?: string;
+  "--guest-ctl-bg-hover"?: string;
+  "--guest-ctl-fg"?: string;
+};
 
 function UnlockButton() {
   const { pending } = useFormStatus();
@@ -18,15 +19,27 @@ function UnlockButton() {
     <button
       type="submit"
       disabled={pending}
-      className="group inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60"
-      style={{ background: "var(--guest-accent)" }}
+      className="guest-control-surface group inline-flex h-12 min-h-[44px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold leading-none transition-[background-color,color,transform,opacity] duration-150 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
+      style={
+        {
+          "--guest-ctl-bg": "var(--guest-cta-bg)",
+          "--guest-ctl-bg-hover": "var(--guest-cta-hover)",
+          "--guest-ctl-fg": "var(--guest-cta-ink)",
+        } as SurfaceVars
+      }
     >
       {pending ? (
-        "Unlocking…"
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.75} />
+          <span>Unlocking guide…</span>
+        </>
       ) : (
         <>
-          Unlock guide
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          <span>Unlock guide</span>
+          <ArrowRight
+            className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5"
+            strokeWidth={1.75}
+          />
         </>
       )}
     </button>
@@ -47,66 +60,105 @@ export function GuideUnlockForm({
   });
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-5 py-16">
+    <main className="flex min-h-[calc(100vh-76px)] items-center justify-center px-5 py-10 sm:py-16">
       <div
-        className="w-full max-w-sm rounded-3xl p-8 shadow-lg dark:shadow-none"
+        className="w-full max-w-md rounded-2xl border p-6 sm:p-8"
         style={{
           background: "var(--guest-card)",
-          border: "1px solid var(--guest-card-border)",
+          borderColor: "var(--guest-card-border)",
+          boxShadow: "var(--shadow-2)",
         }}
       >
         <div
-          className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl"
+          className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl border"
           style={{
-            background:
-              "linear-gradient(135deg, var(--guest-accent-soft), transparent)",
+            background: "var(--guest-section-bg)",
+            borderColor: "var(--guest-card-border)",
           }}
         >
           <KeyRound
-            className="h-7 w-7"
+            className="h-5 w-5"
+            strokeWidth={1.75}
             style={{ color: "var(--guest-accent)" }}
           />
         </div>
-        <h1 className="text-center font-[family-name:var(--font-dm-sans)] text-2xl font-bold tracking-tight">
+
+        <h1
+          className="font-[family-name:var(--font-dm-sans)] text-2xl sm:text-[1.75rem] font-bold tracking-tight not-italic"
+          style={{ overflowWrap: "anywhere", minWidth: 0 }}
+        >
           {propertyName}
         </h1>
         <p
-          className="mx-auto mt-2 max-w-[16rem] text-center text-sm leading-relaxed"
+          className="mt-2 max-w-[44ch] text-sm leading-relaxed"
           style={{ color: "var(--guest-text-muted)" }}
         >
-          Enter the access code from your check-in message to view the guide.
+          Enter the access code from your host&apos;s check-in message to view arrival steps, parking, and Wi-Fi details.
         </p>
 
-        <form action={formAction} className="mt-6 space-y-3">
-          <input
-            type="text"
-            name="code"
-            inputMode="text"
-            autoComplete="off"
-            autoCapitalize="characters"
-            spellCheck={false}
-            autoFocus
-            required
-            placeholder="Access code"
-            aria-label="Access code"
-            aria-invalid={!!state.error}
-            aria-describedby={state.error ? "unlock-error" : undefined}
-            className="w-full rounded-xl px-4 py-3.5 text-center text-lg tracking-[0.2em] outline-none transition-shadow placeholder:tracking-normal placeholder:text-sm"
-            style={inputStyle}
-          />
-          {state.error && (
-            <p
-              id="unlock-error"
-              className="text-center text-sm font-medium"
-              role="alert"
-              style={{ color: "var(--guest-danger)" }}
+        <form action={formAction} className="mt-6 space-y-4" noValidate>
+          <div className="space-y-1.5">
+            <label
+              htmlFor="guest-access-code"
+              className="block text-xs font-medium"
+              style={{ color: "var(--guest-text)" }}
             >
-              {state.error}
+              Access code
+            </label>
+            <input
+              id="guest-access-code"
+              type="text"
+              name="code"
+              inputMode="text"
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              autoFocus
+              required
+              placeholder="e.g. KITH-2485"
+              aria-invalid={!!state.error}
+              aria-describedby={state.error ? "unlock-error" : "unlock-hint"}
+              className="h-12 w-full rounded-xl border px-4 font-mono text-base tracking-[0.14em] transition-[border-color,background-color] duration-150 placeholder:font-sans placeholder:text-sm placeholder:tracking-normal"
+              style={{
+                background: "var(--guest-section-bg)",
+                borderColor: state.error
+                  ? "var(--guest-danger)"
+                  : "var(--guest-control-border)",
+                color: "var(--guest-text)",
+              }}
+            />
+          </div>
+
+          {state.error ? (
+            <div
+              id="unlock-error"
+              role="alert"
+              className="flex items-start gap-2.5 rounded-xl border px-3.5 py-3 text-xs leading-relaxed"
+              style={{
+                background: "var(--guest-danger-soft)",
+                borderColor: "var(--guest-danger)",
+                color: "var(--guest-danger-ink)",
+              }}
+            >
+              <AlertCircle
+                className="mt-0.5 h-4 w-4 shrink-0"
+                strokeWidth={1.75}
+              />
+              <span>{state.error}</span>
+            </div>
+          ) : (
+            <p
+              id="unlock-hint"
+              className="min-h-[1.5rem] text-xs leading-relaxed"
+              style={{ color: "var(--guest-text-muted)" }}
+            >
+              Not case-sensitive. Check your booking message if you don&apos;t have it handy.
             </p>
           )}
+
           <UnlockButton />
         </form>
       </div>
-    </div>
+    </main>
   );
 }

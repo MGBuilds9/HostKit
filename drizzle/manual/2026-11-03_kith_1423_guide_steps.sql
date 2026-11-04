@@ -16,13 +16,13 @@ SET
   checkin_steps = $json$[
     {
       "step": 1,
-      "title": "Say hello before arrival",
+      "title": "Say hello first",
       "description": "Call or text your host about 30 minutes before you reach the building so everything is ready for you.",
       "icon": "phone"
     },
     {
       "step": 2,
-      "title": "Enter garage (1st ramp) & park in Visitor Parking",
+      "title": "Park in P1 Visitor",
       "description": "Turn into the main driveway, pass the first garage door on your right, curve left past the 2485 front lobby, and enter the second garage entrance down the first ramp into Level P1. Park temporarily in Visitor Parking on your right.",
       "icon": "car",
       "mediaUrl": "/guide-media/kith-1423/assets/arrival-drive.mp4",
@@ -31,7 +31,7 @@ SET
     },
     {
       "step": 3,
-      "title": "Buzz in & take lobby elevator to 14th floor",
+      "title": "Buzz in & ride to 14",
       "description": "From P1 Visitor Parking, enter the green vestibule (wave hand at WAVE TO OPEN). At the TX-3 Touch Entry System intercom, open the directory, select \"GUIRGUIS, M\", and press CALL to get buzzed in — then follow the hallway to the ground-floor elevators and head up to the 14th floor. (Arriving on foot or Uber? Use the same buzzer at the 2485 front entrance.)",
       "icon": "bell-ring",
       "mediaUrl": "/guide-media/kith-1423/assets/intercom-entry.mp4",
@@ -40,7 +40,7 @@ SET
     },
     {
       "step": 4,
-      "title": "Pick up keys & black fob inside Unit 1423",
+      "title": "Get keys & fob",
       "description": "Enter Unit 1423 on the 14th floor and pick up the key set on the kitchen counter: unit key, SALTO card, and black proximity fob. You will need the black fob for the resident garage gate, P3 elevator lobby door, and building doors.",
       "icon": "key",
       "mediaUrl": "/guide-media/kith-1423/assets/keys-and-fob.jpg",
@@ -48,7 +48,7 @@ SET
     },
     {
       "step": 5,
-      "title": "Go down two more ramps to P3 Spot 257",
+      "title": "Drive to P3 Spot 257",
       "description": "Return to your car in P1 Visitor Parking and tap the black fob at the yellow resident gate. Once you're inside the garage after that first street ramp, go down two more ramps to Level P3 and park in Spot 257.",
       "icon": "square-parking",
       "mediaUrl": "/guide-media/kith-1423/assets/parking-arrow.jpg",
@@ -56,7 +56,7 @@ SET
     },
     {
       "step": 6,
-      "title": "Spot 257 to elevator & up to 14th floor",
+      "title": "P3 elevator to 14th",
       "description": "From Spot 257 on P3, walk to the elevator vestibule door, tap the black fob on the reader to unlock it, and take the elevator up to the 14th floor to Unit 1423.",
       "icon": "arrow-up-from-line",
       "mediaUrl": "/guide-media/kith-1423/assets/garage-to-elevator.mp4",

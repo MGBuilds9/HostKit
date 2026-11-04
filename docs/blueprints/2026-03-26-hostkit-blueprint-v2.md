@@ -1,9 +1,10 @@
-# HostKit — Technical Architecture Blueprint v2.1
+# HostKit — Technical Architecture Blueprint v2.2
 
-> Generated: 2026-03-26 (Updated v2.1: 2026-11-03)
+> Generated: 2026-03-26 (Updated v2.2: 2026-11-03)
 > Supersedes: 2026-03-14-hostkit-blueprint.md
 > Source: Codebase audit + e2e trace of production code
 > Changelog:
+> - **v2.2 (2026-11-03):** Optimized Guest Guide (`/g/[slug]`) with Hallmark v1.1.0 (`modern-minimal`, `Narrative Workflow`, warm `Coral` OKLCH tokens in `tokens.css` & `src/app/globals.css`, `N5` desktop floating pill nav + mobile scroll strip in `GuideJumpNav`, `Ft2` single-line footer, `<=5%` accent budget, `DM Sans` + `Inter` preserved) and Jakob's Law hospitality UX across `320px–1440px` light & dark modes (two-column `7/5` desktop layout with `resolveBandColumnClasses`, above-the-fold `Stay Essentials` tabular spec card, resilient `CopyButton` with persistent manual-copy fallback + WCAG 2.5.3 state-aware `aria-label`s, `ThemeToggle`, `src/lib/guide-utils.ts` state/storage/phone/QR/loopback-DB helpers, concise single-line `320px` step titles, and read-only Playwright verifier `scripts/verify-guest-guide-ui.mjs`).
 > - **v2.1 (2026-11-03):** Added `/api/guide-media/[...path]` RFC 9110 `206 Partial Content` byte-range streaming & property access-cookie gate (via `beforeFiles` rewrite on `/guide-media/:path*` with `Cache-Control: private, max-age=3600, no-transform` + `Vary: Cookie` for gated guides and backpressure-safe Node file streams), optional `playbackRate` per step in `properties.checkin_steps` JSONB (defaulting `garage-to-elevator.mp4` to `0.25x`), portrait-aware touch/pointer video scrubber + speed controls in `CheckinWalkthrough`, `{{property.parkingInstructions}}` + `{{property.guestAccessCode}}` variable bindings (with non-`[missing]` fallbacks) in `template-engine.ts`, reordered Kith 1423 two-stage P1->P3-257 arrival walkthrough + in-stay video guides (`blinds-remote`, 14th-floor chute, ground bulk waste room), blurred physical key bitting on `keys-and-fob.jpg`, and removed unguarded static `/guide/index.html`.
 
 ---

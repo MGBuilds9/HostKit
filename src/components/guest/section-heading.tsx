@@ -12,12 +12,18 @@ export function SectionHeading({
   className,
 }: SectionHeadingProps) {
   return (
-    <div className={cn("mb-4", className)}>
-      <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold tracking-tight">
+    <div className={cn("mb-3.5 flex flex-col", className)}>
+      <h2
+        className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold tracking-tight not-italic"
+        style={{ overflowWrap: "anywhere", minWidth: 0 }}
+      >
         {title}
       </h2>
       {subtitle && (
-        <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--guest-text-muted)" }}>
+        <p
+          className="mt-1 max-w-[58ch] text-sm leading-relaxed"
+          style={{ color: "var(--guest-text-muted)" }}
+        >
           {subtitle}
         </p>
       )}

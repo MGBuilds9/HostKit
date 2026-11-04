@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
 import {
   Check,
   ChevronDown,
@@ -10,9 +9,18 @@ import {
   RotateCcw,
   RotateCw,
   Maximize2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { toPascalCase } from "@/lib/utils";
+import {
+  getSafeLocalStorage,
+  hydrateAndRepairCompletedSteps,
+  transitionVideoLoadState,
+  type VideoPlayerMachineEvent,
+  type VideoPlayerMachineState,
+} from "@/lib/guide-utils";
 import Image from "next/image";
 
 export interface Step {
@@ -25,6 +33,12 @@ export interface Step {
   posterUrl?: string;
   playbackRate?: number;
 }
+
+type SurfaceVars = CSSProperties & {
+  "--guest-ctl-bg"?: string;
+  "--guest-ctl-border"?: string;
+  "--guest-ctl-fg"?: string;
+};
 
 const SPEED_OPTIONS = [0.25, 0.5, 1] as const;
 
@@ -51,19 +65,37 @@ type FullscreenCapableVideo = HTMLVideoElement & {
   webkitDisplayingFullscreen?: boolean;
 };
 
-function StepVideoPlayer({ step }: { step: Step }) {
+function StepVideoPlayer({
+  step,
+  onLandscapeChange,
+}: {
+  step: Step;
+  onLandscapeChange?: (isLandscape: boolean) => void;
+}) {
   const initialRate = resolveInitialPlaybackRate(step);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const onLandscapeChangeRef = useRef(onLandscapeChange);
+  onLandscapeChangeRef.current = onLandscapeChange;
   const speedRef = useRef<number>(initialRate);
   const scrubbingRef = useRef(false);
   const resumeAfterScrubRef = useRef(false);
   const pendingSeekRef = useRef<number | null>(null);
+  const playRequestIdRef = useRef(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState<number>(initialRate);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [machine, setMachine] = useState<VideoPlayerMachineState>({
+    status: "idle",
+    pendingPlay: false,
+    activeRequestId: 0,
+  });
+
+  function dispatchVideo(event: VideoPlayerMachineEvent) {
+    setMachine((prev) => transitionVideoLoadState(prev, event));
+  }
 
   useEffect(() => {
     speedRef.current = speed;
@@ -78,14 +110,21 @@ function StepVideoPlayer({ step }: { step: Step }) {
     if (!el) return;
     el.defaultPlaybackRate = speedRef.current;
     el.playbackRate = speedRef.current;
-    if (el.readyState >= 1) {
+    if (el.readyState >= 1 && !el.error) {
       if (Number.isFinite(el.duration) && el.duration > 0) {
         setDuration(el.duration);
       }
       if (el.videoWidth > 0 && el.videoHeight > 0) {
-        setIsLandscape(el.videoWidth > el.videoHeight);
+        const nextLandscape = el.videoWidth > el.videoHeight;
+        setIsLandscape(nextLandscape);
+        onLandscapeChangeRef.current?.(nextLandscape);
       }
     }
+    dispatchVideo({
+      type: "mount",
+      readyState: el.readyState,
+      hasMediaError: Boolean(el.error),
+    });
   }, []);
 
   function applySpeed(nextSpeed: number) {
@@ -105,22 +144,68 @@ function StepVideoPlayer({ step }: { step: Step }) {
       setDuration(el.duration);
     }
     if (el.videoWidth > 0 && el.videoHeight > 0) {
-      setIsLandscape(el.videoWidth > el.videoHeight);
+      const nextLandscape = el.videoWidth > el.videoHeight;
+      setIsLandscape(nextLandscape);
+      onLandscapeChangeRef.current?.(nextLandscape);
     }
     el.defaultPlaybackRate = speedRef.current;
     el.playbackRate = speedRef.current;
+    dispatchVideo({ type: "metadata", readyState: el.readyState });
+  }
+
+  function startPlayback(el: HTMLVideoElement, isRetry = false) {
+    const requestId = ++playRequestIdRef.current;
+    dispatchVideo(
+      isRetry
+        ? { type: "retry_requested", requestId }
+        : { type: "play_requested", readyState: el.readyState, requestId },
+    );
+    el.defaultPlaybackRate = speedRef.current;
+    el.playbackRate = speedRef.current;
+    void el.play().catch((err: unknown) => {
+      const name = err instanceof Error ? err.name : "";
+      if (name !== "AbortError" || el.paused) {
+        setIsPlaying(false);
+      }
+      dispatchVideo({
+        type: "play_rejected",
+        requestId,
+        aborted: name === "AbortError",
+        isElementPaused: el.paused,
+        readyState: el.readyState,
+        hasMediaError: Boolean(el.error),
+        notSupported: name === "NotSupportedError",
+      });
+    });
   }
 
   function togglePlay() {
     const el = videoRef.current;
     if (!el) return;
-    if (el.paused || el.ended) {
-      el.defaultPlaybackRate = speedRef.current;
-      el.playbackRate = speedRef.current;
-      void el.play().catch(() => {});
-    } else {
-      el.pause();
+    if (machine.status === "error") {
+      retryVideo();
+      return;
     }
+    if (el.paused || el.ended) {
+      startPlayback(el, false);
+    } else {
+      playRequestIdRef.current += 1;
+      setIsPlaying(false);
+      el.pause();
+      dispatchVideo({
+        type: "pause",
+        isElementPaused: true,
+        readyState: el.readyState,
+      });
+    }
+  }
+
+  function retryVideo() {
+    const el = videoRef.current;
+    if (!el) return;
+    setIsPlaying(false);
+    el.load();
+    startPlayback(el, true);
   }
 
   function nudgeTime(deltaSeconds: number) {
@@ -174,9 +259,7 @@ function StepVideoPlayer({ step }: { step: Step }) {
     }
     if (el && resumeAfterScrubRef.current) {
       resumeAfterScrubRef.current = false;
-      el.defaultPlaybackRate = speedRef.current;
-      el.playbackRate = speedRef.current;
-      void el.play().catch(() => {});
+      startPlayback(el, false);
     }
   }
 
@@ -202,17 +285,18 @@ function StepVideoPlayer({ step }: { step: Step }) {
     ? [...SPEED_OPTIONS]
     : [...SPEED_OPTIONS, initialRate].sort((a, b) => a - b);
 
+  const videoState = machine.status;
+  const transportSurface: SurfaceVars = {
+    "--guest-ctl-bg": "var(--guest-section-bg)",
+    "--guest-ctl-border": "var(--guest-control-border)",
+    "--guest-ctl-fg": "var(--guest-text)",
+  };
+
   return (
-    <div
-      className="rounded-xl border overflow-hidden"
-      style={{
-        background: "var(--guest-section-bg)",
-        borderColor: "var(--guest-card-border)",
-      }}
-    >
+    <div className="min-w-0 space-y-2.5">
       <div
-        className={`relative mx-auto bg-black/90 ${
-          isLandscape ? "w-full aspect-video" : "w-full max-w-[320px] aspect-[9/16]"
+        className={`guest-video-stage relative mx-auto overflow-hidden rounded-xl ${
+          isLandscape ? "w-full aspect-video" : "w-full max-w-[296px] md:max-w-none aspect-[9/16]"
         }`}
       >
         <video
@@ -223,9 +307,20 @@ function StepVideoPlayer({ step }: { step: Step }) {
           playsInline
           preload="metadata"
           onClick={togglePlay}
+          onLoadStart={() => dispatchVideo({ type: "loadstart" })}
           onLoadedMetadata={handleLoadedMetadata}
           onLoadedData={handleLoadedMetadata}
           onDurationChange={handleLoadedMetadata}
+          onCanPlay={() => dispatchVideo({ type: "canplay" })}
+          onWaiting={() => dispatchVideo({ type: "waiting", isPlaying })}
+          onPlaying={() => {
+            dispatchVideo({ type: "playing" });
+            setIsPlaying(true);
+          }}
+          onError={() => {
+            setIsPlaying(false);
+            dispatchVideo({ type: "error" });
+          }}
           onSeeked={() => {
             const el = videoRef.current;
             if (el && pendingSeekRef.current !== null && !el.seeking) {
@@ -263,37 +358,99 @@ function StepVideoPlayer({ step }: { step: Step }) {
             }
             setIsPlaying(true);
           }}
-          onPause={() => setIsPlaying(false)}
-          onEnded={() => setIsPlaying(false)}
+          onPause={() => {
+            const el = videoRef.current;
+            const paused = el ? el.paused : true;
+            if (paused) {
+              setIsPlaying(false);
+            }
+            dispatchVideo({
+              type: "pause",
+              isElementPaused: paused,
+              readyState: el ? el.readyState : 0,
+            });
+          }}
+          onEnded={() => {
+            const el = videoRef.current;
+            setIsPlaying(false);
+            dispatchVideo({
+              type: "pause",
+              isElementPaused: true,
+              readyState: el ? el.readyState : 0,
+            });
+          }}
           className="h-full w-full cursor-pointer object-contain"
         />
 
-        {!isPlaying && (
+        {videoState === "loading" && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="pointer-events-none absolute left-2.5 top-2.5 z-10 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
+            style={{
+              background: "var(--guest-card)",
+              color: "var(--guest-text)",
+            }}
+          >
+            <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2} />
+            <span>Loading…</span>
+          </div>
+        )}
+
+        {!isPlaying && videoState !== "error" && (
           <button
             type="button"
             onClick={togglePlay}
             aria-label={`Play ${step.title} video`}
-            className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity hover:bg-black/30"
+            className="guest-video-scrim absolute inset-0 flex items-center justify-center rounded-xl transition-[background-color] duration-150"
           >
             <span
-              className="flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg"
-              style={{ background: "var(--guest-accent)" }}
+              className="flex h-12 w-12 items-center justify-center rounded-full shadow-lg"
+              style={{
+                background: "var(--guest-accent-fill)",
+                color: "var(--guest-on-accent)",
+              }}
             >
-              <Play className="h-5 w-5 translate-x-0.5 fill-current" />
+              <Play className="h-5 w-5 translate-x-0.5 fill-current" strokeWidth={1.75} />
             </span>
           </button>
         )}
       </div>
 
-      {/* Scrubbing timeline & playback controls */}
-      <div
-        className="space-y-2.5 border-t px-3.5 py-3"
-        style={{
-          background: "var(--guest-card)",
-          borderColor: "var(--guest-card-border)",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
+      {videoState === "error" && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 text-xs"
+          style={{
+            background: "var(--guest-danger-soft)",
+            borderColor: "var(--guest-danger)",
+            color: "var(--guest-danger-ink)",
+          }}
+        >
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+            <span>Video couldn&apos;t load.</span>
+          </span>
+          <button
+            type="button"
+            onClick={retryVideo}
+            className="guest-control-surface inline-flex min-h-[44px] items-center whitespace-nowrap rounded-lg border px-3 text-xs font-semibold transition-[background-color,border-color,transform] duration-150 active:scale-[0.985]"
+            style={
+              {
+                "--guest-ctl-bg": "var(--guest-card)",
+                "--guest-ctl-border": "var(--guest-danger)",
+                "--guest-ctl-fg": "var(--guest-danger-ink)",
+              } as SurfaceVars
+            }
+          >
+            Retry video
+          </button>
+        </div>
+      )}
+
+      {/* Scrubbing timeline & 44px touch-safe playback controls */}
+      <div className="space-y-2 pt-0.5">
+        <div className="flex items-center gap-2">
           <input
             type="range"
             min={0}
@@ -310,101 +467,109 @@ function StepVideoPlayer({ step }: { step: Step }) {
             onTouchEnd={handleScrubEnd}
             onTouchCancel={handleScrubEnd}
             onChange={handleScrubChange}
-            className="h-2 flex-1 cursor-pointer appearance-none rounded-lg disabled:cursor-not-allowed disabled:opacity-50"
+            className="guest-range min-w-0 flex-1"
             style={{ accentColor: "var(--guest-accent)" }}
           />
           <span
-            className="shrink-0 text-xs font-medium tabular-nums"
+            className="shrink-0 font-mono text-[11px] font-medium tabular-nums"
             style={{ color: "var(--guest-text-muted)" }}
           >
             {formatVideoTime(currentTime)} / {formatVideoTime(duration)}
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
+        {/* Transport row: fits cleanly down to 320px phone & 264px desktop column */}
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={togglePlay}
               aria-label={isPlaying ? "Pause video" : "Play video"}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:opacity-80"
-              style={{ borderColor: "var(--guest-card-border)" }}
+              className="guest-control-surface inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border transition-[background-color,border-color,transform] duration-150 active:scale-[0.985]"
+              style={transportSurface}
             >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isPlaying ? (
+                <Pause className="h-4 w-4" strokeWidth={1.75} />
+              ) : (
+                <Play className="h-4 w-4" strokeWidth={1.75} />
+              )}
             </button>
             <button
               type="button"
               disabled={duration <= 0}
               onClick={() => nudgeTime(-5)}
-              aria-label="Rewind 5 seconds"
+              aria-label="Rewind 5s"
               title="Back 5s"
-              className="inline-flex h-8 items-center gap-1 rounded-lg border px-2 text-xs font-medium transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                borderColor: "var(--guest-card-border)",
-                color: "var(--guest-text-muted)",
-              }}
+              className="guest-control-surface inline-flex min-h-[44px] items-center gap-1 whitespace-nowrap rounded-lg border px-2.5 text-xs font-medium tabular-nums transition-[background-color,border-color,transform,opacity] duration-150 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
+              style={transportSurface}
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              5s
+              <RotateCcw className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+              <span>5s</span>
             </button>
             <button
               type="button"
               disabled={duration <= 0}
               onClick={() => nudgeTime(5)}
-              aria-label="Forward 5 seconds"
+              aria-label="Forward 5s"
               title="Forward 5s"
-              className="inline-flex h-8 items-center gap-1 rounded-lg border px-2 text-xs font-medium transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                borderColor: "var(--guest-card-border)",
-                color: "var(--guest-text-muted)",
-              }}
+              className="guest-control-surface inline-flex min-h-[44px] items-center gap-1 whitespace-nowrap rounded-lg border px-2.5 text-xs font-medium tabular-nums transition-[background-color,border-color,transform,opacity] duration-150 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
+              style={transportSurface}
             >
-              5s
-              <RotateCw className="h-3.5 w-3.5" />
+              <span>5s</span>
+              <RotateCw className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <div
-              className="inline-flex items-center rounded-lg border p-0.5"
-              role="group"
-              aria-label="Playback speed"
-              style={{ borderColor: "var(--guest-card-border)" }}
-            >
-              {speedChoices.map((rateOption) => {
-                const active = speed === rateOption;
-                return (
-                  <button
-                    key={rateOption}
-                    type="button"
-                    onClick={() => applySpeed(rateOption)}
-                    aria-pressed={active}
-                    className="rounded-md px-2 py-1 text-xs font-semibold tabular-nums transition-colors"
-                    style={{
-                      background: active ? "var(--guest-accent)" : "transparent",
-                      color: active ? "#ffffff" : "var(--guest-text-muted)",
-                    }}
-                  >
-                    {rateOption}×
-                  </button>
-                );
-              })}
-            </div>
+          <button
+            type="button"
+            onClick={enterFullscreen}
+            aria-label="Fullscreen video"
+            title="Fullscreen"
+            className="guest-control-surface inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border transition-[background-color,border-color,transform] duration-150 active:scale-[0.985]"
+            style={transportSurface}
+          >
+            <Maximize2 className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+        </div>
 
-            <button
-              type="button"
-              onClick={enterFullscreen}
-              aria-label="Fullscreen video"
-              title="Fullscreen"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:opacity-80"
-              style={{
-                borderColor: "var(--guest-card-border)",
-                color: "var(--guest-text-muted)",
-              }}
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
+        {/* Speed selector: full-width 44px segmented bar */}
+        <div
+          className="grid rounded-lg border p-0.5"
+          style={{
+            borderColor: "var(--guest-control-border)",
+            background: "var(--guest-section-bg)",
+            gridTemplateColumns: `repeat(${speedChoices.length}, minmax(0, 1fr))`,
+          }}
+          role="group"
+          aria-label="Playback speed"
+        >
+          {speedChoices.map((rateOption) => {
+            const active = speed === rateOption;
+            return (
+              <button
+                key={rateOption}
+                type="button"
+                onClick={() => applySpeed(rateOption)}
+                aria-pressed={active}
+                className={`${
+                  active ? "hover:opacity-90" : "guest-control-surface"
+                } inline-flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-md px-2 text-xs font-semibold tabular-nums transition-[background-color,color,transform,opacity] duration-150 active:scale-[0.985]`}
+                style={
+                  active
+                    ? {
+                        background: "var(--guest-accent-fill)",
+                        color: "var(--guest-on-accent)",
+                      }
+                    : ({
+                        "--guest-ctl-bg": "transparent",
+                        "--guest-ctl-fg": "var(--guest-text)",
+                      } as SurfaceVars)
+                }
+              >
+                {rateOption}×
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -414,12 +579,14 @@ function StepVideoPlayer({ step }: { step: Step }) {
 export function CheckinWalkthrough({
   steps,
   heading = "Check-In Walkthrough",
+  subtitle,
   storageKey = "hostkit_completed_steps",
   completable = true,
   defaultOpenFirst = true,
 }: {
   steps: Step[];
   heading?: string;
+  subtitle?: string;
   storageKey?: string;
   completable?: boolean;
   defaultOpenFirst?: boolean;
@@ -428,16 +595,18 @@ export function CheckinWalkthrough({
     defaultOpenFirst ? (steps[0]?.step ?? null) : null,
   );
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [landscapeSteps, setLandscapeSteps] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (!completable) return;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) setCompletedSteps(JSON.parse(saved));
-    } catch {
-      // ignore
-    }
-  }, [completable, storageKey]);
+    const validIds = new Set(steps.map((s) => s.step));
+    const repaired = hydrateAndRepairCompletedSteps(
+      getSafeLocalStorage(),
+      storageKey,
+      validIds,
+    );
+    setCompletedSteps(repaired);
+  }, [completable, storageKey, steps]);
 
   function toggleComplete(step: number) {
     setCompletedSteps((prev) => {
@@ -445,7 +614,7 @@ export function CheckinWalkthrough({
         ? prev.filter((s) => s !== step)
         : [...prev, step];
       try {
-        localStorage.setItem(storageKey, JSON.stringify(updated));
+        getSafeLocalStorage()?.setItem(storageKey, JSON.stringify(updated));
       } catch {
         // ignore
       }
@@ -454,144 +623,276 @@ export function CheckinWalkthrough({
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
+  const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>>;
   const validStepIds = new Set(steps.map((s) => s.step));
   const validDoneCount = completedSteps.filter((id) => validStepIds.has(id)).length;
+  const progressPercent = steps.length > 0 ? Math.round((validDoneCount / steps.length) * 100) : 0;
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold tracking-tight">
+    <div>
+      <div className="mb-3.5 flex flex-col">
+        <h2
+          className="font-[family-name:var(--font-dm-sans)] text-lg font-semibold tracking-tight not-italic"
+          style={{ overflowWrap: "anywhere", minWidth: 0 }}
+        >
           {heading}
         </h2>
-        {completable && validDoneCount > 0 && (
-          <span className="text-xs font-semibold" style={{ color: "var(--guest-success)" }}>
-            {validDoneCount} of {steps.length} done
-          </span>
+        {subtitle && (
+          <p className="mt-1 max-w-[58ch] text-sm leading-relaxed" style={{ color: "var(--guest-text-muted)" }}>
+            {subtitle}
+          </p>
+        )}
+        {completable && (
+          <div className="mt-3 space-y-1.5">
+            <div
+              aria-hidden="true"
+              className="h-1 w-full overflow-hidden rounded-full"
+              style={{ background: "var(--guest-card-border)" }}
+            >
+              <div
+                className="h-full w-full origin-left rounded-full transition-transform duration-200"
+                style={{
+                  transform: `scaleX(${progressPercent / 100})`,
+                  background: "var(--guest-success)",
+                }}
+              />
+            </div>
+            <p
+              className="font-mono text-xs font-medium tabular-nums"
+              style={{
+                color: validDoneCount > 0 ? "var(--guest-success)" : "var(--guest-text-muted)",
+              }}
+            >
+              {validDoneCount} of {steps.length} steps completed
+            </p>
+          </div>
         )}
       </div>
 
-      <ol className="space-y-2">
+      <ol
+        className="divide-y overflow-hidden rounded-2xl border"
+        style={{
+          background: "var(--guest-card)",
+          borderColor: "var(--guest-card-border)",
+        }}
+      >
         {steps.map((s) => {
           const IconComponent = s.icon
             ? icons[toPascalCase(s.icon)] ?? LucideIcons.MapPin
             : LucideIcons.MapPin;
           const isOpen = open === s.step;
-          const isDone = completedSteps.includes(s.step);
+          const isDone = completable && completedSteps.includes(s.step);
+          const hasMedia = Boolean(s.mediaUrl && (s.mediaType === "image" || s.mediaType === "video"));
+          const isLandscapeMedia = Boolean(landscapeSteps[s.step]);
+          const initialRate = resolveInitialPlaybackRate(s);
+          const sideBySideDesktop = hasMedia && !isLandscapeMedia;
+
+          const doneBtnVars: SurfaceVars = isDone
+            ? {
+                "--guest-ctl-bg": "var(--guest-success-soft)",
+                "--guest-ctl-border": "var(--guest-success)",
+                "--guest-ctl-fg": "var(--guest-success-ink)",
+              }
+            : {
+                "--guest-ctl-bg": "var(--guest-section-bg)",
+                "--guest-ctl-border": "var(--guest-control-border)",
+                "--guest-ctl-fg": "var(--guest-text)",
+              };
 
           return (
-            <li key={s.step}>
-              <div
-                className="rounded-2xl border overflow-hidden transition-colors"
-                style={{
-                  background: "var(--guest-card)",
-                  borderColor: isOpen
-                    ? "var(--guest-accent)"
-                    : "var(--guest-card-border)",
-                }}
+            <li
+              key={s.step}
+              className="transition-[background-color] duration-150"
+              style={{
+                borderTopColor: "var(--guest-card-border)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setOpen(isOpen ? null : s.step)}
+                aria-expanded={isOpen}
+                className="guest-hover-row flex min-h-[52px] w-full items-center gap-2.5 px-3.5 py-3 text-left transition-[background-color] duration-150 sm:gap-3 sm:px-4"
               >
-                <button
-                  onClick={() => setOpen(isOpen ? null : s.step)}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
-                >
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
-                    style={{
-                      background: isDone
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border font-mono text-xs font-semibold tabular-nums"
+                  style={{
+                    background: isDone
+                      ? "var(--guest-success-soft)"
+                      : isOpen
                         ? "var(--guest-accent-soft)"
-                        : "var(--guest-accent-soft)",
-                      color: isDone ? "var(--guest-success)" : "var(--guest-accent)",
+                        : "var(--guest-section-bg)",
+                    borderColor: isDone
+                      ? "var(--guest-success)"
+                      : isOpen
+                        ? "var(--guest-accent)"
+                        : "var(--guest-card-border)",
+                    color: isDone
+                      ? "var(--guest-success-ink)"
+                      : isOpen
+                        ? "var(--guest-accent-ink)"
+                        : "var(--guest-text-muted)",
+                  }}
+                >
+                  {isDone ? (
+                    <Check className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  ) : (
+                    String(s.step).padStart(2, "0")
+                  )}
+                </span>
+
+                <span className="min-w-0 flex-1">
+                  <span
+                    className="block text-sm font-semibold leading-snug"
+                    style={{
+                      color: isDone ? "var(--guest-text-muted)" : "var(--guest-text)",
                     }}
                   >
-                    {isDone ? <Check className="h-4 w-4" /> : s.step}
+                    {s.title}
                   </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-sm font-medium">{s.title}</span>
-                  </span>
-                  <ChevronDown
-                    className="h-4 w-4 shrink-0 transition-transform duration-200"
+                </span>
+
+                {!isOpen && s.mediaType === "video" && (
+                  <span
+                    className="hidden shrink-0 whitespace-nowrap rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium tabular-nums sm:inline-flex"
                     style={{
+                      background: "var(--guest-section-bg)",
+                      borderColor: "var(--guest-card-border)",
                       color: "var(--guest-text-muted)",
-                      transform: isOpen ? "rotate(180deg)" : "none",
                     }}
-                  />
-                </button>
+                  >
+                    {initialRate < 1 ? `${initialRate}× video` : "Video"}
+                  </span>
+                )}
+                {!isOpen && s.mediaType === "image" && (
+                  <span
+                    className="hidden shrink-0 whitespace-nowrap rounded-md border px-2 py-0.5 text-[11px] font-medium sm:inline-flex"
+                    style={{
+                      background: "var(--guest-section-bg)",
+                      borderColor: "var(--guest-card-border)",
+                      color: "var(--guest-text-muted)",
+                    }}
+                  >
+                    Photo
+                  </span>
+                )}
 
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-4 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <IconComponent
-                            className="h-4 w-4"
-                            style={{ color: "var(--guest-accent)" }}
+                <ChevronDown
+                  className="h-4 w-4 shrink-0 transition-transform duration-150"
+                  strokeWidth={1.75}
+                  style={{
+                    color: "var(--guest-text-muted)",
+                    transform: isOpen ? "rotate(180deg)" : "none",
+                  }}
+                />
+              </button>
+
+              {isOpen && (
+                <div
+                  className={`border-t px-3.5 pb-4 pt-3.5 sm:px-4 ${
+                    sideBySideDesktop
+                      ? "space-y-4 md:grid md:grid-cols-[minmax(0,1fr)_272px] md:items-start md:gap-5 md:space-y-0"
+                      : "space-y-4"
+                  }`}
+                  style={{ borderColor: "var(--guest-card-border)" }}
+                >
+                  <div className="min-w-0 space-y-3.5">
+                    <div className="flex items-start gap-2.5">
+                      <span
+                        className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center"
+                        style={{ color: "var(--guest-accent)" }}
+                      >
+                        <IconComponent className="h-4 w-4" strokeWidth={1.75} />
+                      </span>
+                      <p
+                        className="max-w-[56ch] text-sm leading-relaxed"
+                        style={{ color: "var(--guest-text-muted)" }}
+                      >
+                        {s.description}
+                      </p>
+                    </div>
+
+                    {s.mediaType === "video" && initialRate < 1 && (
+                      <p
+                        className="border-l-2 py-0.5 pl-3 text-xs leading-relaxed"
+                        style={{
+                          borderColor: "var(--guest-accent)",
+                          color: "var(--guest-text-muted)",
+                        }}
+                      >
+                        Set to{" "}
+                        <strong
+                          className="font-semibold"
+                          style={{ color: "var(--guest-text)" }}
+                        >
+                          {initialRate}× slow motion
+                        </strong>{" "}
+                        by default so every turn is easy to follow. Drag the timeline to scrub at your own pace.
+                      </p>
+                    )}
+
+                    {completable && (
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => toggleComplete(s.step)}
+                          className="guest-control-surface inline-flex min-h-[44px] items-center gap-1.5 whitespace-nowrap rounded-xl border px-3.5 text-xs font-semibold leading-none transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.985]"
+                          style={doneBtnVars}
+                        >
+                          <Check
+                            className="h-3.5 w-3.5 shrink-0"
+                            strokeWidth={isDone ? 2.25 : 1.75}
                           />
-                          <p
-                            className="text-sm leading-relaxed"
-                            style={{ color: "var(--guest-text-muted)" }}
-                          >
-                            {s.description}
-                          </p>
-                        </div>
-
-                        {s.mediaUrl && s.mediaType === "image" && (
-                          <div
-                            className="overflow-hidden rounded-xl border"
-                            style={{
-                              background: "var(--guest-section-bg)",
-                              borderColor: "var(--guest-card-border)",
-                            }}
-                          >
-                            <Image
-                              src={s.mediaUrl}
-                              alt={s.title}
-                              width={600}
-                              height={800}
-                              unoptimized={s.mediaUrl.startsWith("/guide-media/")}
-                              className="w-full max-h-80 object-contain"
-                            />
-                          </div>
-                        )}
-                        {s.mediaUrl && s.mediaType === "video" && (
-                          <StepVideoPlayer key={s.mediaUrl} step={s} />
-                        )}
-
-                        {completable && (
-                          <button
-                            onClick={() => toggleComplete(s.step)}
-                            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors hover:opacity-90"
-                            style={{
-                              background: isDone
-                                ? "var(--guest-accent-soft)"
-                                : "transparent",
-                              color: isDone
-                                ? "var(--guest-success)"
-                                : "var(--guest-text-muted)",
-                              borderColor: isDone
-                                ? "var(--guest-success)"
-                                : "var(--guest-card-border)",
-                            }}
-                          >
-                            {isDone && <Check className="h-3.5 w-3.5" />}
-                            {isDone ? "Completed" : "Mark as Done"}
-                          </button>
-                        )}
+                          <span>{isDone ? "Completed" : "Mark as Done"}</span>
+                        </button>
                       </div>
-                    </motion.div>
+                    )}
+                  </div>
+
+                  {s.mediaUrl && s.mediaType === "image" && (
+                    <div
+                      className={`overflow-hidden rounded-xl p-2 ${
+                        sideBySideDesktop ? "md:border-l md:pl-5 md:rounded-none md:p-0" : ""
+                      }`}
+                      style={{
+                        background: sideBySideDesktop ? undefined : "var(--guest-section-bg)",
+                        borderColor: "var(--guest-card-border)",
+                      }}
+                    >
+                      <Image
+                        src={s.mediaUrl}
+                        alt={s.title}
+                        width={600}
+                        height={800}
+                        unoptimized={s.mediaUrl.startsWith("/guide-media/")}
+                        className="mx-auto max-h-80 w-full rounded-lg object-contain"
+                      />
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
+
+                  {s.mediaUrl && s.mediaType === "video" && (
+                    <div
+                      className={
+                        sideBySideDesktop ? "md:border-l md:pl-5" : undefined
+                      }
+                      style={{ borderColor: "var(--guest-card-border)" }}
+                    >
+                      <StepVideoPlayer
+                        key={s.mediaUrl}
+                        step={s}
+                        onLandscapeChange={(next) =>
+                          setLandscapeSteps((prev) =>
+                            prev[s.step] === next ? prev : { ...prev, [s.step]: next },
+                          )
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
       </ol>
-    </section>
+    </div>
   );
 }
