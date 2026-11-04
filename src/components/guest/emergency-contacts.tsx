@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import { Phone, Siren } from "lucide-react";
 import { SectionHeading } from "@/components/guest/section-heading";
+import { normalizeDialablePhone } from "@/lib/guide-utils";
 
 interface Props {
   emergency: string | null;
@@ -7,49 +9,98 @@ interface Props {
   ownerPhone: string | null;
 }
 
+type SurfaceVars = CSSProperties & {
+  "--guest-ctl-bg"?: string;
+  "--guest-ctl-border"?: string;
+  "--guest-ctl-fg"?: string;
+};
+
 export function EmergencyContacts({ emergency, hostPhone, ownerPhone }: Props) {
+  const dialableHost = normalizeDialablePhone(hostPhone);
+  const dialableOwner = normalizeDialablePhone(ownerPhone);
+  const dialableEmergency = normalizeDialablePhone(emergency);
+
   const contacts = [
-    emergency && { label: "Emergency", number: emergency, urgent: true },
-    hostPhone && { label: "Your Host", number: hostPhone, urgent: false },
-    ownerPhone && { label: "Property Owner", number: ownerPhone, urgent: false },
-  ].filter(Boolean) as { label: string; number: string; urgent: boolean }[];
+    dialableHost && {
+      label: "Your Host",
+      ariaName: "Your Host",
+      phone: dialableHost,
+      urgent: false,
+    },
+    dialableOwner && {
+      label: "Owner",
+      ariaName: "Owner — Property Owner",
+      phone: dialableOwner,
+      urgent: false,
+    },
+    dialableEmergency && {
+      label: "Emergency",
+      ariaName: "Emergency Services",
+      phone: dialableEmergency,
+      urgent: true,
+    },
+  ].filter(Boolean) as {
+    label: string;
+    ariaName: string;
+    phone: { display: string; href: string };
+    urgent: boolean;
+  }[];
+
+  if (contacts.length === 0) return null;
 
   return (
-    <section>
-      <SectionHeading title="Emergency Contacts" />
+    <div>
+      <SectionHeading title="Direct & Emergency Contacts" />
       <div className="space-y-2">
-        {contacts.map((c) => (
-          <a
-            key={c.label}
-            href={`tel:${c.number}`}
-            className={`flex items-center justify-between rounded-xl p-4 transition-colors ${
-              c.urgent
-                ? "border hover:opacity-90"
-                : "border border-[var(--guest-card-border)] shadow-sm dark:shadow-none hover:bg-black/5 dark:hover:bg-white/5"
-            }`}
-            style={
-              c.urgent
-                ? { background: "var(--guest-accent-soft)", borderColor: "var(--guest-danger)" }
-                : { background: "var(--guest-card)" }
-            }
-          >
-            <div className="flex items-center gap-3">
-              {c.urgent ? (
-                <Siren className="h-4 w-4" style={{ color: "var(--guest-danger)" }} />
-              ) : (
-                <Phone className="h-4 w-4" style={{ color: "var(--guest-text-muted)" }} />
-              )}
-              <span className="text-sm font-medium">{c.label}</span>
-            </div>
-            <span
-              className={`text-sm font-mono ${c.urgent ? "font-semibold" : ""}`}
-              style={c.urgent ? { color: "var(--guest-danger)" } : { color: "var(--guest-text-muted)" }}
+        {contacts.map((c) => {
+          const surfaceStyle: SurfaceVars = c.urgent
+            ? {
+                "--guest-ctl-bg": "var(--guest-danger-soft)",
+                "--guest-ctl-border": "var(--guest-danger)",
+                "--guest-ctl-fg": "var(--guest-danger-ink)",
+              }
+            : {
+                "--guest-ctl-bg": "var(--guest-card)",
+                "--guest-ctl-border": "var(--guest-control-border)",
+                "--guest-ctl-fg": "var(--guest-text)",
+              };
+
+          return (
+            <a
+              key={c.ariaName}
+              href={c.phone.href}
+              aria-label={`${c.ariaName}: ${c.phone.display}`}
+              className="guest-control-surface flex min-h-[54px] flex-wrap items-center justify-between gap-x-2.5 gap-y-1 rounded-2xl border px-3.5 py-2.5 transition-[background-color,border-color,transform] duration-150 active:scale-[0.99] sm:px-5 sm:py-3"
+              style={surfaceStyle}
             >
-              {c.number}
-            </span>
-          </a>
-        ))}
+              <span className="inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap">
+                {c.urgent ? (
+                  <Siren
+                    className="h-4 w-4 shrink-0"
+                    strokeWidth={1.75}
+                    style={{ color: "var(--guest-danger)" }}
+                  />
+                ) : (
+                  <Phone
+                    className="h-4 w-4 shrink-0"
+                    strokeWidth={1.75}
+                    style={{ color: "var(--guest-text-muted)" }}
+                  />
+                )}
+                <span className="text-sm font-semibold">{c.label}</span>
+              </span>
+              <span
+                className="shrink-0 whitespace-nowrap font-mono text-[13px] font-semibold tabular-nums sm:text-sm"
+                style={{
+                  color: c.urgent ? "var(--guest-danger-ink)" : "var(--guest-text-muted)",
+                }}
+              >
+                {c.phone.display}
+              </span>
+            </a>
+          );
+        })}
       </div>
-    </section>
+    </div>
   );
 }

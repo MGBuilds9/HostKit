@@ -1,4 +1,5 @@
 import { SectionHeading } from "@/components/guest/section-heading";
+import { formatGuideTime } from "@/lib/guide-utils";
 
 interface CheckoutStep {
   step: number;
@@ -6,30 +7,61 @@ interface CheckoutStep {
   description: string;
 }
 
-export function CheckoutSection({ steps, time }: { steps: CheckoutStep[]; time: string }) {
-  // Format time: "11:00" → "11:00 AM"
-  const formatted = new Date(`2000-01-01T${time}`).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+export function CheckoutSection({
+  steps,
+  time,
+}: {
+  steps: CheckoutStep[];
+  time?: string | null;
+}) {
+  const formatted = formatGuideTime(time);
 
   return (
-    <section>
-      <SectionHeading title="Checkout" subtitle={`Please complete by ${formatted}`} />
-      <div className="space-y-2">
+    <div>
+      <SectionHeading
+        title="Check-Out Checklist"
+        subtitle={
+          formatted
+            ? `Please complete before ${formatted} on departure morning.`
+            : "Please complete these steps on departure morning."
+        }
+      />
+
+      <ol
+        className="divide-y overflow-hidden rounded-2xl border"
+        style={{
+          background: "var(--guest-card)",
+          borderColor: "var(--guest-card-border)",
+        }}
+      >
         {steps.map((s) => (
-          <div key={s.step} className="flex items-start gap-3 py-2">
-            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-[var(--guest-card-border)] text-xs mt-0.5" style={{ color: "var(--guest-text-muted)" }}>
-              {s.step}
+          <li
+            key={s.step}
+            className="flex items-start gap-3 px-4 py-3 sm:px-5"
+            style={{ borderColor: "var(--guest-card-border)" }}
+          >
+            <span
+              className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border font-mono text-xs font-semibold tabular-nums"
+              style={{
+                background: "var(--guest-section-bg)",
+                borderColor: "var(--guest-card-border)",
+                color: "var(--guest-text-muted)",
+              }}
+            >
+              {String(s.step).padStart(2, "0")}
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold leading-snug">{s.title}</p>
+              <p
+                className="mt-0.5 text-xs leading-relaxed"
+                style={{ color: "var(--guest-text-muted)" }}
+              >
+                {s.description}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">{s.title}</p>
-              <p className="text-xs" style={{ color: "var(--guest-text-muted)" }}>{s.description}</p>
-            </div>
-          </div>
+          </li>
         ))}
-      </div>
-    </section>
+      </ol>
+    </div>
   );
 }

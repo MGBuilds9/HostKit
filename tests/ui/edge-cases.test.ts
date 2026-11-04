@@ -367,13 +367,67 @@ describe("responsive layout - guest guide", () => {
     expect(content).toContain("lg:max-w-6xl");
   });
 
-  it("guest page has two-column grid at lg breakpoint", () => {
+  it("guest page has asymmetric two-column 12-col grid at lg breakpoint", () => {
     const content = readFileSync(
       resolve(__dirname, "../../src/app/g/[slug]/page.tsx"),
       "utf-8"
     );
-    expect(content).toContain("lg:grid-cols-2");
+    expect(content).toContain("lg:grid-cols-12");
+    expect(content).toContain("lg:col-span-7");
+    expect(content).toContain("lg:col-span-5");
     expect(content).toContain("lg:gap-8");
+  });
+
+  it("guest page suppresses jump nav on locked access-code screen", () => {
+    const content = readFileSync(
+      resolve(__dirname, "../../src/app/g/[slug]/page.tsx"),
+      "utf-8"
+    );
+    expect(content).toContain("showNav={false}");
+  });
+
+  it("root layout does not block pinch-to-zoom with maximumScale: 1", () => {
+    const layoutSrc = readFileSync(
+      resolve(__dirname, "../../src/app/layout.tsx"),
+      "utf-8"
+    );
+    expect(layoutSrc).not.toContain("maximumScale: 1");
+    expect(layoutSrc).toContain('viewportFit: "cover"');
+  });
+
+  it("guest components follow Hallmark token, label, and motion rules", () => {
+    const guestDir = resolve(__dirname, "../../src/components/guest");
+    const files = [
+      "guide-layout.tsx",
+      "guide-jump-nav.tsx",
+      "guide-unlock-form.tsx",
+      "hero-section.tsx",
+      "checkin-walkthrough.tsx",
+      "wifi-card.tsx",
+      "parking-card.tsx",
+      "house-rules-section.tsx",
+      "amenities-section.tsx",
+      "nearby-services.tsx",
+      "checkout-section.tsx",
+      "emergency-contacts.tsx",
+      "sticky-bottom-bar.tsx",
+      "copy-button.tsx",
+      "theme-toggle.tsx",
+    ];
+    for (const f of files) {
+      const src = readFileSync(resolve(guestDir, f), "utf-8");
+      expect(src, `${f} must not use transition-all`).not.toContain("transition-all");
+      expect(src, `${f} must not use raw bg-white`).not.toContain("bg-white");
+      expect(src, `${f} must not use raw amber palette`).not.toMatch(/\b(?:bg|text|border)-amber-\d/);
+      expect(src, `${f} must not reference undefined --guest-text-main`).not.toContain("--guest-text-main");
+    }
+
+    const unlockSrc = readFileSync(resolve(guestDir, "guide-unlock-form.tsx"), "utf-8");
+    expect(unlockSrc).toContain('htmlFor="guest-access-code"');
+
+    const tokensCss = readFileSync(resolve(__dirname, "../../tokens.css"), "utf-8");
+    expect(tokensCss).toContain("Hallmark · pre-emit critique:");
+    expect(tokensCss).toContain("macrostructure: Narrative Workflow");
   });
 
   it("sticky bottom bar width matches guide-layout max-widths", () => {

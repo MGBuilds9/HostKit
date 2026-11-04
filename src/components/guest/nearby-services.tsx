@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Phone, Navigation } from "lucide-react";
 import { SectionHeading } from "@/components/guest/section-heading";
+import { normalizeDialablePhone } from "@/lib/guide-utils";
 
 interface Service {
   name: string;
@@ -14,83 +15,155 @@ interface Service {
   notes?: string;
 }
 
+type SurfaceVars = CSSProperties & {
+  "--guest-ctl-bg"?: string;
+  "--guest-ctl-border"?: string;
+  "--guest-ctl-fg"?: string;
+};
+
 const categoryLabels: Record<string, string> = {
   grocery: "Grocery",
-  restaurant: "Food",
+  restaurant: "Food & Coffee",
   pharmacy: "Pharmacy",
   hospital: "Hospital",
   transit: "Transit",
   gas: "Gas",
   gym: "Gym",
-  park: "Park",
+  park: "Parks",
   entertainment: "Entertainment",
   other: "Other",
 };
 
 export function NearbyServices({ services }: { services: Service[] }) {
-  const categories = Array.from(new Set(services.map(s => s.category)));
+  const categories = Array.from(new Set(services.map((s) => s.category)));
   const [activeCategory, setActiveCategory] = useState(categories[0]);
 
-  const filtered = services.filter(s => s.category === activeCategory);
+  if (services.length === 0) return null;
+
+  const filtered = services.filter((s) => s.category === activeCategory);
 
   return (
-    <section>
-      <SectionHeading title="Nearby" />
+    <div>
+      <SectionHeading
+        title="Nearby Places"
+        subtitle="Groceries, coffee, dining, and transit within a few minutes."
+      />
 
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-              activeCategory === cat
-                ? "text-white"
-                : "hover:bg-black/5 dark:hover:bg-white/5"
-            }`}
-            style={
-              activeCategory === cat
-                ? { background: "var(--guest-accent)" }
-                : { background: "var(--guest-section-bg)", color: "var(--guest-text-muted)" }
-            }
-          >
-            {categoryLabels[cat] ?? cat}
-          </button>
-        ))}
+      <div
+        role="group"
+        aria-label="Filter nearby places by category"
+        className="flex gap-1.5 overflow-x-auto pb-2.5 scrollbar-hide"
+      >
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat;
+          return (
+            <button
+              key={cat}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => setActiveCategory(cat)}
+              className={`${
+                isActive ? "hover:opacity-90" : "guest-control-surface"
+              } inline-flex min-h-[44px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border px-3.5 text-xs font-semibold transition-[background-color,border-color,color,transform,opacity] duration-150 active:scale-[0.985]`}
+              style={
+                isActive
+                  ? {
+                      background: "var(--guest-cta-bg)",
+                      borderColor: "var(--guest-cta-bg)",
+                      color: "var(--guest-cta-ink)",
+                    }
+                  : ({
+                      "--guest-ctl-bg": "var(--guest-card)",
+                      "--guest-ctl-border": "var(--guest-control-border)",
+                      "--guest-ctl-fg": "var(--guest-text)",
+                    } as SurfaceVars)
+              }
+            >
+              {categoryLabels[cat] ?? cat}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="mt-3 space-y-2">
-        {filtered.map((svc) => (
-          <div key={svc.name + svc.category} className="rounded-xl p-4 border border-[var(--guest-card-border)] shadow-sm dark:shadow-none" style={{ background: "var(--guest-card)" }}>
-            <div className="flex justify-between items-start">
-              <div>
-                <h4 className="font-medium text-sm">{svc.name}</h4>
+      <div
+        className="divide-y overflow-hidden rounded-2xl border"
+        style={{
+          background: "var(--guest-card)",
+          borderColor: "var(--guest-card-border)",
+        }}
+      >
+        {filtered.map((svc) => {
+          const dialablePhone = normalizeDialablePhone(svc.phone);
+          const actionVars: SurfaceVars = {
+            "--guest-ctl-bg": "var(--guest-section-bg)",
+            "--guest-ctl-border": "var(--guest-control-border)",
+            "--guest-ctl-fg": "var(--guest-text)",
+          };
+          return (
+            <div
+              key={svc.name + svc.category}
+              className="px-4 py-3.5 sm:px-5"
+              style={{ borderColor: "var(--guest-card-border)" }}
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="min-w-0 text-sm font-semibold leading-snug">
+                  {svc.name}
+                </h3>
                 {svc.distance && (
-                  <p className="text-xs mt-0.5" style={{ color: "var(--guest-text-muted)" }}>{svc.distance}</p>
-                )}
-                {svc.notes && (
-                  <p className="text-xs mt-1" style={{ color: "var(--guest-text-muted)" }}>{svc.notes}</p>
+                  <span
+                    className="shrink-0 font-mono text-xs tabular-nums"
+                    style={{ color: "var(--guest-text-muted)" }}
+                  >
+                    {svc.distance}
+                  </span>
                 )}
               </div>
-            </div>
-            <div className="flex gap-3 mt-3">
-              {svc.googleMapsUrl && (
-                <a href={svc.googleMapsUrl} target="_blank" rel="noopener noreferrer"
-                   className="flex items-center gap-1 text-xs font-medium"
-                   style={{ color: "var(--guest-accent)" }}>
-                  <Navigation className="h-3 w-3" /> Directions
-                </a>
+              {svc.notes && (
+                <p
+                  className="mt-1 text-xs leading-relaxed"
+                  style={{ color: "var(--guest-text-muted)" }}
+                >
+                  {svc.notes}
+                </p>
               )}
-              {svc.phone && (
-                <a href={`tel:${svc.phone}`}
-                   className="flex items-center gap-1 text-xs font-medium"
-                   style={{ color: "var(--guest-accent)" }}>
-                  <Phone className="h-3 w-3" /> Call
-                </a>
+              {(svc.googleMapsUrl || dialablePhone) && (
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {svc.googleMapsUrl && (
+                    <a
+                      href={svc.googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="guest-control-surface inline-flex min-h-[44px] items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-xs font-medium transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.985]"
+                      style={actionVars}
+                    >
+                      <Navigation
+                        className="h-3.5 w-3.5 shrink-0"
+                        strokeWidth={1.75}
+                        style={{ color: "var(--guest-accent)" }}
+                      />
+                      <span>Directions</span>
+                    </a>
+                  )}
+                  {dialablePhone && (
+                    <a
+                      href={dialablePhone.href}
+                      className="guest-control-surface inline-flex min-h-[44px] items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-xs font-medium transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.985]"
+                      style={actionVars}
+                    >
+                      <Phone
+                        className="h-3.5 w-3.5 shrink-0"
+                        strokeWidth={1.75}
+                        style={{ color: "var(--guest-accent)" }}
+                      />
+                      <span>Call</span>
+                    </a>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-    </section>
+    </div>
   );
 }
