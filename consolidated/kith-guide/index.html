@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Kith · Guest Guide</title>
+<style>
+  :root{
+    --ivory:#F6F1E7; --cream:#FBF8F2; --ink:#3A362E; --ink-soft:#6B665C;
+    --taupe:#B4A488; --taupe-light:#C8BBA1; --charcoal:#2B2822; --hairline:#E3DACB;
+    --ok:#2E7D4F; --ok-bg:#EDF5EF; --warn-bg:#FBF3E9; --warn-line:#EBD3B5;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:var(--ivory); color:var(--ink);
+    font-family:Georgia,"Times New Roman",serif; line-height:1.65;}
+  .wrap{max-width:700px; margin:0 auto; padding:0 18px 70px;}
+  /* hero */
+  .hero{background:var(--charcoal); color:var(--ivory); text-align:center; padding:52px 22px 40px;}
+  .hero .label{font-size:12px; letter-spacing:.42em; text-transform:uppercase; color:var(--taupe-light); margin-bottom:14px;}
+  .hero h1{font-family:Georgia,serif; font-weight:400; font-size:clamp(30px,7vw,44px); margin:0 0 10px; letter-spacing:.02em;}
+  .hero p{margin:0 auto; max-width:440px; color:#CFC8B8; font-size:16px; font-style:italic;}
+  .hero .addr{margin-top:18px; display:inline-block; border:1px solid #4A453C; border-radius:2px;
+    padding:9px 18px; font-size:14px; font-style:normal; color:var(--ivory); letter-spacing:.04em;}
+  /* sticky nav */
+  .nav{position:sticky; top:0; z-index:50; background:rgba(246,241,231,.96);
+    border-bottom:1px solid var(--hairline); padding:10px 0; backdrop-filter:blur(6px);}
+  .nav .row{display:flex; gap:8px; overflow-x:auto; padding:2px 18px; max-width:700px; margin:0 auto;}
+  .nav a{flex:0 0 auto; text-decoration:none; color:var(--ink); font-size:13px; letter-spacing:.12em;
+    text-transform:uppercase; border:1px solid var(--hairline); background:var(--cream);
+    border-radius:999px; padding:8px 14px;}
+  /* sections */
+  section{scroll-margin-top:70px;}
+  .kicker{font-size:12px; letter-spacing:.42em; text-transform:uppercase; color:var(--taupe);
+    margin:38px 0 4px; display:flex; align-items:center; gap:14px;}
+  .kicker::after{content:""; flex:1; border-top:1px solid var(--taupe);}
+  h2{font-weight:400; font-size:26px; margin:6px 0 6px; letter-spacing:.01em;}
+  .sub{color:var(--ink-soft); font-size:15px; margin:0 0 16px; font-style:italic;}
+  .card{background:var(--cream); border:1px solid var(--hairline); border-radius:2px; padding:20px; margin:14px 0;}
+  .card h3{margin:0 0 8px; font-size:19px; font-weight:400;}
+  .card p{margin:0 0 10px; font-size:15.5px;}
+  .card p:last-child{margin-bottom:0;}
+  .facts{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0;}
+  .fact{background:var(--cream); border:1px solid var(--hairline); border-radius:2px; padding:14px;}
+  .fact .k{font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--taupe); margin-bottom:4px;}
+  .fact .v{font-size:17px; font-weight:bold;}
+  .fact .s{font-size:13.5px; color:var(--ink-soft); font-style:italic;}
+  .step{display:flex; gap:14px; margin:16px 0;}
+  .step .n{flex:0 0 34px; height:34px; border:1px solid var(--taupe); color:var(--taupe);
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; margin-top:2px;}
+  .step .body{flex:1;}
+  .step h3{margin:2px 0 6px; font-size:19px; font-weight:400;}
+  .step p{margin:0 0 10px; font-size:15.5px;}
+  video, img.media{width:100%; border-radius:2px; display:block; background:#111;}
+  img.media{background:#EDE8DB;}
+  .cap{font-size:13px; color:var(--ink-soft); font-style:italic; margin-top:8px;}
+  .tip{background:var(--ok-bg); border:1px solid #CBE3D2; border-radius:2px; padding:12px 14px; font-size:14.5px; margin-top:12px;}
+  .tip strong{color:var(--ok);}
+  .note{background:var(--warn-bg); border:1px solid var(--warn-line); border-radius:2px; padding:14px 16px; font-size:14.5px; margin:14px 0;}
+  .btnrow{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+  .btn{flex:1 1 140px; text-align:center; text-decoration:none; background:var(--charcoal); color:var(--ivory);
+    padding:14px 18px; border-radius:2px; font-size:15px; letter-spacing:.06em;}
+  .btn.alt{background:var(--cream); color:var(--ink); border:1px solid var(--hairline);}
+  .hostgrid{display:grid; grid-template-columns:1fr; gap:12px;}
+  @media(min-width:560px){.hostgrid{grid-template-columns:1fr 1fr;}}
+  .host{background:var(--cream); border:1px solid var(--hairline); border-radius:2px; padding:18px; text-align:center;}
+  .host .who{font-size:12px; letter-spacing:.3em; text-transform:uppercase; color:var(--taupe); margin-bottom:6px;}
+  .host .name{font-size:20px; margin-bottom:12px;}
+  .host .btnrow{margin-top:0;}
+  ul.plain{margin:8px 0; padding-left:20px; font-size:15.5px;}
+  ul.plain li{margin-bottom:6px;}
+  footer{margin-top:44px; text-align:center; color:var(--ink-soft); font-size:13.5px; font-style:italic;}
+  footer .rule{border-top:1px solid var(--hairline); margin:0 0 18px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="label">The Kith · Erin Mills</div>
+  <h1>Welcome to your stay</h1>
+  <p>Your complete guide to checking in and settling into the condo.</p>
+  <div><span class="addr">2485 Eglinton Avenue West, Unit 1423, Mississauga</span></div>
+</header>
+
+<nav class="nav"><div class="row">
+  <a href="#contact">Contact</a><a href="#checkin">Check-in</a><a href="#keys">Keys</a>
+  <a href="#wifi">Wi-Fi</a><a href="#parking">Parking</a><a href="#building">Building</a>
+  <a href="#around">Around</a>
+</div></nav>
+
+<div class="wrap">
+
+  <div class="facts">
+    <div class="fact"><div class="k">Check-in</div><div class="v">From 3:00 PM</div><div class="s">Call or text 30 min before arrival</div></div>
+    <div class="fact"><div class="k">Check-out</div><div class="v">11:00 AM</div><div class="s">Leave keys and fob in the unit</div></div>
+    <div class="fact"><div class="k">Wi-Fi</div><div class="v">MG-1423</div><div class="s">Password in your check-in message</div></div>
+    <div class="fact"><div class="k">Parking</div><div class="v">P3-257</div><div class="s">Arrive via visitor parking first</div></div>
+  </div>
+
+  <div class="note"><strong>One house rule:</strong> please do not interact with building security. They do not assist with short-term rentals. For anything you need, contact your hosts below. Enjoy your stay.</div>
+
+  <section id="contact">
+    <div class="kicker">Reach us</div>
+    <h2>Contact your hosts</h2>
+    <p class="sub">Tap to call or text. We are happy to help with anything during your stay.</p>
+    <div class="hostgrid">
+      <div class="host">
+        <div class="who">Check-in host</div>
+        <div class="name">Mariam</div>
+        <div class="btnrow">
+          <a class="btn" href="tel:+16478894122">Call</a>
+          <a class="btn alt" href="sms:+16478894122">Text</a>
+        </div>
+      </div>
+      <div class="host">
+        <div class="who">Your host</div>
+        <div class="name">Michael</div>
+        <div class="btnrow">
+          <a class="btn" href="tel:+10000000000">Call</a>
+          <a class="btn alt" href="sms:+10000000000">Text</a>
+        </div>
+      </div>
+    </div>
+    <p class="cap">Michael's direct number is being added. For now, Mariam is your fastest line for check-in help.</p>
+  </section>
+
+  <section id="checkin">
+    <div class="kicker">Arrival</div>
+    <h2>Check-in, step by step</h2>
+    <p class="sub">Short videos show exactly what to do at each step.</p>
+
+    <div class="card"><div class="step"><div class="n">1</div><div class="body">
+      <h3>Thirty minutes before arrival, say hello</h3>
+      <p>Call or text Mariam about 30 minutes before you reach the building so everything is ready for you.</p>
+      <div class="btnrow">
+        <a class="btn" href="tel:+16478894122">Call Mariam</a>
+        <a class="btn alt" href="sms:+16478894122">Text Mariam</a>
+      </div>
+    </div></div></div>
+
+    <div class="card"><div class="step"><div class="n">2</div><div class="body">
+      <h3>Drive in and park</h3>
+      <p>Drive up to the building and enter the parking garage. Head to <strong>visitor parking first</strong> on arrival. Your assigned spot for the stay is <strong>P3-257</strong>.</p>
+      <video controls preload="none" playsinline poster="posters/arrival-drive.jpg" src="assets/arrival-drive.mp4"></video>
+      <div class="cap">Driving to the building and into the garage.</div>
+      <img class="media" src="assets/parking-arrow.jpg" alt="Parking garage with painted arrow showing the direction" style="margin-top:12px;">
+      <div class="cap">Follow the marked direction once inside the garage.</div>
+    </div></div></div>
+
+    <div class="card"><div class="step"><div class="n">3</div><div class="body">
+      <h3>Get buzzed in</h3>
+      <p>At the <strong>TX-3 Touch Entry System</strong> intercom, open the resident directory and look for <strong>GUIRGUIS, M</strong>, then press <strong>CALL</strong>. Your host will buzz you in.</p>
+      <video controls preload="none" playsinline poster="posters/intercom-entry.jpg" src="assets/intercom-entry.mp4"></video>
+      <div class="cap">Finding the host in the intercom directory.</div>
+    </div></div></div>
+
+    <div class="card"><div class="step"><div class="n">4</div><div class="body">
+      <h3>Garage to elevator</h3>
+      <p>From the garage, walk through the door and take the elevator up to the <strong>14th floor</strong>.</p>
+      <video controls preload="none" playsinline poster="posters/garage-to-elevator.jpg" src="assets/garage-to-elevator.mp4"></video>
+      <div class="cap">The walk from the parking level to the elevator.</div>
+    </div></div></div>
+
+    <div class="card"><div class="step"><div class="n">5</div><div class="body">
+      <h3>Find your unit</h3>
+      <p>Walk down the 14th floor hallway to <strong>Unit 1423</strong>. The key and fob are waiting for you inside.</p>
+      <video controls preload="none" playsinline poster="posters/hallway-to-unit.jpg" src="assets/hallway-to-unit.mp4"></video>
+      <div class="cap">Hallway walk, the unit door, and the garbage chute nearby.</div>
+    </div></div></div>
+  </section>
+
+  <section id="keys">
+    <div class="kicker">Access</div>
+    <h2>Keys and fob</h2>
+    <p class="sub">Your set for the stay.</p>
+    <div class="card">
+      <img class="media" src="assets/keys-and-fob.jpg" alt="SALTO key card and unit key with black fob on the counter">
+      <div class="cap">A SALTO access card plus the unit key with black fob.</div>
+      <div class="tip"><strong>Using the fob:</strong> tap the black fob on the SALTO reader next to doors to unlock them, as shown below.</div>
+      <video controls preload="none" playsinline poster="posters/fob-and-garbage-room.jpg" src="assets/fob-and-garbage-room.mp4" style="margin-top:12px;"></video>
+      <div class="cap">Tapping the SALTO fob, plus a look at the garbage room.</div>
+    </div>
+  </section>
+
+  <section id="inside">
+    <div class="kicker">In the unit</div>
+    <h2>Make yourself at home</h2>
+    <div class="card">
+      <h3>Blinds</h3>
+      <p>The bedroom blinds are remote controlled. The up arrow raises, the down arrow lowers, and the square button stops.</p>
+      <video controls preload="none" playsinline poster="posters/blinds-remote.jpg" src="assets/blinds-remote.mp4"></video>
+      <div class="cap">How the blind remote works.</div>
+    </div>
+  </section>
+
+  <section id="wifi">
+    <div class="kicker">Connectivity</div>
+    <h2>Wi-Fi</h2>
+    <div class="card">
+      <p><strong>Network:</strong> MG-1423<br><strong>Password:</strong> as shared in your check-in message.</p>
+    </div>
+  </section>
+
+  <section id="parking">
+    <div class="kicker">Parking</div>
+    <h2>Parking</h2>
+    <div class="card">
+      <p>Your spot for the stay is <strong>P3-257</strong> on parking level 3. On arrival day, come through <strong>visitor parking first</strong>, then move to P3-257 once you are checked in.</p>
+    </div>
+  </section>
+
+  <section id="building">
+    <div class="kicker">The Kith</div>
+    <h2>Building amenities</h2>
+    <p class="sub">Residents enjoy over 12,000 sq ft of amenity space across the building.</p>
+    <div class="card">
+      <ul class="plain">
+        <li>Fitness centre</li>
+        <li>Basketball court with running track</li>
+        <li>Theatre room</li>
+        <li>Co-working lounge with Wi-Fi</li>
+        <li>Party room</li>
+        <li>Outdoor terrace with BBQs</li>
+        <li>DIY workshop</li>
+        <li>Pet wash station</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Garbage and recycling</h3>
+      <p>There is a garbage chute on the 14th floor near your unit. It takes <strong>recycling and organics</strong>. Larger items go to the garbage room with the blue bins on the parking level.</p>
+    </div>
+  </section>
+
+  <section id="around">
+    <div class="kicker">Erin Mills</div>
+    <h2>Around the building</h2>
+    <p class="sub">Everything below is a short walk or drive from The Kith.</p>
+    <div class="card">
+      <ul class="plain">
+        <li><strong>Erin Mills Town Centre.</strong> Shopping and dining, about a two minute walk across the street.</li>
+        <li><strong>Walmart, 5100 Erin Mills Pkwy.</strong> Grocery and pharmacy, open 8 AM to 10 PM daily. Steps away.</li>
+        <li><strong>Credit Valley Hospital.</strong> About a two minute walk, just across Eglinton Avenue West.</li>
+        <li><strong>Transit.</strong> Bus stops right across the street, plus Erin Mills Station nearby with MiWay, GO Bus, and Oakville Transit connections. Quick access to Highways 403 and 407.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div class="rule"></div>
+    <p>Have a wonderful stay.<br>Questions at any hour, message your hosts above.</p>
+  </footer>
+
+</div>
+</body>
+</html>
