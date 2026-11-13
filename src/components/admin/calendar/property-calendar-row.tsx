@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDateRange } from "./calendar-utils";
 
 interface CleaningTask {
   id: string;
@@ -27,12 +28,6 @@ interface PropertyGroup {
   propertyId: string;
   propertyName: string;
   stays: Stay[];
-}
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  return `${s.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${e.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 }
 
 function stayStatusBadge(status: Stay["status"]) {

@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatDate } from "@/components/admin/calendar/calendar-utils";
 
 type TaskStatus = "pending" | "offered" | "accepted" | "in_progress" | "completed" | "cancelled";
 
@@ -37,14 +38,6 @@ interface TaskFiltersProps {
   onGoToToday: () => void;
   onStatusChange: (val: string) => void;
   onPropertyChange: (val: string) => void;
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export function TaskFilters({
