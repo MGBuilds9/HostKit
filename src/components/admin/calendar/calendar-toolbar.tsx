@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatDate } from "./calendar-utils";
 
 interface PropertyGroup {
   propertyId: string;
@@ -24,14 +25,6 @@ interface CalendarToolbarProps {
   onShiftWeek: (delta: number) => void;
   onGoToToday: () => void;
   onFilterChange: (value: string) => void;
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export const CalendarToolbar = React.memo(function CalendarToolbar({

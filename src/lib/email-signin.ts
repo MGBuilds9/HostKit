@@ -84,7 +84,7 @@ export async function emailSignInGate(email: string): Promise<true | string> {
   return true;
 }
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

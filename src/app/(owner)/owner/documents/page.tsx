@@ -10,14 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FolderOpen, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-function formatDate(date: Date) {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatDate } from "@/components/admin/calendar/calendar-utils";
 
 function typeLabel(type: string): string {
   switch (type) {

@@ -3,12 +3,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { invites, properties } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { inviteUrl } from "@/lib/invites";
 import { sendInviteEmail } from "@/lib/notifications";
-
-function inviteUrl(token: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://hostkit.mkgbuilds.com";
-  return `${base}/invite/${token}`;
-}
 
 // POST /api/admin/invites/[id]/resend
 // Re-send the invitation email for an existing invite. Admin only.

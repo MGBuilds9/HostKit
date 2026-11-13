@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { notifications, cleaningTasks, cleaners, pushSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
+import { escapeHtml } from "@/lib/email-signin";
 import { sendPushToSubscriptions } from "@/lib/push";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -183,14 +184,6 @@ async function isEmailEnabled(cleanerId: string): Promise<boolean> {
   });
   // Default to enabled if no preference set
   return cleaner?.notificationPreferences?.emailEnabled !== false;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
 
 export function buildInviteEmailHtml(

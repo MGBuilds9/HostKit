@@ -46,7 +46,7 @@ export function inviteWouldDowngrade(
   return false;
 }
 
-function inviteUrl(token: string): string {
+export function inviteUrl(token: string): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://hostkit.mkgbuilds.com";
   return `${base}/invite/${token}`;
 }

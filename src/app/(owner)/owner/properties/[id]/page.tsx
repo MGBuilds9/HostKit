@@ -8,14 +8,7 @@ import { requireAuth } from "@/lib/auth-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OwnerCalendarConnect } from "@/components/owner/calendar-connect";
-
-function formatDate(date: Date) {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatDate } from "@/components/admin/calendar/calendar-utils";
 
 export default async function OwnerPropertyDetailPage({
   params,
