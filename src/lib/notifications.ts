@@ -165,8 +165,6 @@ async function sendPushIfEnabled(opts: {
 
   if (subs.length === 0) return;
 
-  // TODO: Uncomment once web-push is installed and VAPID keys are configured.
-  // sendPushToSubscriptions is currently a no-op logger.
   await sendPushToSubscriptions(subs, {
     title: opts.title,
     body: opts.body,
