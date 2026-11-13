@@ -22,7 +22,3 @@ export function labelsAfterOutcome(
   }
   return Array.from(next);
 }
-
-export function isReviewAction(action: string): action is DraftFeedbackAction {
-  return action === "approved" || action === "edited" || action === "rejected" || action === "sent";
-}

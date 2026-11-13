@@ -161,10 +161,6 @@ export const createCleanerSchema = z.object({
 
 // ── Users ─────────────────────────────────────────────────
 
-export const userRoleUpdateSchema = z.object({
-  role: z.enum(["admin", "owner", "manager", "cleaner"]),
-});
-
 // Admin user editor — all fields optional, used by PATCH /api/users/[id]
 export const userUpdateSchema = z.object({
   name: z.string().optional(),
@@ -287,7 +283,6 @@ export const createInviteSchema = z
 // ── Host agent (KITH-2) ───────────────────────────────────
 
 export const hostExampleLabelSchema = z.enum(["yes", "no", "screening", "stay"]);
-export const hostDraftStatusSchema = z.enum(["pending", "approved", "sent", "rejected"]);
 
 export const createHostDraftSchema = z.object({
   title: z.string().min(1).max(200).optional(),
